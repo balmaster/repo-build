@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>ru.sberbank.sirius</groupId>
-		<artifactId>parent</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
-	</parent>
+  <parent>
+    <groupId>ru.sberbank.sirius</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
+  </parent>
 
-	<artifactId>sirius-build</artifactId>
-	<version>6.0.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
+  <artifactId>sirius-build</artifactId>
+  <version>6.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
-	<modules>
-		<module>../atm</module>
-		<module>../commons</module>
-		<module>../erib-connector-api</module>
-		<module>../journal</module>
-		<module>../journal-ear</module>
-		<module>../sbbol-connector-api</module>
-		<module>../security</module>
-		<module>../server-api</module>
-		<module>../storage-proto</module>
-		<module>../journal-5-api</module>
-		<module>../journal-old-api</module>
-		<module>../server</module>
-		<module>../server-ear</module>
-	</modules>
+  <modules>
+    <module>../commons</module>
+    <module>../security</module>
+    <module>../journal</module>
+    <module>../server</module>
+    <module>../arm-monitoring</module>
+    <module>../arm-server</module>
+    <module>../arm-settings</module>
+    <module>../atm</module>
+    <module>../storage-proto</module>
+  </modules>
 
 </project>
