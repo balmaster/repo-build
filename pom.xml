@@ -17,7 +17,6 @@
   <modules>
     <module>../journal</module>
     <module>../lib/commons</module>
-    <module>../lib/security</module>
     <module>../server</module>
   </modules>
 
