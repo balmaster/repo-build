@@ -47,7 +47,7 @@ void generatePomXml(File basedir, manifest, String featureBranch, File targetPom
                 "modules" {
                     manifest.project
                             .findAll {
-                                new File(new File(basedir,it.@path),"pom.xml").exists()
+                                new File(new File(basedir,it.@path),"pom.xml").exists() && !"build".equals(it.@path)
                             }
                             .each { "module"("../../${it.@path}") }
                 }
