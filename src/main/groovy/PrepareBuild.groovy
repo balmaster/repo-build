@@ -62,5 +62,6 @@ void prepareBuild(File basedir, manifest, featureBranch ) {
 def basedir = new File('..')
 def manifestFile = new File(basedir, 'manifest/default.xml')
 def manifest = new XmlParser().parse(manifestFile)
+def featureBranch = project.properties["featureBranch"]
 
-prepareBuild(basedir, manifest, "SIR-13")
+prepareBuild(basedir, manifest, featureBranch)
