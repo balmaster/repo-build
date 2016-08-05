@@ -56,10 +56,12 @@ void generatePomXml(File basedir, manifest, String featureBranch, File targetPom
 
 void prepareBuild(File basedir, manifest, featureBranch ) {
     mergeFeatureBranch(basedir, manifest, featureBranch )
-    generatePomXml(basedir, manifest, featureBranch,new File("target","buildPom.xml"))
+    generatePomXml(basedir, manifest, featureBranch,new File(basedir,"build/target/buildPom.xml"))
 }
 
-def basedir = new File('..')
+def basedir = new File(project.basedir,'..')
+println basedir
+
 def manifestFile = new File(basedir, 'manifest/default.xml')
 def manifest = new XmlParser().parse(manifestFile)
 def featureBranch = project.properties["featureBranch"]

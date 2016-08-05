@@ -30,7 +30,7 @@
               <properties>
                   <featureBranch>${featureBranch}</featureBranch>
               </properties>
-              <source>src/main/groovy/PrepareBuild.groovy</source>
+              <source>${basedir}/src/main/groovy/PrepareBuild.groovy</source>
             </configuration>
           </execution>
         </executions>
