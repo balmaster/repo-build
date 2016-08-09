@@ -2,7 +2,7 @@ import java.io.File;
 import groovy.xml.MarkupBuilder;
 
 class Pom {
-    static void generateXml(File basedir, manifest, String featureBranch, File targetPom) {
+    static void generateXml(RepoEnv env, String featureBranch, File targetPom) {
         println "Generate pom $targetPom"
     
         def xmlWriter = new FileWriter(targetPom)
@@ -17,9 +17,9 @@ class Pom {
                     "version"("7.0.0-SNAPSHOT")
                     "packaging"("pom")
                     "modules" {
-                        manifest.project
+                        env.manifest.project
                                 .findAll {
-                                    new File(new File(basedir,it.@path),"pom.xml").exists() && !"build".equals(it.@path)
+                                    new File(new File(env.basedir,it.@path),"pom.xml").exists() && !"build".equals(it.@path)
                                 }
                                 .each { "module"("../../${it.@path}") }
                     }

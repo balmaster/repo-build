@@ -28,15 +28,13 @@ class Git {
             { Node project ->
                 def dir = new File(env.basedir, project.@path)
                 println "branch $remoteBranch found in ${project.@path}"
-                if(branchPresent(dir, PREPARE_BUILD)){
-                    deleteBranch(dir, PREPARE_BUILD)
-                }
-                println ExecuteProcess.executeCmd0(dir,"git checkout -b $PREPARE_BUILD")
+                def startCommit = project.@revision.replaceFirst("refs/heads", env.manifest.remote[0].@name)
+                println ExecuteProcess.executeCmd0(dir,"git checkout -B $PREPARE_BUILD $startCommit")
                 println ExecuteProcess.executeCmd0(dir,"git merge $remoteBranch")
             })
     }
 
-    static void createFeatureBundles( RepoEnv env, String branch ) {
+    static void createFeatureBundles( RepoEnv env, String branch, File targetDir ) {
         def remoteBranch = getRemoteBranch(env, branch)
 
         RepoManifest.forEach(env, 
@@ -47,7 +45,7 @@ class Git {
                 println "branch $remoteBranch found in ${project.@path}"
                 def gitName = new File(project.@name).getName().split("\\.").first()
                 println gitName
-                def bundleFile = new File(env.getBuildTarget(),"${gitName}.bundle")
+                def bundleFile = new File(targetDir,"${gitName}.bundle")
                 println ExecuteProcess.executeCmd0(new File(env.basedir, project.@path),
                     "git bundle create $bundleFile $remoteBranch")
             })

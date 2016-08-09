@@ -1,8 +1,9 @@
 void createFeatureBundles(RepoEnv env, String featureBranch) {
     println env.basedir
     println featureBranch
-    env.getBuildTarget().mkdirs();
-    Git.createFeatureBundles(env, featureBranch )
+    def targetDir = new File(env.getBuildTarget(), featureBranch)
+    targetDir.mkdirs()
+    Git.createFeatureBundles(env, featureBranch, targetDir )
 }
 
 def env = new RepoEnv(project)
