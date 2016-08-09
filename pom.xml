@@ -80,6 +80,39 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>switchToFeature</id>
+      <activation>
+        <property>
+          <name>cmd</name>
+          <value>switchToFeature</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.groovy.maven</groupId>
+            <artifactId>gmaven-plugin</artifactId>
+            <version>1.0</version>
+            <executions>
+              <execution>
+                <id>switchToFeature</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <properties>
+                    <featureBranch>${featureBranch}</featureBranch>
+                  </properties>
+                  <source>${basedir}/src/main/groovy/SwitchToFeatureCmd.groovy</source>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <dependencies>
