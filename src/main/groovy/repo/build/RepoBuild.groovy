@@ -39,7 +39,7 @@ class RepoBuild {
                 case "import-bundles":
                     doImportBundles()
                     break;
-                case "exportBundles":
+                case "export-bundles":
                     doExportBundles()
                     break;
                 case "init":
@@ -73,15 +73,17 @@ class RepoBuild {
         if( featureBranch ) {
             Git.switchToBranch(env, featureBranch)
         } else {
+            throw new RepoBuildException("featureBranch required")
         }
     }
 
     void doPrepareMerge() {
         def featureBranch = options.f
-        if( !featureBranch) {
+        if( featureBranch) {
+            Git.mergeFeatureBranch(env, featureBranch )
+        } else {
             throw new RepoBuildException("featureBranch required")
         }
-        Git.mergeFeatureBranch(env, featureBranch )
     }
 
     void doImportBundles() {
