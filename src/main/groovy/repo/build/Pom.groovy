@@ -1,3 +1,4 @@
+package repo.build
 import java.io.File;
 import groovy.xml.MarkupBuilder;
 
@@ -21,7 +22,7 @@ class Pom {
                                 .findAll {
                                     new File(new File(env.basedir,it.@path),"pom.xml").exists() && !"build".equals(it.@path)
                                 }
-                                .each { "module"("../../${it.@path}") }
+                                .each { "module"(it.@path) }
                     }
                 }
     }
