@@ -78,7 +78,7 @@ class RepoBuild {
     }
 
     void doPrepareMerge() {
-        def featureBranch = options.f
+        def featureBranch = getRequired(options.f,"featureBranch")
         if( featureBranch) {
             Git.mergeFeatureBranch(env, featureBranch )
         } else {
@@ -90,10 +90,7 @@ class RepoBuild {
     }
 
     void doExportBundles() {
-        def featureBranch = options.f
-        if( !featureBranch) {
-            throw new RepoBuildException("featureBranch required")
-        }
+        def featureBranch = getRequired(options.f,"featureBranch")
         def targetExportDir = options.t ?
                 new File(options.t)
                 : new File(getRepoBasedir(), featureBranch)
@@ -103,8 +100,18 @@ class RepoBuild {
     }
 
     void doInit() {
+        def manifestUrl = options.M
+        def manifestBranch = getRequired(options.M, "manifestBranch")
     }
 
     static void doSync(options) {
+    }
+    
+    String getRequired(value, name) {
+        if(value) {
+            return value;
+        } else {
+            throw new RepoBuildException("$name required")
+        }
     }
 }
