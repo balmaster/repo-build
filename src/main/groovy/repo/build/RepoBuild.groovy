@@ -15,7 +15,13 @@ class RepoBuild {
 
     static main(args) {
         def repoBuild = new RepoBuild(args)
-        repoBuild.execute()
+        try {
+            repoBuild.execute()
+        }
+        catch(Exception e) {
+            e.printStackTrace()
+            System.out.println(e.message)
+        }
     }
 
 
@@ -23,6 +29,7 @@ class RepoBuild {
     void execute() {
         options = cli.parse(args)
         env = new RepoEnv(getRepoBasedir())
+        println getRepoBasedir()
 
         def commands = options.arguments();
         commands.each {
@@ -55,7 +62,7 @@ class RepoBuild {
     }
 
     File getRepoBasedir() {
-        return options.r ? new File(options.r) : new File(".")
+        return options.r ? new File(options.r) : new File(".").getAbsoluteFile()
     }
 
     void doBuildPom() {
@@ -71,7 +78,7 @@ class RepoBuild {
     void doSwitch() {
         def featureBranch = options.f
         if( featureBranch ) {
-            Git.switchToBranch(env, featureBranch)
+            RepoManifest.switchToBranch(env, featureBranch)
         } else {
             throw new RepoBuildException("featureBranch required")
         }
@@ -80,7 +87,7 @@ class RepoBuild {
     void doPrepareMerge() {
         def featureBranch = getRequired(options.f,"featureBranch")
         if( featureBranch) {
-            Git.mergeFeatureBranch(env, featureBranch )
+            RepoManifest.mergeFeatureBranch(env, featureBranch )
         } else {
             throw new RepoBuildException("featureBranch required")
         }
@@ -96,17 +103,27 @@ class RepoBuild {
                 : new File(getRepoBasedir(), featureBranch)
 
         targetExportDir.mkdirs()
-        Git.createFeatureBundles(env, featureBranch, targetExportDir )
+        RepoManifest.createFeatureBundles(env, featureBranch, targetExportDir )
     }
 
     void doInit() {
+        def manifestDir = new File(getRepoBasedir(), "manifest")
         def manifestUrl = options.M
+        if(!env.manifest) {
+            if(manifestUrl) {
+                Git.clone(env, manifestUrl, "origin", manifestDir )
+                env.openManifest()
+            } else {
+                throw new RepoBuildException("manifestUrl required")
+            }
+        }
         def manifestBranch = getRequired(options.M, "manifestBranch")
+        Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
     }
 
     static void doSync(options) {
     }
-    
+
     String getRequired(value, name) {
         if(value) {
             return value;

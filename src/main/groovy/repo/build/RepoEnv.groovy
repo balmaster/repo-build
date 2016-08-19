@@ -2,13 +2,18 @@ package repo.build
 class RepoEnv {
 
     final File basedir;
-    final Node manifest;
-    
+    Node manifest;
+
     RepoEnv(File basedir) {
         this.basedir = basedir
-        
-        def manifestFile = new File(basedir, 'manifest/default.xml')
-        manifest = new XmlParser().parse(manifestFile)
+
+        openManifest()
     }
     
+    void openManifest() {
+        def manifestFile = new File(basedir, 'manifest/default.xml')
+        if(manifestFile.exists()) {
+            manifest = new XmlParser().parse(manifestFile)
+        }
+    }
 }
