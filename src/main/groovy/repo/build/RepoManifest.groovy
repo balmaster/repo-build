@@ -5,8 +5,16 @@ import java.io.File;
 class RepoManifest {
     static final String BUILD = "build"
 
+    static String getRemoteName(RepoEnv env) {
+        return env.manifest.remote[0].@name
+    }
+
+    static String getRemoteBaseUrl(RepoEnv env) {
+        return env.manifest.remote[0].@fetch
+    }
+
     static String getRemoteBranch(RepoEnv env, String branch) {
-        def remoteName = env.manifest.remote[0].@name
+        def remoteName = getRemoteName(env)
         return "$remoteName/$branch"
     }
 
@@ -14,6 +22,10 @@ class RepoManifest {
         env.manifest.project
                 .findAll {  filter(it) }
                 .each { action(it) }
+    }
+
+    static void forEach(RepoEnv env, Closure action) {
+        forEach(env, { true } , action)
     }
 
     static void forEachWithFeatureBranch(RepoEnv env, Closure action, String branch) {
@@ -38,17 +50,31 @@ class RepoManifest {
 
     static void switchToBranch( RepoEnv env, String branch ) {
         def remoteBranch = getRemoteBranch(env, branch)
-
-        RepoManifest.forEach(env, { project ->
-            !BUILD.equals(project.@path)
-        }, { Node project ->
+        RepoManifest.forEach(env,  { Node project ->
             Git.checkoutUpdate(env, branch, remoteBranch, new File(env.basedir,project.@path))
+        })
+    }
+
+    static void fetchUpdate( RepoEnv env ) {
+        def remoteName = getRemoteName(env)
+        def remoteBaseUrl = getRemoteBaseUrl(env)
+        RepoManifest.forEach(env, { Node project ->
+            def branch = getBranch(env, project.@path)
+            def remoteBranch = getRemoteBranch(env, branch)
+            def dir = new File(env.basedir,project.@path)
+            def name = project.@name
+            if(new File(dir, ".git").exists()) {
+                Git.fetch(env, remoteName, dir)
+            } else {
+                dir.mkdirs()
+                Git.clone(env, "$remoteBaseUrl/$name", remoteName, dir)
+            }
+            Git.checkoutUpdate(env, branch, remoteBranch, dir)
         })
     }
 
     static void mergeFeatureBranch( RepoEnv env, String branch ) {
         def remoteBranch = getRemoteBranch(env, branch)
-
         forEachWithFeatureBranch(env, { Node project ->
             def dir = new File(env.basedir, project.@path)
             println "branch $remoteBranch found in ${project.@path}"
@@ -57,7 +83,7 @@ class RepoManifest {
         }, branch)
     }
 
-    static void createFeatureBundles( RepoEnv env, String branch, File targetDir ) {
+    static void createFeatureBundles( RepoEnv env, File targetDir, String branch ) {
         def remoteBranch = getRemoteBranch(env, branch)
 
         forEachWithFeatureBranch(env, { Node project ->
@@ -67,5 +93,19 @@ class RepoManifest {
             def bundleFile = new File(targetDir,"${gitName}.bundle")
             Git.createFeatureBundle(env, remoteBranch, dir, bundleFile)
         }, branch)
+    }
+
+    static void createFeatureBundles( RepoEnv env, File targetDir ) {
+        forEach(env, { Node project ->
+            def dir = new File(env.basedir, project.@path)
+            // берем из манифеста
+            def branch = getBranch(env, project.@path)
+            def remoteBranch = getRemoteBranch(env, branch)
+
+            def gitName = new File(project.@name).getName().split("\\.").first()
+            println gitName
+            def bundleFile = new File(targetDir,"${gitName}.bundle")
+            Git.createFeatureBundle(env, remoteBranch, dir, bundleFile)
+        })
     }
 }

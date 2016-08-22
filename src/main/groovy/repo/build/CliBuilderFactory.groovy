@@ -2,7 +2,7 @@ package repo.build
 
 class CliBuilderFactory {
     static CliBuilder build() {
-        def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] [init | sync | build-pom | switch | prepare-merge | import-bundles | export-bundles]*')
+        def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] [init | sync | build-pom | switch | prepare-merge | export-bundles]*')
         cli.with {
             r( args:1, argName: 'repoBasedir','base dir of repo projects')
             p( args:1, argName: 'buildPomFile', '')

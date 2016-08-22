@@ -9,6 +9,9 @@ class Git {
         return ! ExecuteProcess.executeCmd0(dir, "git ls-remote . $branch").empty;
     }
 
+    static String getBranch(File dir) {
+        return ExecuteProcess.executeCmd0(dir, "git rev-parse --abbrev-ref HEAD")
+    }    
 
     static void deleteBranch(File dir, String branch) {
         ExecuteProcess.executeCmd0(dir,"git branch -d $branch")
@@ -23,6 +26,9 @@ class Git {
         ExecuteProcess.executeCmd0(dir, "git bundle create $bundleFile $branch")
     }
 
+    static void fetch( RepoEnv env, String remoteName, File dir ) {
+        ExecuteProcess.executeCmd0(dir, "git fetch $remoteName")
+    }
 
     static void checkoutUpdate(RepoEnv env, String branch, String remoteBranch, File dir) {
         if(Git.branchPresent(dir, branch)) {

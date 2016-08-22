@@ -3,6 +3,8 @@ package repo.build
 import groovy.util.CliBuilder;
 
 class RepoBuild {
+
+    private static final String ORIGIN = "origin"
     final CliBuilder cli
     final String[] args
     OptionAccessor options
@@ -94,6 +96,11 @@ class RepoBuild {
     }
 
     void doImportBundles() {
+        // чтобы импортировать бандлы нам нужен файл преобразования веток
+        // если записи в файле нет то такая ветка в бандле пропускается
+        // repository должно кодироваться в имени бандла
+        // формаат файла преобразования
+        // repository;branchSource;branchTarget
     }
 
     void doExportBundles() {
@@ -103,25 +110,53 @@ class RepoBuild {
                 : new File(getRepoBasedir(), featureBranch)
 
         targetExportDir.mkdirs()
-        RepoManifest.createFeatureBundles(env, featureBranch, targetExportDir )
+        RepoManifest.createFeatureBundles(env, targetExportDir, featureBranch )
     }
 
     void doInit() {
-        def manifestDir = new File(getRepoBasedir(), "manifest")
         def manifestUrl = options.M
+        def manifestBranch = getRequired(options.b, "manifestBranch")
         if(!env.manifest) {
-            if(manifestUrl) {
-                Git.clone(env, manifestUrl, "origin", manifestDir )
-                env.openManifest()
-            } else {
-                throw new RepoBuildException("manifestUrl required")
-            }
+            cloneManifest(manifestUrl, manifestBranch)
+        } else {
+            checkoutUpdateManifest(manifestBranch)
         }
-        def manifestBranch = getRequired(options.M, "manifestBranch")
-        Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
     }
 
-    static void doSync(options) {
+    void doSync(options) {
+        if(getManifestDir().exists()) {
+            def manifestBranch = Git.getBranch(getManifestDir())
+            if("HEAD".equals(manifestBranch)) {
+                throw new RepoBuildException("manifest branch must be local")
+            }
+            checkoutUpdateManifest(manifestBranch)
+            RepoManifest.fetchUpdate(env)
+        } else {
+            throw new RepoBuildException("manifest dir not found")
+        }
+    }
+
+    File getManifestDir() {
+        return new File(getRepoBasedir(), "manifest")
+    }
+
+    void cloneManifest(String manifestUrl, String manifestBranch) {
+        def manifestDir = getManifestDir()
+        if(manifestUrl) {
+            manifestDir.mkdirs()
+            Git.clone(env, manifestUrl, ORIGIN, manifestDir )
+        } else {
+            throw new RepoBuildException("manifestUrl required")
+        }
+        Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
+        env.openManifest()
+    }
+
+    void checkoutUpdateManifest(String manifestBranch) {
+        def manifestDir = getManifestDir()
+        Git.fetch(env, ORIGIN,  manifestDir)
+        Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
+        env.openManifest()
     }
 
     String getRequired(value, name) {
