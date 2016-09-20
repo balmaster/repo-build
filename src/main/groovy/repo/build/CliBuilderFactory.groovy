@@ -13,6 +13,7 @@ class CliBuilderFactory {
             b( args:1, argName: 'manifestBranchName', '')
             j( args:1, argName: 'parallel', '')
             d( 'detach from branches' )
+            m( 'use manifest branches' )
             
         }
         return cli

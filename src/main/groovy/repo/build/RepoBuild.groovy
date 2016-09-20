@@ -1,10 +1,20 @@
 package repo.build
 
 import groovy.util.CliBuilder;
+import org.apache.logging.log4j.Logger
+import org.apache.logging.log4j.LogManager
 
 class RepoBuild {
 
+    static Logger logger = LogManager.getLogger(RepoBuild.class);
+
     private static final String ORIGIN = "origin"
+
+    static final String BUNDLES = "bundles"
+
+    static final String MANIFEST = "manifest"
+
+    static final String POM_XML = "pom.xml"
     final CliBuilder cli
     final String[] args
     OptionAccessor options
@@ -21,8 +31,7 @@ class RepoBuild {
             repoBuild.execute()
         }
         catch(Exception e) {
-            e.printStackTrace()
-            System.out.println(e.message)
+            logger.error(e.message)
         }
     }
 
@@ -70,19 +79,23 @@ class RepoBuild {
     void doBuildPom() {
         def buildPomFile = options.p ?
                 new File(options.p) :
-                new File(getRepoBasedir(),"pom.xml")
+                new File(getRepoBasedir(),POM_XML)
         def featureBranch = options.f ?
                 options.f :
-                RepoManifest.getBranch(env, "manifest")
+                Git.getBranch(new File(getRepoBasedir(), MANIFEST))
         Pom.generateXml(env, featureBranch, buildPomFile)
     }
 
     void doSwitch() {
-        def featureBranch = options.f
-        if( featureBranch ) {
-            RepoManifest.switchToBranch(env, featureBranch)
+        if(options.m) {
+            //RepoManifest.
         } else {
-            throw new RepoBuildException("featureBranch required")
+            def featureBranch = options.f
+            if( featureBranch ) {
+                RepoManifest.switchToBranch(env, featureBranch)
+            } else {
+                throw new RepoBuildException("Use: 'repo-build -f <featureBranch> switch'")
+            }
         }
     }
 
@@ -91,35 +104,39 @@ class RepoBuild {
         if( featureBranch) {
             RepoManifest.mergeFeatureBranch(env, featureBranch )
         } else {
-            throw new RepoBuildException("featureBranch required")
+            throw new RepoBuildException("Use: 'repo-build -f <featureBranch> prepare-merge'")
         }
     }
 
     void doImportBundles() {
-        // чтобы импортировать бандлы нам нужен файл преобразования веток
-        // если записи в файле нет то такая ветка в бандле пропускается
-        // repository должно кодироваться в имени бандла
-        // формаат файла преобразования
-        // repository;branchSource;branchTarget
     }
 
     void doExportBundles() {
-        def featureBranch = getRequired(options.f,"featureBranch")
-        def targetExportDir = options.t ?
-                new File(options.t)
-                : new File(getRepoBasedir(), featureBranch)
+        if(options.f) {
+            def featureBranch = getRequired(options.f,"featureBranch")
+            def targetExportDir = options.t ?
+                    new File(options.t)
+                    : new File(getRepoBasedir(), BUNDLES)
 
-        targetExportDir.mkdirs()
-        RepoManifest.createFeatureBundles(env, targetExportDir, featureBranch )
+            targetExportDir.mkdirs()
+            RepoManifest.createFeatureBundles(env, targetExportDir, featureBranch )
+        } else if(options.m){
+            def targetExportDir = options.t ?
+                    new File(options.t)
+                    : new File(getRepoBasedir(), BUNDLES)
+
+            targetExportDir.mkdirs()
+            RepoManifest.createManifestBundles(env, targetExportDir )
+        } else {
+            throw new RepoBuildException("Use: 'repo-build -m export-bundles' or 'repo-build -f <featureBranch> export-bundles'")
+        }
     }
 
     void doInit() {
-        def manifestUrl = options.M
-        def manifestBranch = getRequired(options.b, "manifestBranch")
-        if(!env.manifest) {
-            cloneManifest(manifestUrl, manifestBranch)
+        if(!env.MANIFEST) {
+            cloneManifest()
         } else {
-            checkoutUpdateManifest(manifestBranch)
+            checkoutUpdateManifest()
         }
     }
 
@@ -127,7 +144,7 @@ class RepoBuild {
         if(getManifestDir().exists()) {
             def manifestBranch = Git.getBranch(getManifestDir())
             if("HEAD".equals(manifestBranch)) {
-                throw new RepoBuildException("manifest branch must be local")
+                throw new RepoBuildException("manifest branch must be local, use repo-build -b <manifestBranch> init" )
             }
             checkoutUpdateManifest(manifestBranch)
             RepoManifest.fetchUpdate(env)
@@ -137,33 +154,36 @@ class RepoBuild {
     }
 
     File getManifestDir() {
-        return new File(getRepoBasedir(), "manifest")
+        return new File(getRepoBasedir(), MANIFEST)
     }
 
-    void cloneManifest(String manifestUrl, String manifestBranch) {
+    void cloneManifest() {
+        def manifestUrl = options.M
+        def manifestBranch = options.b
         def manifestDir = getManifestDir()
-        if(manifestUrl) {
+        if(manifestUrl && manifestBranch) {
             manifestDir.mkdirs()
             Git.clone(env, manifestUrl, ORIGIN, manifestDir )
         } else {
-            throw new RepoBuildException("manifestUrl required")
+            throw new RepoBuildException("Use: 'repo-build -M <manifestUrl> -b <manifestBranch>'")
         }
         Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
         env.openManifest()
     }
 
-    void checkoutUpdateManifest(String manifestBranch) {
+    void checkoutUpdateManifest() {
+        def manifestBranch = getRequired(options.b, "Use: 'repo-build -b <manifestBranch>'")
         def manifestDir = getManifestDir()
         Git.fetch(env, ORIGIN,  manifestDir)
         Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
         env.openManifest()
     }
 
-    String getRequired(value, name) {
+    String getRequired(value, msg) {
         if(value) {
             return value;
         } else {
-            throw new RepoBuildException("$name required")
+            throw new RepoBuildException(msg)
         }
     }
 }

@@ -13,6 +13,7 @@
     <r>${basedir}/..</r>
     <featureBranch>defaultFeature</featureBranch>
     <groovy.version>2.4.5</groovy.version>
+    <log4j.version>2.5</log4j.version>
   </properties>
 
   <build>
@@ -132,108 +133,6 @@
     </plugins>
   </build>
 
-  <profiles>
-    <profile>
-      <id>build-pom</id>
-      <activation>
-        <property>
-          <name>command</name>
-          <value>build-pom</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.5.0</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>java</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <mainClass>repo.build.RepoBuild</mainClass>
-              <workingDirectory>${r}</workingDirectory>
-              <arguments>
-                <argument>-r${r}</argument>
-                <argument>${command}</argument>
-              </arguments>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>createFeatureBundles</id>
-      <activation>
-        <property>
-          <name>cmd</name>
-          <value>createFeatureBundles</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.groovy.maven</groupId>
-            <artifactId>gmaven-plugin</artifactId>
-            <version>1.0</version>
-            <executions>
-              <execution>
-                <id>createFeatureBundles</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>execute</goal>
-                </goals>
-                <configuration>
-                  <properties>
-                    <featureBranch>${featureBranch}</featureBranch>
-                  </properties>
-                  <source>${basedir}/src/main/groovy/CreateFeatureBundlesCmd.groovy</source>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>switchToFeature</id>
-      <activation>
-        <property>
-          <name>cmd</name>
-          <value>switchToFeature</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.groovy.maven</groupId>
-            <artifactId>gmaven-plugin</artifactId>
-            <version>1.0</version>
-            <executions>
-              <execution>
-                <id>switchToFeature</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>execute</goal>
-                </goals>
-                <configuration>
-                  <properties>
-                    <featureBranch>${featureBranch}</featureBranch>
-                  </properties>
-                  <source>${basedir}/src/main/groovy/SwitchToFeatureCmd.groovy</source>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
   <dependencies>
     <dependency>
       <groupId>org.codehaus.groovy</groupId>
@@ -252,6 +151,12 @@
       <artifactId>junit</artifactId>
       <version>4.12</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j.version}</version>
     </dependency>
   </dependencies>
 </project>

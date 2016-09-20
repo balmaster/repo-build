@@ -3,7 +3,6 @@ package repo.build
 import java.io.File;
 
 class RepoManifest {
-    static final String BUILD = "build"
 
     static String getRemoteName(RepoEnv env) {
         return env.manifest.remote[0].@name
@@ -32,12 +31,29 @@ class RepoManifest {
         def remoteBranch = getRemoteBranch(env, branch)
 
         forEach(env, {   project ->
-            Git.branchPresent(new File(env.basedir,project.@path), remoteBranch) && !BUILD.equals(project.@path)
+            Git.branchPresent(new File(env.basedir,project.@path), remoteBranch)
         },
         action)
     }
 
-
+    static void forEachManifestBranch( RepoEnv env ) {
+        def remoteName = getRemoteName(env)
+        def remoteBaseUrl = getRemoteBaseUrl(env)
+        RepoManifest.forEach(env, { Node project ->
+            def branch = getBranch(env, project.@path)
+            def remoteBranch = getRemoteBranch(env, branch)
+            def dir = new File(env.basedir,project.@path)
+            def name = project.@name
+            if(new File(dir, ".git").exists()) {
+                Git.fetch(env, remoteName, dir)
+            } else {
+                dir.mkdirs()
+                Git.clone(env, "$remoteBaseUrl/$name", remoteName, dir)
+            }
+            Git.checkoutUpdate(env, branch, remoteBranch, dir)
+        })
+    }
+    
     static String getBranch(RepoEnv env, String projectPath) {
         return env.manifest.project
                 .findAll {
@@ -93,6 +109,18 @@ class RepoManifest {
             def bundleFile = new File(targetDir,"${gitName}.bundle")
             Git.createFeatureBundle(env, remoteBranch, dir, bundleFile)
         }, branch)
+    }
+
+    static void createManifestBundles( RepoEnv env, File targetDir) {
+
+        forEach(env, { Node project ->
+            def remoteBranch = getRemoteBranch(env, getBranch(env, project.@path))
+            def dir = new File(env.basedir, project.@path)
+            def gitName = new File(project.@name).getName().split("\\.").first()
+            println gitName
+            def bundleFile = new File(targetDir,"${gitName}.bundle")
+            Git.createFeatureBundle(env, remoteBranch, dir, bundleFile)
+        })
     }
 
     static void createFeatureBundles( RepoEnv env, File targetDir ) {

@@ -8,7 +8,7 @@
 
 Установка 
 	
-	Распаковать сборку repo-build-X.Y.Z.zip
+	Распаковать сборку repo-build-X.Y.Z.zip, например в ~/opt
 	прописать путь в PATH
 
 Получаем проект, переключаемся на релиз, генерируем build файл, собираем
@@ -41,7 +41,16 @@
 команда prepare-merge для отведения prepareBuild веток и мержа в них фича веток
 	-f <feature branch name>
 команда export-bundles для формирования бандлов
-	-t <target export directory> 
+	-t <target export directory>
+		если не задана то равна bundles 
+		бандлы выгружаются в виде
+			<repository1>.bundle
+			<repository2>.bundle
+			bundles.xml
+				файл реестра 
+				<bundles>
+					<bundle repository="" file="" branch="">
+				</bundles> 
 	по фича веткам
 		-f <feature branch name>
 	по релизным веткам по манифесту
@@ -49,6 +58,7 @@
 команда import-bundles для мержа веток из бандлов в локальные репозитории
 	-s <source import directory>
 		если нее задан то равен текущему каталогу 
+		в этом каталоге должны находится бандлы и файл реестра 
  	по фича веткам
 		-f <feature branch name>
 		--target-branch=<target feature name>
