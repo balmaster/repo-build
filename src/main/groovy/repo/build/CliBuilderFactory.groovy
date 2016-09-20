@@ -1,5 +1,7 @@
 package repo.build
 
+import groovy.transform.CompileStatic;
+
 class CliBuilderFactory {
     static CliBuilder build() {
         def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] [init | sync | build-pom | switch | prepare-merge | export-bundles]*')

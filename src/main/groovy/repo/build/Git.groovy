@@ -1,17 +1,20 @@
 package repo.build
-import java.io.File;
+import java.io.File
 
+import groovy.transform.CompileStatic;
+
+@CompileStatic
 class Git {
 
     static final String PREPARE_BUILD = "prepareBuild"
 
     static boolean branchPresent( File dir, String branch ) {
-        return ! ExecuteProcess.executeCmd0(dir, "git ls-remote . $branch").empty;
+        return ! ExecuteProcess.executeCmd0(dir, "git ls-remote . $branch").empty
     }
 
     static String getBranch(File dir) {
         return ExecuteProcess.executeCmd0(dir, "git rev-parse --abbrev-ref HEAD")
-    }    
+    }
 
     static void deleteBranch(File dir, String branch) {
         ExecuteProcess.executeCmd0(dir,"git branch -d $branch")

@@ -1,12 +1,13 @@
 package repo.build
 
-import groovy.util.CliBuilder;
+import groovy.util.CliBuilder
 import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.LogManager
+import groovy.transform.CompileStatic
 
 class RepoBuild {
 
-    static Logger logger = LogManager.getLogger(RepoBuild.class);
+    static Logger logger = LogManager.getLogger(RepoBuild.class)
 
     private static final String ORIGIN = "origin"
 
@@ -20,12 +21,13 @@ class RepoBuild {
     OptionAccessor options
     RepoEnv env
 
-    RepoBuild(args) {
+    RepoBuild(String [] args) {
         this.cli = CliBuilderFactory.build()
         this.args = args
     }
 
-    static main(args) {
+    @CompileStatic
+    static void main(String [] args) {
         def repoBuild = new RepoBuild(args)
         try {
             repoBuild.execute()
@@ -34,38 +36,36 @@ class RepoBuild {
             logger.error(e.message)
         }
     }
-
-
-
+    
     void execute() {
         options = cli.parse(args)
         env = new RepoEnv(getRepoBasedir())
         println getRepoBasedir()
 
-        def commands = options.arguments();
+        def commands = options.arguments()
         commands.each {
             switch(it) {
                 case "build-pom":
                     doBuildPom()
-                    break;
+                    break
                 case "switch":
                     doSwitch()
-                    break;
+                    break
                 case "prepare-merge":
                     doPrepareMerge()
-                    break;
+                    break
                 case "import-bundles":
                     doImportBundles()
-                    break;
+                    break
                 case "export-bundles":
                     doExportBundles()
-                    break;
+                    break
                 case "init":
                     doInit()
-                    break;
+                    break
                 case "sync":
                     doSync()
-                    break;
+                    break
                 default:
                     println cli.usage()
             }
@@ -133,14 +133,16 @@ class RepoBuild {
     }
 
     void doInit() {
-        if(!env.MANIFEST) {
+        if(!env.manifest) {
             cloneManifest()
         } else {
-            checkoutUpdateManifest()
+            def manifestBranch = getRequired(options.b, "Use: 'repo-build -b <manifestBranch>'")
+            checkoutUpdateManifest(manifestBranch)
         }
     }
 
-    void doSync(options) {
+    @CompileStatic
+    void doSync() {
         if(getManifestDir().exists()) {
             def manifestBranch = Git.getBranch(getManifestDir())
             if("HEAD".equals(manifestBranch)) {
@@ -153,6 +155,7 @@ class RepoBuild {
         }
     }
 
+    @CompileStatic
     File getManifestDir() {
         return new File(getRepoBasedir(), MANIFEST)
     }
@@ -171,17 +174,17 @@ class RepoBuild {
         env.openManifest()
     }
 
-    void checkoutUpdateManifest() {
-        def manifestBranch = getRequired(options.b, "Use: 'repo-build -b <manifestBranch>'")
+    void checkoutUpdateManifest(String manifestBranch) {
         def manifestDir = getManifestDir()
         Git.fetch(env, ORIGIN,  manifestDir)
         Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
         env.openManifest()
     }
 
-    String getRequired(value, msg) {
+    @CompileStatic
+    String getRequired(value, String msg) {
         if(value) {
-            return value;
+            return value
         } else {
             throw new RepoBuildException(msg)
         }

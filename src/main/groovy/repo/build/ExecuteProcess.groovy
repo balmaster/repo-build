@@ -1,7 +1,10 @@
 package repo.build
 import java.io.File
-import java.io.IOException;;
+import java.io.IOException
 
+import groovy.transform.CompileStatic;;;
+
+@CompileStatic
 class ExecuteProcess {
 
     static String executeCmd0(File dir, String cmd) {

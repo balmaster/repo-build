@@ -1,4 +1,8 @@
 package repo.build
+
+import groovy.transform.CompileStatic;
+
+@CompileStatic
 class RepoEnv {
 
     final File basedir;

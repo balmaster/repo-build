@@ -1,6 +1,8 @@
 package repo.build
 
-import java.io.File;
+import java.io.File
+
+import groovy.transform.CompileStatic;;
 
 class RepoManifest {
 
@@ -12,6 +14,7 @@ class RepoManifest {
         return env.manifest.remote[0].@fetch
     }
 
+    @CompileStatic
     static String getRemoteBranch(RepoEnv env, String branch) {
         def remoteName = getRemoteName(env)
         return "$remoteName/$branch"
@@ -23,6 +26,7 @@ class RepoManifest {
                 .each { action(it) }
     }
 
+    @CompileStatic
     static void forEach(RepoEnv env, Closure action) {
         forEach(env, { true } , action)
     }
@@ -126,7 +130,6 @@ class RepoManifest {
     static void createFeatureBundles( RepoEnv env, File targetDir ) {
         forEach(env, { Node project ->
             def dir = new File(env.basedir, project.@path)
-            // берем из манифеста
             def branch = getBranch(env, project.@path)
             def remoteBranch = getRemoteBranch(env, branch)
 
