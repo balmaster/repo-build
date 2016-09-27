@@ -2,9 +2,14 @@ package repo.build
 
 import java.io.File
 
-import groovy.transform.CompileStatic;;
+import org.apache.logging.log4j.Logger;
+
+import groovy.transform.CompileStatic;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 class RepoManifest {
+    static Logger logger = LogManager.getLogger(RepoManifest.class)
 
     static String getRemoteName(RepoEnv env) {
         return env.manifest.remote[0].@name
@@ -57,7 +62,7 @@ class RepoManifest {
             Git.checkoutUpdate(env, branch, remoteBranch, dir)
         })
     }
-    
+
     static String getBranch(RepoEnv env, String projectPath) {
         return env.manifest.project
                 .findAll {
@@ -93,12 +98,19 @@ class RepoManifest {
         })
     }
 
-    static void mergeFeatureBranch( RepoEnv env, String branch ) {
+    static void mergeFeatureBranch( RepoEnv env, String branch, Boolean mergeAbort ) {
         def remoteBranch = getRemoteBranch(env, branch)
         forEachWithFeatureBranch(env, { Node project ->
             def dir = new File(env.basedir, project.@path)
             println "branch $remoteBranch found in ${project.@path}"
             def startCommit = project.@revision.replaceFirst("refs/heads", env.manifest.remote[0].@name)
+            if(mergeAbort) {
+                try {
+                    Git.mergeAbort( env, dir)
+                } catch (Exception e) {
+                    // skip
+                }
+            }
             Git.mergeFeatureBranch(env, branch, remoteBranch, startCommit, dir)
         }, branch)
     }

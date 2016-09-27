@@ -17,12 +17,16 @@ class Git {
     }
 
     static void deleteBranch(File dir, String branch) {
-        ExecuteProcess.executeCmd0(dir,"git branch -d $branch")
+        ExecuteProcess.executeCmd0(dir, "git branch -d $branch")
     }
 
     static void mergeFeatureBranch( RepoEnv env, String branch, String remoteBranch, String startCommit, File dir ) {
-        ExecuteProcess.executeCmd0(dir,"git checkout -B $PREPARE_BUILD $startCommit")
-        ExecuteProcess.executeCmd0(dir,"git merge $remoteBranch")
+        ExecuteProcess.executeCmd0(dir, "git checkout -B $PREPARE_BUILD $startCommit")
+        ExecuteProcess.executeCmd0(dir, "git merge $remoteBranch")
+    }
+
+    static void mergeAbort( RepoEnv env, File dir ) {
+        ExecuteProcess.executeCmd0(dir, "git merge --abort")
     }
 
     static void createFeatureBundle( RepoEnv env, String branch, File dir, File bundleFile ) {

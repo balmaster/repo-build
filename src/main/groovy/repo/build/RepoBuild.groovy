@@ -34,6 +34,7 @@ class RepoBuild {
         }
         catch(Exception e) {
             logger.error(e.message)
+            System.exit(1);
         }
     }
     
@@ -102,7 +103,7 @@ class RepoBuild {
     void doPrepareMerge() {
         def featureBranch = getRequired(options.f,"featureBranch")
         if( featureBranch) {
-            RepoManifest.mergeFeatureBranch(env, featureBranch )
+            RepoManifest.mergeFeatureBranch(env, featureBranch, options.a )
         } else {
             throw new RepoBuildException("Use: 'repo-build -f <featureBranch> prepare-merge'")
         }

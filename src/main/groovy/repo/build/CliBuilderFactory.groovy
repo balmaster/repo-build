@@ -16,7 +16,7 @@ class CliBuilderFactory {
             j( args:1, argName: 'parallel', '')
             d( 'detach from branches' )
             m( 'use manifest branches' )
-            
+            a( 'execute merge --abort before merge' )
         }
         return cli
     }
