@@ -80,7 +80,11 @@ class RepoManifest {
     static void switchToBranch( RepoEnv env, String branch ) {
         def remoteBranch = getRemoteBranch(env, branch)
         RepoManifest.forEach(env,  { Node project ->
-            Git.checkoutUpdate(env, branch, remoteBranch, new File(env.basedir,project.@path))
+            def dir = new File(env.basedir,project.@path)
+            // переключаемся только если есть локальная или удаленная фича ветка
+            if( Git.branchPresent(dir, branch) || Git.branchPresent(dir, remoteBranch)) {
+                Git.checkoutUpdate(env, branch, remoteBranch, new File(env.basedir,project.@path))
+            }
         })
     }
 
