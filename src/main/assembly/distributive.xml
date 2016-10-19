@@ -27,9 +27,17 @@
       <outputDirectory>/</outputDirectory>
       <filtered>true</filtered>
       <includes>
-        <include>**/*.bat</include>
-        <include>**/*.sh</include>
+        <include>repo-build.bat</include>
       </includes>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/scripts</directory>
+      <outputDirectory>/</outputDirectory>
+      <filtered>true</filtered>
+      <includes>
+        <include>repo-build</include>
+      </includes>
+      <fileMode>0755</fileMode>
     </fileSet>
   </fileSets>
 </assembly>
