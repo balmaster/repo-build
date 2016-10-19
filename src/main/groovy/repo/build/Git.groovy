@@ -13,7 +13,7 @@ class Git {
     }
 
     static String getBranch(File dir) {
-        return ExecuteProcess.executeCmd0(dir, "git rev-parse --abbrev-ref HEAD")
+        return ExecuteProcess.executeCmd0(dir, "git rev-parse --abbrev-ref HEAD").replace( "\n", "" )
     }
 
     static void deleteBranch(File dir, String branch) {
@@ -45,6 +45,8 @@ class Git {
             }
         } else if(branchPresent(dir, remoteBranch)) {
             ExecuteProcess.executeCmd0(dir, "git checkout $branch")
+        } else {
+            throw new RepoBuildException(" no branch $branch or remote branch $remoteBranch present")
         }
     }
 
