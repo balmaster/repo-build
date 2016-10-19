@@ -52,4 +52,8 @@ class Git {
         dir.mkdirs()
         ExecuteProcess.executeCmd0(dir, "git clone -o $remoteName $url .")
     }
+
+    static void status( RepoEnv env, File dir) {
+        ExecuteProcess.executeCmd0(dir, "git status .")
+    }
 }

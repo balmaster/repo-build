@@ -67,6 +67,9 @@ class RepoBuild {
                 case "sync":
                     doSync()
                     break
+                case "status":
+                    doStatus()
+                    break
                 default:
                     println cli.usage()
             }
@@ -189,5 +192,10 @@ class RepoBuild {
         } else {
             throw new RepoBuildException(msg)
         }
+    }
+    
+    @CompileStatic
+    void doStatus() {
+        RepoManifest.status(env)
     }
 }

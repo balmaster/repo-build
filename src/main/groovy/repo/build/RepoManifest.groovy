@@ -28,7 +28,11 @@ class RepoManifest {
     static void forEach(RepoEnv env, Closure filter, Closure action) {
         env.manifest.project
                 .findAll {  filter(it) }
-                .each { action(it) }
+                .each { project ->
+                    def path = project.@path
+                    logger.info( "$path" )
+                    action(project)
+                }
     }
 
     @CompileStatic
@@ -149,6 +153,14 @@ class RepoManifest {
             println gitName
             def bundleFile = new File(targetDir,"${gitName}.bundle")
             Git.createFeatureBundle(env, remoteBranch, dir, bundleFile)
+        })
+    }
+
+    // показать статус по компонентам
+    static void status( RepoEnv env ) {
+        forEach(env, { Node project ->
+            def dir = new File(env.basedir, project.@path)
+            Git.status(env, dir)
         })
     }
 }
