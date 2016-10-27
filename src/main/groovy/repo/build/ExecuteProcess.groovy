@@ -13,6 +13,10 @@ class ExecuteProcess {
     static Logger logger = LogManager.getLogger(ExecuteProcess.class)
     
     static String executeCmd0(File dir, String cmd) {
+        return executeCmd0(dir, cmd, true)
+    }
+     
+    static String executeCmd0(File dir, String cmd, boolean checkErrorCode) {
         logger.debug("execute command '$cmd' in '$dir'")
         ProcessBuilder builder = new ProcessBuilder( cmd.split(' ') )
         builder.directory = dir
@@ -32,8 +36,8 @@ class ExecuteProcess {
                 }, System.err)
 
         def exitValue = process.waitFor()
-        if( exitValue != 0 ) {
-            throw new RuntimeException("command '$cmd' has exit code $exitValue");
+        if( checkErrorCode && exitValue != 0 ) {
+            throw new RepoBuildException("command '$cmd' has exit code $exitValue");
         }
         return writer.buffer.toString()
     }

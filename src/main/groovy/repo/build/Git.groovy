@@ -60,7 +60,7 @@ class Git {
     }
 
     static void grep( RepoEnv env, File dir, String expr) {
-        ExecuteProcess.executeCmd0(dir, "git grep $expr")
+        ExecuteProcess.executeCmd0(dir, "git grep $expr", false)
     }
 
 }
