@@ -159,4 +159,22 @@
       <version>${log4j.version}</version>
     </dependency>
   </dependencies>
+
+
+  <distributionManagement>
+    <repository>
+      <id>repo-build-release</id>
+      <url>${repo.build.repository.url}</url>
+    </repository>
+    <snapshotRepository>
+      <id>repo-build-snapshot</id>
+      <url>${repo.build.snapshot.repository.url}</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <scm>
+    <developerConnection>scm:${repo.build.scm.developer.connection}</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
 </project>
