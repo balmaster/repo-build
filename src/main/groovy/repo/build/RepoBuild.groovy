@@ -37,42 +37,49 @@ class RepoBuild {
             System.exit(1);
         }
     }
-    
+
     void execute() {
         options = cli.parse(args)
         env = new RepoEnv(getRepoBasedir())
         println getRepoBasedir()
 
         def commands = options.arguments()
-        commands.each {
-            switch(it) {
-                case "build-pom":
-                    doBuildPom()
-                    break
-                case "switch":
-                    doSwitch()
-                    break
-                case "prepare-merge":
-                    doPrepareMerge()
-                    break
-                case "import-bundles":
-                    doImportBundles()
-                    break
-                case "export-bundles":
-                    doExportBundles()
-                    break
-                case "init":
-                    doInit()
-                    break
-                case "sync":
-                    doSync()
-                    break
-                case "status":
-                    doStatus()
-                    break
-                default:
-                    println cli.usage()
+        if(commands.size() > 0) {
+            commands.each {
+                switch(it) {
+                    case "build-pom":
+                        doBuildPom()
+                        break
+                    case "switch":
+                        doSwitch()
+                        break
+                    case "prepare-merge":
+                        doPrepareMerge()
+                        break
+                    case "import-bundles":
+                        doImportBundles()
+                        break
+                    case "export-bundles":
+                        doExportBundles()
+                        break
+                    case "init":
+                        doInit()
+                        break
+                    case "sync":
+                        doSync()
+                        break
+                    case "status":
+                        doStatus()
+                        break
+                    case "grep":
+                        doGrep()
+                        break
+                    default:
+                        throw new RepoBuildException("Invalid command: $it")
+                }
             }
+        }else {
+            println cli.usage()
         }
     }
 
@@ -193,9 +200,14 @@ class RepoBuild {
             throw new RepoBuildException(msg)
         }
     }
-    
+
     @CompileStatic
     void doStatus() {
         RepoManifest.status(env)
+    }
+
+    void doGrep() {
+        def expr = getRequired(options.e, "Use: 'repo-build -e <expr> grep'")
+        RepoManifest.grep(env, expr)
     }
 }

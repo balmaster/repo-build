@@ -167,4 +167,13 @@ class RepoManifest {
             Git.status(env, dir)
         })
     }
+
+    // выполнить grep по компонентам
+    static void grep( RepoEnv env, String exp ) {
+        forEach(env, { Node project ->
+            def dir = new File(env.basedir, project.@path)
+            Git.grep(env, dir, exp)
+        })
+    }
+
 }

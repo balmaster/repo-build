@@ -14,6 +14,7 @@ class CliBuilderFactory {
             M( args:1, argName: 'manifestGitUrl', '')
             b( args:1, argName: 'manifestBranchName', '')
             j( args:1, argName: 'parallel', '')
+            e( args:1, argName: 'expr', 'regexp for search')
             d( 'detach from branches' )
             m( 'use manifest branches' )
             a( 'execute merge --abort before merge' )

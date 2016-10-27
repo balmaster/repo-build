@@ -56,6 +56,11 @@ class Git {
     }
 
     static void status( RepoEnv env, File dir) {
-        ExecuteProcess.executeCmd0(dir, "git status .")
+        ExecuteProcess.executeCmd0(dir, "git status")
     }
+
+    static void grep( RepoEnv env, File dir, String expr) {
+        ExecuteProcess.executeCmd0(dir, "git grep $expr")
+    }
+
 }
