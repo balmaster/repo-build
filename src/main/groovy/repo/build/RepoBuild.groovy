@@ -74,6 +74,9 @@ class RepoBuild {
                     case "grep":
                         doGrep()
                         break
+                    case "merge-abort":
+                        doMergeAbort()
+                        break
                     default:
                         throw new RepoBuildException("Invalid command: $it")
                 }
@@ -209,5 +212,9 @@ class RepoBuild {
     void doGrep() {
         def expr = getRequired(options.e, "Use: 'repo-build -e <expr> grep'")
         RepoManifest.grep(env, expr)
+    }
+
+    void doMergeAbort() {
+        RepoManifest.mergeAbort(env)
     }
 }

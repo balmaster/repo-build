@@ -4,7 +4,7 @@ import groovy.transform.CompileStatic;
 
 class CliBuilderFactory {
     static CliBuilder build() {
-        def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] [init | sync | build-pom | switch | prepare-merge | export-bundles | status | grep]*')
+        def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] [init | sync | build-pom | switch | prepare-merge | export-bundles | status | grep | merge-abort]*')
         cli.with {
             r( args:1, argName: 'repoBasedir','base dir of repo projects')
             p( args:1, argName: 'buildPomFile', '')

@@ -26,7 +26,7 @@ class Git {
     }
 
     static void mergeAbort( RepoEnv env, File dir ) {
-        ExecuteProcess.executeCmd0(dir, "git merge --abort")
+        ExecuteProcess.executeCmd0(dir, "git merge --abort", false)
     }
 
     static void createFeatureBundle( RepoEnv env, String branch, File dir, File bundleFile ) {
@@ -62,5 +62,6 @@ class Git {
     static void grep( RepoEnv env, File dir, String expr) {
         ExecuteProcess.executeCmd0(dir, "git grep $expr", false)
     }
+
 
 }
