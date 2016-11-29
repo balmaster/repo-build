@@ -1,12 +1,8 @@
 package repo.build
-import java.io.File
-import java.io.IOException
 
-import org.apache.logging.log4j.Logger;
-
-import groovy.transform.CompileStatic;;;
-import org.apache.logging.log4j.Logger
+import groovy.transform.CompileStatic
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 @CompileStatic
 class ExecuteProcess {
@@ -15,13 +11,19 @@ class ExecuteProcess {
     static String executeCmd0(File dir, String cmd) {
         return executeCmd0(dir, cmd, true)
     }
-     
-    static String executeCmd0(File dir, String cmd, boolean checkErrorCode) {
-        logger.debug("execute command '$cmd' in '$dir'")
-        ProcessBuilder builder = new ProcessBuilder( cmd.split(' ') )
-        builder.directory = dir
 
-        builder.redirectErrorStream(true)
+    static String executeCmd0(File dir, String cmd, boolean checkErrorCode) {
+        executeCmd0(dir, cmd.split(' '), checkErrorCode)
+    }
+
+    static String executeCmd0(File dir, String[] args, boolean checkErrorCode) {
+        String cmd = args.join(' ')
+        logger.debug("execute command '$cmd' in '$dir'")
+
+        ProcessBuilder builder = new ProcessBuilder()
+                .command(args)
+                .redirectErrorStream(true)
+                .directory(dir)
 
         Process process = builder.start()
 
