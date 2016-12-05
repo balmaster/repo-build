@@ -32,7 +32,7 @@ class RepoEnv {
         try {
             props.load(f.newDataInputStream())
         } catch (IOException e) {
-            logger.warn("Could not load properties", e)
+            logger.warn("Could not load properties")
         }
     }
 }
