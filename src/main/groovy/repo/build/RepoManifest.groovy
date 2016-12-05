@@ -1,12 +1,8 @@
 package repo.build
 
-import java.io.File
-
-import org.apache.logging.log4j.Logger;
-
-import groovy.transform.CompileStatic;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import groovy.transform.CompileStatic
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 class RepoManifest {
     static Logger logger = LogManager.getLogger(RepoManifest.class)
@@ -103,6 +99,7 @@ class RepoManifest {
                 Git.clone(env, "$remoteBaseUrl/$name", remoteName, dir)
             }
             Git.checkoutUpdate(env, branch, remoteBranch, dir)
+            Git.user(dir, env.props.getProperty("git.user.name"), env.props.getProperty("git.user.email"))
         })
     }
 
