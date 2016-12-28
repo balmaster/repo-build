@@ -1,7 +1,6 @@
 package repo.build
-import java.io.File
 
-import groovy.transform.CompileStatic;
+import groovy.transform.CompileStatic
 
 @CompileStatic
 class Git {
@@ -35,6 +34,17 @@ class Git {
 
     static void fetch( RepoEnv env, String remoteName, File dir ) {
         ExecuteProcess.executeCmd0(dir, "git fetch $remoteName")
+    }
+
+    static void user(File dir, String userName, String userEmail) {
+        ExecuteProcess.executeCmd0(dir, 'git config --local --remove-section user',false)
+        if (userName?.trim() && userEmail?.trim()) {
+            String[] args = ["git", "config", "--local", "user.name", userName]
+            ExecuteProcess.executeCmd0(dir, args, true)
+
+            args = ["git", "config", "--local", "user.email", userEmail]
+            ExecuteProcess.executeCmd0(dir, args, true)
+        }
     }
 
     static void checkoutUpdate(RepoEnv env, String branch, String remoteBranch, File dir) {
