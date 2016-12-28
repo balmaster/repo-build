@@ -180,7 +180,8 @@ class RepoManifest {
     static void mergeAbort( RepoEnv env ) {
         forEach(env, { Node project ->
             def dir = new File(env.basedir, project.@path)
-            Git.mergeAbort(env, dir)
+            if (dir.exists())
+                Git.mergeAbort(env, dir)
         })
     }
 
