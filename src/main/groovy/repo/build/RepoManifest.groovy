@@ -230,4 +230,26 @@ class RepoManifest {
         )
     }
 
+    // выполнить stash по компонентам
+    static void stash(RepoEnv env) {
+        forEach(env,
+                { Node project -> return projectDirExists(env, project) },
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    Git.stash(env, dir)
+                }
+        )
+    }
+
+    // выполнить stash pop по компонентам
+    static void stashPop(RepoEnv env) {
+        forEach(env,
+                { Node project -> return projectDirExists(env, project) },
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    Git.stashPop(env, dir)
+                }
+        )
+    }
+
 }

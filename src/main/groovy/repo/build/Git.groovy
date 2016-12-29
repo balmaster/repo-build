@@ -77,5 +77,12 @@ class Git {
         ExecuteProcess.executeCmd0(dir, "git grep $expr", false)
     }
 
+    static void stash( RepoEnv env, File dir) {
+        ExecuteProcess.executeCmd0(dir, "git stash", false)
+    }
+
+    static void stashPop( RepoEnv env, File dir) {
+        ExecuteProcess.executeCmd0(dir, "git stash pop", false)
+    }
 
 }

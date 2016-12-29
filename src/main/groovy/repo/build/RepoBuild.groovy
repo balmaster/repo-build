@@ -46,6 +46,7 @@ class RepoBuild {
         def commands = options.arguments()
         if(commands.size() > 0) {
             commands.each {
+                logger.info("----- do command: {} -----", it)
                 switch(it) {
                     case "build-pom":
                         doBuildPom()
@@ -76,6 +77,12 @@ class RepoBuild {
                         break
                     case "merge-abort":
                         doMergeAbort()
+                        break
+                    case "stash":
+                        doStash()
+                        break
+                    case "stash-pop":
+                        doStashPop()
                         break
                     default:
                         throw new RepoBuildException("Invalid command: $it")
@@ -217,4 +224,13 @@ class RepoBuild {
     void doMergeAbort() {
         RepoManifest.mergeAbort(env)
     }
+
+    void doStash() {
+        RepoManifest.stash(env)
+    }
+
+    void doStashPop() {
+        RepoManifest.stashPop(env)
+    }
+
 }
