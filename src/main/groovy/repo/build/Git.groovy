@@ -56,7 +56,11 @@ class Git {
     }
 
     static void status( RepoEnv env, File dir) {
-        ExecuteProcess.executeCmd0(dir, "git status")
+        ExecuteProcess.executeCmd0(dir, "git status -s")
+    }
+
+    static void logUnpushed( RepoEnv env, File dir, String remoteBranch) {
+        ExecuteProcess.executeCmd0(dir, "git log $remoteBranch..HEAD --not --remotes --oneline")
     }
 
     static void grep( RepoEnv env, File dir, String expr) {
