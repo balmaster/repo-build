@@ -4,7 +4,18 @@ import groovy.transform.CompileStatic;
 
 class CliBuilderFactory {
     static CliBuilder build() {
-        def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] [init | sync | build-pom | switch | prepare-merge | export-bundles | status | grep | merge-abort | stash | stash-pop]*')
+        def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] ' +
+                '[init ' +
+                '| sync ' +
+                '| build-pom ' +
+                '| switch ' +
+                '| prepare-merge ' +
+                '| export-bundles ' +
+                '| status ' +
+                '| grep ' +
+                '| merge-abort ' +
+                '| stash ' +
+                '| stash-pop]*')
         cli.with {
             r( args:1, argName: 'repoBasedir','base dir of repo projects')
             p( args:1, argName: 'buildPomFile', '')
@@ -18,6 +29,7 @@ class CliBuilderFactory {
             d( 'detach from branches' )
             m( 'use manifest branches' )
             a( 'execute merge --abort before merge' )
+            X( 'Enable debug mode' )
         }
         return cli
     }

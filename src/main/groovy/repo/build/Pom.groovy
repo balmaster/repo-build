@@ -5,10 +5,10 @@ import groovy.xml.MarkupBuilder;
 class Pom {
     static void generateXml(RepoEnv env, String featureBranch, File targetPom) {
         println "Generate pom $targetPom"
-    
+
         def xmlWriter = new FileWriter(targetPom)
         def xmlMarkup = new MarkupBuilder(xmlWriter)
-    
+
         xmlMarkup
                 ."project"("xmlns":"http://maven.apache.org/POM/4.0.0","xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance",
                 "xsi:schemaLocation":"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd") {
@@ -26,6 +26,13 @@ class Pom {
                     }
                 }
     }
-    
-    
+
+    static List<String> getModules(File pomFile) {
+        def xml = new XmlParser().parse(pomFile)
+        return xml.modules.module.inject([], { result, module ->
+            result.add(module.text())
+            result
+        })
+    }
+
 }

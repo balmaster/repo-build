@@ -21,19 +21,22 @@ class RepoBuild {
     OptionAccessor options
     RepoEnv env
 
-    RepoBuild(String [] args) {
+    RepoBuild(String[] args) {
         this.cli = CliBuilderFactory.build()
         this.args = args
     }
 
-    @CompileStatic
-    static void main(String [] args) {
+    static void main(String[] args) {
         def repoBuild = new RepoBuild(args)
         try {
             repoBuild.execute()
         }
-        catch(Exception e) {
-            logger.error(e.message)
+        catch (Exception e) {
+            if (repoBuild.options.X) {
+                logger.error(e.message, e)
+            } else {
+                logger.error(e.message)
+            }
             System.exit(1);
         }
     }
@@ -44,10 +47,10 @@ class RepoBuild {
         println getRepoBasedir()
 
         def commands = options.arguments()
-        if(commands.size() > 0) {
+        if (commands.size() > 0) {
             commands.each {
                 logger.info("----- do command: {} -----", it)
-                switch(it) {
+                switch (it) {
                     case "build-pom":
                         doBuildPom()
                         break
@@ -84,11 +87,14 @@ class RepoBuild {
                     case "stash-pop":
                         doStashPop()
                         break
+                    case "dependency-tree":
+                        doDependencyTree()
+                        break
                     default:
                         throw new RepoBuildException("Invalid command: $it")
                 }
             }
-        }else {
+        } else {
             println cli.usage()
         }
     }
@@ -100,7 +106,7 @@ class RepoBuild {
     void doBuildPom() {
         def buildPomFile = options.p ?
                 new File(options.p) :
-                new File(getRepoBasedir(),POM_XML)
+                new File(getRepoBasedir(), POM_XML)
         def featureBranch = options.f ?
                 options.f :
                 Git.getBranch(new File(getRepoBasedir(), MANIFEST))
@@ -108,11 +114,11 @@ class RepoBuild {
     }
 
     void doSwitch() {
-        if(options.m) {
+        if (options.m) {
             //RepoManifest.
         } else {
             def featureBranch = options.f
-            if( featureBranch ) {
+            if (featureBranch) {
                 RepoManifest.switchToBranch(env, featureBranch)
             } else {
                 throw new RepoBuildException("Use: 'repo-build -f <featureBranch> switch'")
@@ -121,9 +127,9 @@ class RepoBuild {
     }
 
     void doPrepareMerge() {
-        def featureBranch = getRequired(options.f,"featureBranch")
-        if( featureBranch) {
-            RepoManifest.mergeFeatureBranch(env, featureBranch, options.a )
+        def featureBranch = getRequired(options.f, "featureBranch")
+        if (featureBranch) {
+            RepoManifest.mergeFeatureBranch(env, featureBranch, options.a)
         } else {
             throw new RepoBuildException("Use: 'repo-build -f <featureBranch> prepare-merge'")
         }
@@ -133,28 +139,28 @@ class RepoBuild {
     }
 
     void doExportBundles() {
-        if(options.f) {
-            def featureBranch = getRequired(options.f,"featureBranch")
+        if (options.f) {
+            def featureBranch = getRequired(options.f, "featureBranch")
             def targetExportDir = options.t ?
                     new File(options.t)
                     : new File(getRepoBasedir(), BUNDLES)
 
             targetExportDir.mkdirs()
-            RepoManifest.createFeatureBundles(env, targetExportDir, featureBranch )
-        } else if(options.m){
+            RepoManifest.createFeatureBundles(env, targetExportDir, featureBranch)
+        } else if (options.m) {
             def targetExportDir = options.t ?
                     new File(options.t)
                     : new File(getRepoBasedir(), BUNDLES)
 
             targetExportDir.mkdirs()
-            RepoManifest.createManifestBundles(env, targetExportDir )
+            RepoManifest.createManifestBundles(env, targetExportDir)
         } else {
             throw new RepoBuildException("Use: 'repo-build -m export-bundles' or 'repo-build -f <featureBranch> export-bundles'")
         }
     }
 
     void doInit() {
-        if(!env.manifest) {
+        if (!env.manifest) {
             cloneManifest()
         } else {
             def manifestBranch = getRequired(options.b, "Use: 'repo-build -b <manifestBranch>'")
@@ -164,10 +170,10 @@ class RepoBuild {
 
     @CompileStatic
     void doSync() {
-        if(getManifestDir().exists()) {
+        if (getManifestDir().exists()) {
             def manifestBranch = Git.getBranch(getManifestDir())
-            if("HEAD".equals(manifestBranch)) {
-                throw new RepoBuildException("manifest branch must be local, use repo-build -b <manifestBranch> init" )
+            if ("HEAD".equals(manifestBranch)) {
+                throw new RepoBuildException("manifest branch must be local, use repo-build -b <manifestBranch> init")
             }
             checkoutUpdateManifest(manifestBranch)
             RepoManifest.fetchUpdate(env)
@@ -185,9 +191,9 @@ class RepoBuild {
         def manifestUrl = options.M
         def manifestBranch = options.b
         def manifestDir = getManifestDir()
-        if(manifestUrl && manifestBranch) {
+        if (manifestUrl && manifestBranch) {
             manifestDir.mkdirs()
-            Git.clone(env, manifestUrl, ORIGIN, manifestDir )
+            Git.clone(env, manifestUrl, ORIGIN, manifestDir)
         } else {
             throw new RepoBuildException("Use: 'repo-build -M <manifestUrl> -b <manifestBranch>'")
         }
@@ -197,14 +203,14 @@ class RepoBuild {
 
     void checkoutUpdateManifest(String manifestBranch) {
         def manifestDir = getManifestDir()
-        Git.fetch(env, ORIGIN,  manifestDir)
+        Git.fetch(env, ORIGIN, manifestDir)
         Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
         env.openManifest()
     }
 
     @CompileStatic
     String getRequired(value, String msg) {
-        if(value) {
+        if (value) {
             return value
         } else {
             throw new RepoBuildException(msg)
@@ -233,4 +239,7 @@ class RepoBuild {
         RepoManifest.stashPop(env)
     }
 
+    void doDependencyTree() {
+        MavenInvoker.getComponents(env.basedir)
+    }
 }
