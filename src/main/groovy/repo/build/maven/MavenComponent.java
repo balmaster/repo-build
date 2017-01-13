@@ -8,8 +8,10 @@ import java.util.Set;
  */
 public class MavenComponent {
     private File basedir;
-    private MavenArtifact artifact;
-    private Set<MavenArtifact> dependencies;
+    private String groupId;
+    private String artifactId;
+    private String version;
+    private Set<MavenComponentRef> dependencies;
 
     public File getBasedir() {
         return basedir;
@@ -19,27 +21,35 @@ public class MavenComponent {
         this.basedir = basedir;
     }
 
-    public Set<MavenArtifact> getDependencies() {
+    public Set<MavenComponentRef> getDependencies() {
         return dependencies;
     }
 
-    public void setDependencies( Set<MavenArtifact> dependencies ) {
+    public void setDependencies( Set<MavenComponentRef> dependencies ) {
         this.dependencies = dependencies;
     }
 
-    public MavenArtifact getArtifact() {
-        return artifact;
+    public String getGroupId() {
+        return groupId;
     }
 
-    public void setArtifact( MavenArtifact artifact ) {
-        this.artifact = artifact;
+    public void setGroupId( String groupId ) {
+        this.groupId = groupId;
     }
 
-    @Override
-    public String toString() {
-        return "MavenComponent{" +
-                "basedir=" + basedir +
-                ", artifact=" + artifact +
-                '}';
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public void setArtifactId( String artifactId ) {
+        this.artifactId = artifactId;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion( String version ) {
+        this.version = version;
     }
 }

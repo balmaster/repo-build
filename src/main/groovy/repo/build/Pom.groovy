@@ -1,5 +1,5 @@
 package repo.build
-import java.io.File;
+
 import groovy.xml.MarkupBuilder;
 
 class Pom {
@@ -27,12 +27,24 @@ class Pom {
                 }
     }
 
+
     static List<String> getModules(File pomFile) {
-        def xml = new XmlParser().parse(pomFile)
+        def xml = XmlUtils.parse(pomFile)
         return xml.modules.module.inject([], { result, module ->
             result.add(module.text())
             result
         })
     }
 
+    static void setParentVersion(File pomFile, String version) {
+        // we must preserve original file formatting
+        def xml = pomFile.text
+        def result = XmlUtils.modifyWithPreserveFormatting(xml, { root ->
+            root.parent.version[0].value = version
+        })
+
+        pomFile.withWriter { w ->
+            w.write(result)
+        }
+    }
 }

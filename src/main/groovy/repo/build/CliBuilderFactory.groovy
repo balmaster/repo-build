@@ -15,7 +15,10 @@ class CliBuilderFactory {
                 '| grep ' +
                 '| merge-abort ' +
                 '| stash ' +
-                '| stash-pop]*')
+                '| stash-pop' +
+                '| git-feature-merge-release' +
+                '| maven-feature-update-parent' +
+                '| maven-feature-update-versions]*')
         cli.with {
             r( args:1, argName: 'repoBasedir','base dir of repo projects')
             p( args:1, argName: 'buildPomFile', '')
@@ -29,7 +32,7 @@ class CliBuilderFactory {
             d( 'detach from branches' )
             m( 'use manifest branches' )
             a( 'execute merge --abort before merge' )
-            X( 'Enable debug mode' )
+            X( 'enable debug mode' )
         }
         return cli
     }

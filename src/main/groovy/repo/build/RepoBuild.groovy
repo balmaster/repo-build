@@ -1,6 +1,5 @@
 package repo.build
 
-import groovy.util.CliBuilder
 import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.LogManager
 import groovy.transform.CompileStatic
@@ -87,8 +86,14 @@ class RepoBuild {
                     case "stash-pop":
                         doStashPop()
                         break
-                    case "dependency-tree":
-                        doDependencyTree()
+                    case "git-feature-merge-release":
+                        doGitFeatureMergeRelease()
+                        break
+                    case "maven-feature-update-parent":
+                        doMavenFeatureUpdateParent()
+                        break
+                    case "maven-feature-update-versions":
+                        doMavenFeatureUpdateVersions()
                         break
                     default:
                         throw new RepoBuildException("Invalid command: $it")
@@ -223,7 +228,7 @@ class RepoBuild {
     }
 
     void doGrep() {
-        def expr = getRequired(options.e, "Use: 'repo-build -e <expr> grep'")
+        def expr = getRequired(options.e, "Expression required.\nUse: 'repo-build -e <expr> grep'")
         RepoManifest.grep(env, expr)
     }
 
@@ -239,7 +244,19 @@ class RepoBuild {
         RepoManifest.stashPop(env)
     }
 
-    void doDependencyTree() {
-        MavenInvoker.getComponents(env.basedir)
+    void doGitFeatureMergeRelease() {
+        def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
+        GitFeature.mergeRelease(env, featureBranch)
+    }
+
+    void doMavenFeatureUpdateParent() {
+        def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
+        // TODO: parametrise thia
+        def parentComponent = "parent"
+        MavenFeature.updateParent(env, featureBranch, parentComponent)
+    }
+
+    void doMavenFeatureUpdateVersions() {
+        MavenFeature.updateVersions(env)
     }
 }

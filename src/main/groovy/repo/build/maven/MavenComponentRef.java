@@ -3,11 +3,11 @@ package repo.build.maven;
 /**
  * @author Markelov Ruslan markelov@jet.msk.su
  */
-public class MavenArtifact {
+public class MavenComponentRef {
     private String groupId;
     private String artifactId;
 
-    public MavenArtifact( String groupId, String artifactId ) {
+    public MavenComponentRef( String groupId, String artifactId ) {
         this.groupId = groupId;
         this.artifactId = artifactId;
     }
@@ -33,7 +33,7 @@ public class MavenArtifact {
         if ( this == o ) return true;
         if ( o == null || getClass() != o.getClass() ) return false;
 
-        MavenArtifact that = ( MavenArtifact ) o;
+        MavenComponentRef that = ( MavenComponentRef ) o;
 
         if ( groupId != null ? !groupId.equals( that.groupId ) : that.groupId != null ) return false;
         return artifactId != null ? artifactId.equals( that.artifactId ) : that.artifactId == null;
@@ -49,7 +49,7 @@ public class MavenArtifact {
 
     @Override
     public String toString() {
-        return "MavenArtifact{" +
+        return "MavenComponentRef{" +
                 "groupId='" + groupId + '\'' +
                 ", artifactId='" + artifactId + '\'' +
                 '}';
