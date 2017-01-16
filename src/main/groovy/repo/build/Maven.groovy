@@ -31,7 +31,9 @@ class Maven {
         }
     }
 
-
+    static void execute(File pomFile, Closure handleRequest) {
+        execute(pomFile, handleRequest, [])
+    }
 }
 
 

@@ -124,7 +124,7 @@ class RepoBuild {
         } else {
             def featureBranch = options.f
             if (featureBranch) {
-                RepoManifest.switchToBranch(env, featureBranch)
+                GitFeature.switchToBranch(env, featureBranch)
             } else {
                 throw new RepoBuildException("Use: 'repo-build -f <featureBranch> switch'")
             }
@@ -134,7 +134,7 @@ class RepoBuild {
     void doPrepareMerge() {
         def featureBranch = getRequired(options.f, "featureBranch")
         if (featureBranch) {
-            RepoManifest.mergeFeatureBranch(env, featureBranch, options.a)
+            GitFeature.mergeFeatureBranch(env, featureBranch, options.a)
         } else {
             throw new RepoBuildException("Use: 'repo-build -f <featureBranch> prepare-merge'")
         }
@@ -151,14 +151,14 @@ class RepoBuild {
                     : new File(getRepoBasedir(), BUNDLES)
 
             targetExportDir.mkdirs()
-            RepoManifest.createFeatureBundles(env, targetExportDir, featureBranch)
+            GitFeature.createFeatureBundles(env, targetExportDir, featureBranch)
         } else if (options.m) {
             def targetExportDir = options.t ?
                     new File(options.t)
                     : new File(getRepoBasedir(), BUNDLES)
 
             targetExportDir.mkdirs()
-            RepoManifest.createManifestBundles(env, targetExportDir)
+            GitFeature.createManifestBundles(env, targetExportDir)
         } else {
             throw new RepoBuildException("Use: 'repo-build -m export-bundles' or 'repo-build -f <featureBranch> export-bundles'")
         }
@@ -181,7 +181,7 @@ class RepoBuild {
                 throw new RepoBuildException("manifest branch must be local, use repo-build -b <manifestBranch> init")
             }
             checkoutUpdateManifest(manifestBranch)
-            RepoManifest.fetchUpdate(env)
+            GitFeature.fetchUpdate(env)
         } else {
             throw new RepoBuildException("manifest dir not found")
         }
@@ -224,24 +224,24 @@ class RepoBuild {
 
     @CompileStatic
     void doStatus() {
-        RepoManifest.status(env)
+        GitFeature.status(env)
     }
 
     void doGrep() {
         def expr = getRequired(options.e, "Expression required.\nUse: 'repo-build -e <expr> grep'")
-        RepoManifest.grep(env, expr)
+        GitFeature.grep(env, expr)
     }
 
     void doMergeAbort() {
-        RepoManifest.mergeAbort(env)
+        GitFeature.mergeAbort(env)
     }
 
     void doStash() {
-        RepoManifest.stash(env)
+        GitFeature.stash(env)
     }
 
     void doStashPop() {
-        RepoManifest.stashPop(env)
+        GitFeature.stashPop(env)
     }
 
     void doGitFeatureMergeRelease() {
@@ -251,12 +251,12 @@ class RepoBuild {
 
     void doMavenFeatureUpdateParent() {
         def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
-        // TODO: parametrise thia
-        def parentComponent = "parent"
+        def parentComponent = getRequired(options.P, "Parent component required.\nUse: 'repo-build -P parent ...'")
         MavenFeature.updateParent(env, featureBranch, parentComponent)
     }
 
     void doMavenFeatureUpdateVersions() {
-        MavenFeature.updateVersions(env)
+        def includes = getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
+        MavenFeature.updateVersions(env, includes)
     }
 }

@@ -29,14 +29,22 @@ class MavenFeature {
                 if (groupId.equals(parentGroupId)
                         && artifactId.equals(parentArtifactId)
                         && !version.equals(parentVersion)) {
-                    // если группа, артефакт совпадают а версия нет - подменяем версию
-                    Pom.setParentVersion(componentPomFile, version)
+                    // если группа, артефакт совпадают а версия нет - подменяем версию parent
+                    Maven.execute(componentPomFile,
+                            { InvocationRequest req ->
+                                req.setGoals(Arrays.asList("versions:update-parent"))
+                                req.setInteractive(false)
+                                Properties properties = new Properties();
+                                properties.put("parentVersion", version)
+                                req.setProperties(properties)
+                            }
+                    )
                 }
             }
         }, featureBranch)
     }
 
-    static void updateVersions(RepoEnv env) {
+    static void updateVersions(RepoEnv env, String includes) {
         // получаем компоненты и зависимости
         def componentsMap = getComponentsMap(env.basedir)
         // формируем граф зависимостей
@@ -51,18 +59,18 @@ class MavenFeature {
                         Properties properties = new Properties();
                         properties.put("skipTest", 'true')
                         req.setProperties(properties)
-                    },
-                    {}
+                    }
             )
             // call version plugin
             Maven.execute(new File(it.basedir, "pom.xml"),
                     { InvocationRequest req ->
-                        req.setGoals(Arrays.asList("update-versions"))
+                        req.setGoals(Arrays.asList("versions:update-properties"))
                         req.setInteractive(false)
                         Properties properties = new Properties();
+                        properties.put("allowSnapshots", "true")
+                        properties.put("includes", "$includes")
                         req.setProperties(properties)
-                    },
-                    {}
+                    }
             )
             // check modify pom.xml
             if (Git.isFileModified(env, it.basedir, "pom.xml")) {

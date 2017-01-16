@@ -36,15 +36,4 @@ class Pom {
         })
     }
 
-    static void setParentVersion(File pomFile, String version) {
-        // we must preserve original file formatting
-        def xml = pomFile.text
-        def result = XmlUtils.modifyWithPreserveFormatting(xml, { root ->
-            root.parent.version[0].value = version
-        })
-
-        pomFile.withWriter { w ->
-            w.write(result)
-        }
-    }
 }
