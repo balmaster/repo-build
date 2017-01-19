@@ -15,28 +15,36 @@ class Git {
         return ExecuteProcess.executeCmd0(dir, "git rev-parse --abbrev-ref HEAD").replace("\n", "")
     }
 
+    static void createBranch(File dir, String branch) {
+        ExecuteProcess.executeCmd0(dir, "git branch $branch")
+    }
+
+    static void checkout(File dir, String branch) {
+        ExecuteProcess.executeCmd0(dir, "git checkout $branch")
+    }
+
     static void deleteBranch(File dir, String branch) {
         ExecuteProcess.executeCmd0(dir, "git branch -d $branch")
     }
 
-    static void mergeFeatureBranch(RepoEnv env, String branch, String remoteBranch, String startCommit, File dir) {
+    static void mergeFeatureBranch(String branch, String remoteBranch, String startCommit, File dir) {
         ExecuteProcess.executeCmd0(dir, "git checkout -B $PREPARE_BUILD $startCommit")
-        merge(env, remoteBranch, dir)
+        merge(remoteBranch, dir)
     }
 
-    static void merge(RepoEnv env, String branch, File dir) {
+    static void merge(String branch, File dir) {
         ExecuteProcess.executeCmd0(dir, "git merge $branch")
     }
 
-    static void mergeAbort(RepoEnv env, File dir) {
+    static void mergeAbort(File dir) {
         ExecuteProcess.executeCmd0(dir, "git merge --abort", false)
     }
 
-    static void createFeatureBundle(RepoEnv env, String branch, File dir, File bundleFile) {
+    static void createFeatureBundle(String branch, File dir, File bundleFile) {
         ExecuteProcess.executeCmd0(dir, "git bundle create $bundleFile $branch")
     }
 
-    static void fetch(RepoEnv env, String remoteName, File dir) {
+    static void fetch(String remoteName, File dir) {
         ExecuteProcess.executeCmd0(dir, "git fetch $remoteName")
     }
 
@@ -51,7 +59,7 @@ class Git {
         }
     }
 
-    static void checkoutUpdate(RepoEnv env, String branch, String remoteBranch, File dir) {
+    static void checkoutUpdate(String branch, String remoteBranch, File dir) {
         if (Git.branchPresent(dir, branch)) {
             ExecuteProcess.executeCmd0(dir, "git checkout $branch")
             if (branchPresent(dir, remoteBranch)) {
@@ -64,46 +72,53 @@ class Git {
         }
     }
 
-    static void clone(RepoEnv env, String url, String remoteName, File dir) {
+    static void clone(String url, String remoteName, File dir) {
         dir.mkdirs()
         ExecuteProcess.executeCmd0(dir, "git clone -o $remoteName $url .")
     }
 
-    static void status(RepoEnv env, File dir) {
+    static void status(File dir) {
         ExecuteProcess.executeCmd0(dir, "git status -s")
     }
 
-    static void logUnpushed(RepoEnv env, File dir, String remoteBranch) {
+    static void logUnpushed(File dir, String remoteBranch) {
         ExecuteProcess.executeCmd0(dir, "git log $remoteBranch..HEAD --not --remotes --oneline")
     }
 
-    static void grep(RepoEnv env, File dir, String expr) {
+    static void grep(File dir, String expr) {
         ExecuteProcess.executeCmd0(dir, "git grep $expr", false)
     }
 
-    static void stash(RepoEnv env, File dir) {
+    static void stash(File dir) {
         ExecuteProcess.executeCmd0(dir, "git stash", false)
     }
 
-    static void stashPop(RepoEnv env, File dir) {
+    static void stashPop(File dir) {
         ExecuteProcess.executeCmd0(dir, "git stash pop", false)
     }
 
-    static String getFileStatus(RepoEnv env, File dir, String fileName) {
+    static String getFileStatus(File dir, String fileName) {
         return ExecuteProcess.executeCmd0(dir, "git status $fileName -s")
     }
 
-    static boolean isFileModified(RepoEnv env, File dir, String fileName) {
-        def status = getFileStatus(env, dir, fileName)
+    static boolean isFileModified(File dir, String fileName) {
+        def status = getFileStatus(dir, fileName)
         return status.startsWith(" M ")
     }
 
-    static void add(RepoEnv env, File dir, String fileName) {
+    static void add(File dir, String fileName) {
         ExecuteProcess.executeCmd0(dir, "git add $fileName")
     }
 
-    static void commit(RepoEnv env, File dir, String message) {
-        ExecuteProcess.executeCmd0(dir, "git commit -m '$message'")
+    static void addUpdated(File dir) {
+        ExecuteProcess.executeCmd0(dir, "git add -u")
     }
 
+    static void commit(File dir, String message) {
+        ExecuteProcess.executeCmd0(dir, "git commit -m \"$message\"")
+    }
+
+    static void init(File dir) {
+        ExecuteProcess.executeCmd0(dir, "git init")
+    }
 }

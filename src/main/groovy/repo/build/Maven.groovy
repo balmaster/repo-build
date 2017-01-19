@@ -5,9 +5,6 @@ import org.apache.maven.shared.invoker.DefaultInvoker
 import org.apache.maven.shared.invoker.InvocationRequest
 import org.apache.maven.shared.invoker.InvocationResult
 import org.apache.maven.shared.invoker.Invoker
-import repo.build.maven.MavenComponent
-import repo.build.maven.MavenComponentRef
-
 
 /**
  */
@@ -27,12 +24,12 @@ class Maven {
             handleResult(result)
         }
         catch (Exception e) {
-            throw new RepoBuildException("getDependencyTree: " + e.getMessage(), e)
+            throw new RepoBuildException(e.getMessage(), e)
         }
     }
 
     static void execute(File pomFile, Closure handleRequest) {
-        execute(pomFile, handleRequest, [])
+        execute(pomFile, handleRequest, {})
     }
 }
 

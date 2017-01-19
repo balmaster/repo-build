@@ -1,28 +1,30 @@
 package repo.build
 
+import groovy.transform.CompileStatic
 import org.jgrapht.DirectedGraph
 import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.traverse.TopologicalOrderIterator
+import repo.build.maven.MavenArtifact
+import repo.build.maven.MavenArtifactRef
 import repo.build.maven.MavenComponent
-import repo.build.maven.MavenComponentRef
 
 /**
  */
+@CompileStatic
 class ComponentDependencyGraph {
-    private final Map<MavenComponentRef, MavenComponent> componentsMap;
+    private final Map<MavenArtifactRef, MavenComponent> componentsMap;
     private final DirectedGraph<MavenComponent, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class)
     private final Map<MavenComponent, Set<MavenComponent>> cycleRefs = new HashMap<>()
 
-    ComponentDependencyGraph(Map<MavenComponentRef, MavenComponent> componentsMap) {
+    ComponentDependencyGraph(Map<MavenArtifactRef, MavenComponent> componentsMap) {
         this.componentsMap = componentsMap
     }
 
-    public static ComponentDependencyGraph build(Collection<MavenComponent> components,
-                                                 Closure dependencyFilter) {
-        ComponentDependencyGraph result = new ComponentDependencyGraph()
-        for (MavenComponent c : components) {
+    public static ComponentDependencyGraph build(Map<MavenArtifactRef, MavenComponent> componentsMap) {
+        ComponentDependencyGraph result = new ComponentDependencyGraph(componentsMap)
+        for (MavenComponent c : componentsMap.values()) {
             result.add(c);
         }
         return result;
@@ -36,20 +38,22 @@ class ComponentDependencyGraph {
     }
 
     private void addAllDependencies(MavenComponent component) {
-        for (def ref : component.getDependencies()) {
-            MavenComponent refComponent = componentsMap.get(ref)
-            if (refComponent == null) {
-                // it is thirdparty component ref
-                continue
-            }
-            add(refComponent)
-            DefaultEdge e = graph.addEdge(component, refComponent)
-            if (hasCycles()) {
-                graph.removeEdge(e);
-                if (!cycleRefs.containsKey(component)) {
-                    cycleRefs.put(component, new HashSet<String>())
+        for(def m : component.getModules()) {
+            for (def ref : m.getDependencies()) {
+                MavenComponent refComponent = componentsMap.get(ref)
+                if (refComponent == null) {
+                    // it is thirdparty component ref
+                    continue
                 }
-                cycleRefs.get(component).add(refComponent)
+                add(refComponent)
+                DefaultEdge e = graph.addEdge(component, refComponent)
+                if (hasCycles()) {
+                    graph.removeEdge(e);
+                    if (!cycleRefs.containsKey(component)) {
+                        cycleRefs.put(component, new HashSet<MavenComponent>())
+                    }
+                    cycleRefs.get(component).add(refComponent)
+                }
             }
         }
     }
@@ -69,7 +73,7 @@ class ComponentDependencyGraph {
         return items;
     }
 
-    public Map<MavenComponent, Set<String>> getCycleRefs() {
+    public Map<MavenComponent, Set<MavenComponent>> getCycleRefs() {
         return cycleRefs;
     }
 

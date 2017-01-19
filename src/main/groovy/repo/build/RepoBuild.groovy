@@ -12,8 +12,6 @@ class RepoBuild {
 
     static final String BUNDLES = "bundles"
 
-    static final String MANIFEST = "manifest"
-
     static final String POM_XML = "pom.xml"
     final CliBuilder cli
     final String[] args
@@ -124,7 +122,7 @@ class RepoBuild {
         } else {
             def featureBranch = options.f
             if (featureBranch) {
-                GitFeature.switchToBranch(env, featureBranch)
+                GitFeature.switch(env, featureBranch)
             } else {
                 throw new RepoBuildException("Use: 'repo-build -f <featureBranch> switch'")
             }
@@ -134,7 +132,7 @@ class RepoBuild {
     void doPrepareMerge() {
         def featureBranch = getRequired(options.f, "featureBranch")
         if (featureBranch) {
-            GitFeature.mergeFeatureBranch(env, featureBranch, options.a)
+            GitFeature.mergeFeature(env, featureBranch, options.a)
         } else {
             throw new RepoBuildException("Use: 'repo-build -f <featureBranch> prepare-merge'")
         }
@@ -165,52 +163,22 @@ class RepoBuild {
     }
 
     void doInit() {
+        def manifestBranch = getRequired(options.b, "Use: repo-build -b <manifestBranch> ...")
         if (!env.manifest) {
-            cloneManifest()
+            def manifestUrl = getRequired(options.M, "Use: repo-build -M <manifestUrl> ...")
+            if (!manifestUrl || !manifestBranch) {
+                throw new RepoBuildException("Use: 'repo-build -M <manifestUrl> -b <manifestBranch>'")
+            }
+            GitFeature.cloneManifest(env, manifestUrl, manifestBranch)
         } else {
-            def manifestBranch = getRequired(options.b, "Use: 'repo-build -b <manifestBranch>'")
-            checkoutUpdateManifest(manifestBranch)
+            GitFeature.updateManifest(env, manifestBranch)
         }
+        env.openManifest()
     }
 
     @CompileStatic
     void doSync() {
-        if (getManifestDir().exists()) {
-            def manifestBranch = Git.getBranch(getManifestDir())
-            if ("HEAD".equals(manifestBranch)) {
-                throw new RepoBuildException("manifest branch must be local, use repo-build -b <manifestBranch> init")
-            }
-            checkoutUpdateManifest(manifestBranch)
-            GitFeature.fetchUpdate(env)
-        } else {
-            throw new RepoBuildException("manifest dir not found")
-        }
-    }
-
-    @CompileStatic
-    File getManifestDir() {
-        return new File(getRepoBasedir(), MANIFEST)
-    }
-
-    void cloneManifest() {
-        def manifestUrl = options.M
-        def manifestBranch = options.b
-        def manifestDir = getManifestDir()
-        if (manifestUrl && manifestBranch) {
-            manifestDir.mkdirs()
-            Git.clone(env, manifestUrl, ORIGIN, manifestDir)
-        } else {
-            throw new RepoBuildException("Use: 'repo-build -M <manifestUrl> -b <manifestBranch>'")
-        }
-        Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
-        env.openManifest()
-    }
-
-    void checkoutUpdateManifest(String manifestBranch) {
-        def manifestDir = getManifestDir()
-        Git.fetch(env, ORIGIN, manifestDir)
-        Git.checkoutUpdate(env, manifestBranch, "origin/$manifestBranch", manifestDir)
-        env.openManifest()
+        GitFeature.sync(env)
     }
 
     @CompileStatic
@@ -256,7 +224,8 @@ class RepoBuild {
     }
 
     void doMavenFeatureUpdateVersions() {
+        def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
         def includes = getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
-        MavenFeature.updateVersions(env, includes)
+        MavenFeature.updateVersions(env, featureBranch, includes)
     }
 }

@@ -6,12 +6,11 @@ import java.util.Set;
 /**
  * @author Markelov Ruslan markelov@jet.msk.su
  */
-public class MavenComponent {
-    private File basedir;
-    private String groupId;
-    private String artifactId;
-    private String version;
-    private Set<MavenComponentRef> dependencies;
+public class MavenArtifact {
+    File basedir;
+    String groupId;
+    String artifactId;
+    Set<MavenArtifactRef> dependencies;
 
     public File getBasedir() {
         return basedir;
@@ -19,14 +18,6 @@ public class MavenComponent {
 
     public void setBasedir( File basedir ) {
         this.basedir = basedir;
-    }
-
-    public Set<MavenComponentRef> getDependencies() {
-        return dependencies;
-    }
-
-    public void setDependencies( Set<MavenComponentRef> dependencies ) {
-        this.dependencies = dependencies;
     }
 
     public String getGroupId() {
@@ -45,11 +36,11 @@ public class MavenComponent {
         this.artifactId = artifactId;
     }
 
-    public String getVersion() {
-        return version;
+    public Set<MavenArtifactRef> getDependencies() {
+        return dependencies;
     }
 
-    public void setVersion( String version ) {
-        this.version = version;
+    public void setDependencies( Set<MavenArtifactRef> dependencies ) {
+        this.dependencies = dependencies;
     }
 }
