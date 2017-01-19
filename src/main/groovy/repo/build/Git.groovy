@@ -77,16 +77,16 @@ class Git {
         ExecuteProcess.executeCmd0(dir, "git clone -o $remoteName $url .")
     }
 
-    static void status(File dir) {
-        ExecuteProcess.executeCmd0(dir, "git status -s")
+    static String status(File dir) {
+        return ExecuteProcess.executeCmd0(dir, "git status -s")
     }
 
-    static void logUnpushed(File dir, String remoteBranch) {
-        ExecuteProcess.executeCmd0(dir, "git log $remoteBranch..HEAD --not --remotes --oneline")
+    static String logUnpushed(File dir, String remoteBranch) {
+        return ExecuteProcess.executeCmd0(dir, "git log $remoteBranch..HEAD --not --remotes --oneline")
     }
 
-    static void grep(File dir, String expr) {
-        ExecuteProcess.executeCmd0(dir, "git grep $expr", false)
+    static String grep(File dir, String expr) {
+        return ExecuteProcess.executeCmd0(dir, "git grep $expr", false)
     }
 
     static void stash(File dir) {

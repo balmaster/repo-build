@@ -125,4 +125,46 @@ class GitFeatureTest extends BaseTestCase {
         assertTrue(new File(new File(env.basedir, 'c1'), 'test').exists())
         assertEquals('master', Git.getBranch(new File(env.basedir, 'c2')))
     }
+
+    void testStatus() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        GitFeature.sync(env)
+
+        def c1Dir = new File(env.basedir, 'c1')
+        def newFile = new File(c1Dir, 'new')
+        newFile.text = 'new'
+
+        def unpushedFile = new File(c1Dir, 'unpushed')
+        unpushedFile.text = 'unpushed'
+        Git.add(c1Dir, 'unpushed')
+        Git.commit(c1Dir, 'unpushed')
+
+        def result = GitFeature.status(env)
+        assertTrue(result.get('c1').contains('?? new'))
+        assertTrue(result.get('c1').contains('unpushed'))
+        assertEquals('\n', result.get('c2'))
+    }
+
+    void testGrep() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    def newFile = new File(dir, 'test')
+                    newFile.createNewFile()
+                    newFile.text = 'TEST123'
+                    Git.add(dir, 'test')
+                    Git.commit(dir, 'test')
+                })
+
+        GitFeature.sync(env)
+
+        def result = GitFeature.grep(env, '123')
+        assertEquals('test:TEST123\n', result.get('c1'))
+        assertEquals('', result.get('c2'))
+
+    }
 }

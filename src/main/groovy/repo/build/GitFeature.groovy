@@ -107,7 +107,7 @@ class GitFeature {
                     def gitName = new File(project.@name).getName().split("\\.").first()
                     println gitName
                     def bundleFile = new File(targetDir, "${gitName}.bundle")
-                    Git.createFeatureBundle(env, remoteBranch, dir, bundleFile)
+                    Git.createFeatureBundle(remoteBranch, dir, bundleFile)
                 },
                 branch
         )
@@ -122,47 +122,37 @@ class GitFeature {
                     def gitName = new File(project.@name).getName().split("\\.").first()
                     println gitName
                     def bundleFile = new File(targetDir, "${gitName}.bundle")
-                    Git.createFeatureBundle(env, remoteBranch, dir, bundleFile)
+                    Git.createFeatureBundle(remoteBranch, dir, bundleFile)
                 }
         )
     }
 
-    static void createFeatureBundles(RepoEnv env, File targetDir) {
-        RepoManifest.forEach(env,
-                { Node project ->
-                    def dir = new File(env.basedir, project.@path)
-                    def branch = RepoManifest.getBranch(env, project.@path)
-                    def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
-
-                    def gitName = new File(project.@name).getName().split("\\.").first()
-                    println gitName
-                    def bundleFile = new File(targetDir, "${gitName}.bundle")
-                    Git.createFeatureBundle(env, remoteBranch, dir, bundleFile)
-                }
-        )
-    }
-
-    static void status(RepoEnv env) {
+    static Map<String, String> status(RepoEnv env) {
+        Map<String, String> result = new HashMap<>()
         RepoManifest.forEach(env,
                 { Node project -> return RepoManifest.projectDirExists(env, project) },
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     def branch = RepoManifest.getBranch(env, project.@path)
                     def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
-                    Git.status(env, dir)
-                    Git.logUnpushed(env, dir, remoteBranch)
+                    def status = Git.status(dir)
+                    def unpushed = Git.logUnpushed(dir, remoteBranch)
+                    result.put(project.@path, status + '\n' + unpushed)
                 }
         )
+        return result
     }
 
-    static void grep(RepoEnv env, String exp) {
+    static Map<String, String> grep(RepoEnv env, String exp) {
+        Map<String, String> result = new HashMap<>()
         RepoManifest.forEach(env,
                 { Node project -> return RepoManifest.projectDirExists(env, project) },
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
-                    Git.grep(env, dir, exp)
+                    result.put(project.@path, Git.grep(dir, exp))
                 }
         )
+        return result
     }
 
     static void mergeAbort(RepoEnv env) {
@@ -170,7 +160,7 @@ class GitFeature {
                 { Node project -> return RepoManifest.projectDirExists(env, project) },
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
-                    Git.mergeAbort(env, dir)
+                    Git.mergeAbort(dir)
                 }
         )
     }
@@ -180,7 +170,7 @@ class GitFeature {
                 { Node project -> return RepoManifest.projectDirExists(env, project) },
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
-                    Git.stash(env, dir)
+                    Git.stash(dir)
                 }
         )
     }
@@ -190,7 +180,7 @@ class GitFeature {
                 { Node project -> return RepoManifest.projectDirExists(env, project) },
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
-                    Git.stashPop(env, dir)
+                    Git.stashPop(dir)
                 }
         )
     }
