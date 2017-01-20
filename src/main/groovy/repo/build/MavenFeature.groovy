@@ -99,6 +99,19 @@ class MavenFeature {
                         req.setProperties(properties)
                     }
             )
+            /*
+            Maven.execute(new File(it.basedir, "pom.xml"),
+                    { InvocationRequest req ->
+                        req.setGoals(Arrays.asList("versions:use-latest-versions"))
+                        req.setInteractive(false)
+                        Properties properties = new Properties();
+                        properties.put("allowSnapshots", "true")
+                        properties.put("includes", includes)
+                        properties.put('generateBackupPoms', 'false')
+                        req.setProperties(properties)
+                    }
+            )
+            */
             // maven build with skipTests
             Maven.execute(new File(it.basedir, "pom.xml"),
                     { InvocationRequest req ->
@@ -109,11 +122,15 @@ class MavenFeature {
                         req.setProperties(properties)
                     }
             )
-            // check modify pom.xml
-            if (Git.isFileModified(it.basedir, "pom.xml")) {
-                // if it modifies - commit vup
-                Git.add(it.basedir, "pom.xml")
-                Git.commit(it.basedir, "update_dependencies_to_last_feature_snapshot")
+
+            // commit only if component has featureBranch
+            if(Git.getBranch(it.basedir) == featureBranch) {
+                // check modify pom.xml
+                if (Git.isFileModified(it.basedir, "pom.xml")) {
+                    // if it modifies - commit vup
+                    Git.add(it.basedir, "pom.xml")
+                    Git.commit(it.basedir, "update_dependencies_to_last_feature_snapshot")
+                }
             }
         }
 
