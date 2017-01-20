@@ -48,4 +48,15 @@ class MavenComponent {
     void setModules(Set<MavenArtifact> modules) {
         this.modules = modules
     }
+
+
+    @Override
+    public String toString() {
+        return "MavenComponent{" +
+                "basedir=" + basedir +
+                ", groupId='" + groupId + '\'' +
+                ", artifactId='" + artifactId + '\'' +
+                ", version='" + version + '\'' +
+                '}';
+    }
 }

@@ -1,6 +1,8 @@
 package repo.build
 
 import groovy.transform.CompileStatic
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import org.apache.maven.shared.invoker.InvocationRequest
 import org.apache.maven.shared.invoker.InvocationResult
 import repo.build.maven.MavenArtifact
@@ -10,6 +12,8 @@ import repo.build.maven.MavenComponent
 /**
  */
 class MavenFeature {
+    static Logger logger = LogManager.getLogger(MavenFeature.class)
+
     static void updateParent(RepoEnv env, String featureBranch, String parentComponent) {
         def parentBranch = Git.getBranch(new File(env.basedir, parentComponent))
         if (featureBranch != parentBranch) {
@@ -62,7 +66,7 @@ class MavenFeature {
                     if (Git.isFileModified(dir, "pom.xml")) {
                         // if it modifies - commit vup
                         Git.add(dir, "pom.xml")
-                        Git.commit(dir, "update parent to $parentVersion")
+                        Git.commit(dir, "update_parent_to_$parentVersion")
                     }
                 }
             }
@@ -77,6 +81,11 @@ class MavenFeature {
         def componentsMap = getComponentsMap(env.basedir)
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
+        logger.info("sort component by dependency tree")
+        sortedComponents.each {
+            logger.info(it.groupId + ':' + it.artifactId)
+        }
+
         sortedComponents.each {
             // call version plugin
             Maven.execute(new File(it.basedir, "pom.xml"),
@@ -96,7 +105,7 @@ class MavenFeature {
                         req.setGoals(Arrays.asList("clean", "install"))
                         req.setInteractive(false)
                         Properties properties = new Properties();
-                        properties.put("skipTest", 'true')
+                        properties.put("skipTests", 'true')
                         req.setProperties(properties)
                     }
             )
@@ -104,7 +113,7 @@ class MavenFeature {
             if (Git.isFileModified(it.basedir, "pom.xml")) {
                 // if it modifies - commit vup
                 Git.add(it.basedir, "pom.xml")
-                Git.commit(it.basedir, "update dependencies to last feature snapshot")
+                Git.commit(it.basedir, "update_dependencies_to_last_feature_snapshot")
             }
         }
 
@@ -135,15 +144,23 @@ class MavenFeature {
         // собираем компонентыs
         Pom.getModules(pomFile).each {
             File componentBasedir = new File(basedir, it)
-            def pom = new XmlParser().parse(new File(componentBasedir, 'pom.xml'))
+            def project = new XmlParser().parse(new File(componentBasedir, 'pom.xml'))
             MavenComponent component = new MavenComponent()
             component.setBasedir(componentBasedir)
             component.setModules(getComponentModules(componentBasedir))
-            component.setGroupId(pom.groupId.text())
-            component.setArtifactId(pom.artifactId.text())
+            component.setGroupId(getProjectGroup(project))
+            component.setArtifactId(project.artifactId.text())
             result.add(component)
         }
         return result
+    }
+
+    static String getProjectGroup(Node project) {
+        if (project.groupId) {
+            return project.groupId.text()
+        } else {
+            return project.parent.groupId.text()
+        }
     }
 
     static Set<MavenArtifact> getComponentModules(File basedir) {
@@ -151,7 +168,7 @@ class MavenFeature {
         def module = new MavenArtifact()
         def project = new XmlParser().parse(new File(basedir, 'pom.xml'))
         module.basedir = basedir
-        module.setGroupId(project.groupId ? project.groupId.text() : project.parent.groupId.text())
+        module.setGroupId(getProjectGroup(project))
         module.setArtifactId(project.artifactId.text())
         module.setDependencies(getProjectDependencies(project))
         if (project.parent) {
@@ -172,7 +189,8 @@ class MavenFeature {
         Set<MavenArtifactRef> result = new HashSet<>()
         def parseDependencies = { Node dependencies ->
             dependencies.dependency.each {
-                result.add(new MavenArtifactRef(it.groupId.text(), it.artifactId.text()))
+                def groupId = eval(it.groupId.text(), project)
+                result.add(new MavenArtifactRef(groupId, it.artifactId.text()))
             }
         }
         if (project.dependencyManagement.dependencies) {
@@ -182,5 +200,15 @@ class MavenFeature {
             parseDependencies(project.dependencies)
         }
         return result
+    }
+
+    static String eval(Object expr, Node project) {
+        if (expr.equals('${project.groupId}')) {
+            return project.groupId.text()
+        } else if (expr.equals('${parent.groupId}')) {
+            return project.parent.groupId.text()
+        } else {
+            return expr
+        }
     }
 }

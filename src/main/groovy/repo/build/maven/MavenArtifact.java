@@ -43,4 +43,13 @@ public class MavenArtifact {
     public void setDependencies( Set<MavenArtifactRef> dependencies ) {
         this.dependencies = dependencies;
     }
+
+    @Override
+    public String toString() {
+        return "MavenArtifact{" +
+                "basedir=" + basedir +
+                ", groupId='" + groupId + '\'' +
+                ", artifactId='" + artifactId + '\'' +
+                '}';
+    }
 }
