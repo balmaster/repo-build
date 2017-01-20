@@ -78,16 +78,6 @@ class MavenFeature {
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
         sortedComponents.each {
-            // maven build with skipTests
-            Maven.execute(new File(it.basedir, "pom.xml"),
-                    { InvocationRequest req ->
-                        req.setGoals(Arrays.asList("clean", "install"))
-                        req.setInteractive(false)
-                        Properties properties = new Properties();
-                        properties.put("skipTest", 'true')
-                        req.setProperties(properties)
-                    }
-            )
             // call version plugin
             Maven.execute(new File(it.basedir, "pom.xml"),
                     { InvocationRequest req ->
@@ -97,6 +87,16 @@ class MavenFeature {
                         properties.put("allowSnapshots", "true")
                         properties.put("includes", includes)
                         properties.put('generateBackupPoms', 'false')
+                        req.setProperties(properties)
+                    }
+            )
+            // maven build with skipTests
+            Maven.execute(new File(it.basedir, "pom.xml"),
+                    { InvocationRequest req ->
+                        req.setGoals(Arrays.asList("clean", "install"))
+                        req.setInteractive(false)
+                        Properties properties = new Properties();
+                        properties.put("skipTest", 'true')
                         req.setProperties(properties)
                     }
             )
@@ -121,7 +121,7 @@ class MavenFeature {
         List<MavenComponent> components = getComponents(basedir)
         Map<MavenArtifactRef, MavenComponent> result = new HashMap<>();
         for (MavenComponent c : components) {
-            for(MavenArtifact m : c.getModules()) {
+            for (MavenArtifact m : c.getModules()) {
                 // map all component modules into host component
                 result.put(new MavenArtifactRef(m.getGroupId(), m.getArtifactId()), c)
             }
@@ -132,41 +132,33 @@ class MavenFeature {
     static List<MavenComponent> getComponents(File basedir) {
         List<MavenComponent> result = new ArrayList<>()
         def pomFile = new File(basedir, "pom.xml")
-        Maven.execute(pomFile,
-                { InvocationRequest req ->
-                    req.setGoals(Collections.singletonList("dependency:list"))
-                    req.setInteractive(false)
-                    Properties properties = new Properties();
-                    properties.put("outputFile", '${project.build.directory}/dependencies')
-                    req.setProperties(properties)
-                },
-                { InvocationResult res ->
-                    // собираем компоненты
-                    Pom.getModules(pomFile).each {
-                        File componentBasedir = new File(basedir, it)
-                        def pom = new XmlParser().parse(new File(componentBasedir, 'pom.xml'))
-                        MavenComponent component = new MavenComponent()
-                        component.setBasedir(componentBasedir)
-                        component.setModules(getComponentModules(componentBasedir))
-                        component.setGroupId(pom.groupId.text())
-                        component.setArtifactId(pom.artifactId.text())
-                        result.add(component)
-                    }
-                }
-        )
+        // собираем компонентыs
+        Pom.getModules(pomFile).each {
+            File componentBasedir = new File(basedir, it)
+            def pom = new XmlParser().parse(new File(componentBasedir, 'pom.xml'))
+            MavenComponent component = new MavenComponent()
+            component.setBasedir(componentBasedir)
+            component.setModules(getComponentModules(componentBasedir))
+            component.setGroupId(pom.groupId.text())
+            component.setArtifactId(pom.artifactId.text())
+            result.add(component)
+        }
         return result
     }
 
     static Set<MavenArtifact> getComponentModules(File basedir) {
         Set<MavenArtifact> result = new HashSet<>()
         def module = new MavenArtifact()
-        def pom = new XmlParser().parse(new File(basedir, 'pom.xml'))
+        def project = new XmlParser().parse(new File(basedir, 'pom.xml'))
         module.basedir = basedir
-        module.setGroupId(pom.groupId ? pom.groupId.text() : pom.parent.groupId.text())
-        module.setArtifactId(pom.artifactId.text())
-        module.setDependencies(parseDependencies(basedir))
-        if(pom.parent) {
-            module.getDependencies().add(new MavenArtifactRef(pom.parent.groupId.text(), pom.parent.artifactId.text()))
+        module.setGroupId(project.groupId ? project.groupId.text() : project.parent.groupId.text())
+        module.setArtifactId(project.artifactId.text())
+        module.setDependencies(getProjectDependencies(project))
+        if (project.parent) {
+            module.getDependencies().add(
+                    new MavenArtifactRef(
+                            project.parent.groupId.text(),
+                            project.parent.artifactId.text()))
         }
         result.add(module)
         Pom.getModules(new File(basedir, "pom.xml")).each {
@@ -176,16 +168,18 @@ class MavenFeature {
         return result
     }
 
-    @CompileStatic
-    static Set<MavenArtifactRef> parseDependencies(File basedir) {
-        //TODO: fix target
-        def lines = new File(basedir, "target/dependencies").readLines()
+    static Set<MavenArtifactRef> getProjectDependencies(Node project) {
         Set<MavenArtifactRef> result = new HashSet<>()
-        lines.each {
-            def tokens = it.split(":")
-            if (tokens.length > 3) {
-                result.add(new MavenArtifactRef(tokens[0].trim(), tokens[1].trim()))
+        def parseDependencies = { Node dependencies ->
+            dependencies.dependency.each {
+                result.add(new MavenArtifactRef(it.groupId.text(), it.artifactId.text()))
             }
+        }
+        if (project.dependencyManagement.dependencies) {
+            parseDependencies(project.dependencyManagement.dependencies)
+        }
+        if (project.dependencies) {
+            parseDependencies(project.dependencies)
         }
         return result
     }

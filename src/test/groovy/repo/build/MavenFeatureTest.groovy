@@ -72,6 +72,9 @@ class MavenFeatureTest extends BaseTestCase {
         def url = new File(sandbox.basedir, 'manifest')
         GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
 
+        // build parent
+        cleanInstallParent()
+
         // update parent version to 1.1.0-SNAPSHOT on master
         sandbox.component('parent',
                 { Sandbox sandbox, File dir ->
@@ -109,6 +112,8 @@ class MavenFeatureTest extends BaseTestCase {
         def url = new File(sandbox.basedir, 'manifest')
         GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
 
+        // build parent
+        cleanInstallParent()
         // update c1 version to 1.1.0-SNAPSHOT on master
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
@@ -151,6 +156,21 @@ class MavenFeatureTest extends BaseTestCase {
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
         assertEquals('1.1.0-SNAPSHOT', c2Pom.properties.'c1.version'.text())
+    }
+
+    private Sandbox cleanInstallParent() {
+        sandbox.component('parent',
+                { Sandbox sandbox, File dir ->
+                    Maven.execute(new File(dir, 'pom.xml'),
+                            { InvocationRequest req ->
+                                req.setGoals(Arrays.asList('clean', 'install'))
+                                req.setInteractive(false)
+                                Properties properties = new Properties()
+                                properties.put('skipTests', 'true')
+                                req.setProperties(properties)
+                            }
+                    )
+                })
     }
 
     void testGetComponentsMap() {
