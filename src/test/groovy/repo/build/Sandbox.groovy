@@ -18,6 +18,7 @@ class Sandbox {
         def dir = new File(basedir, component)
         dir.mkdirs()
         Git.init(dir)
+        Git.user(dir, "you@example.com", "Your Name")
         action(this, dir)
         components.put(component, dir)
         return this
