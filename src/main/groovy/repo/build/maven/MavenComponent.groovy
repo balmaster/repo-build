@@ -3,11 +3,20 @@ package repo.build.maven
 /**
  */
 class MavenComponent {
-    File basedir;
-    String groupId;
-    String artifactId;
-    String version;
-    Set<MavenArtifact> modules;
+    String path
+    File basedir
+    String groupId
+    String artifactId
+    String version
+    Set<MavenArtifact> modules
+
+    String getPath() {
+        return path
+    }
+
+    void setPath(String path) {
+        this.path = path
+    }
 
     File getBasedir() {
         return basedir

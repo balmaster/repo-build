@@ -226,6 +226,7 @@ class RepoBuild {
     void doMavenFeatureUpdateVersions() {
         def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
         def includes = getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
-        MavenFeature.updateVersions(env, featureBranch, includes)
+        def continueFromComponent = options.C
+        MavenFeature.updateVersions(env, featureBranch, includes, continueFromComponent)
     }
 }

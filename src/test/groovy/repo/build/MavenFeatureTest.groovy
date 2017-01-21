@@ -158,6 +158,72 @@ class MavenFeatureTest extends BaseTestCase {
         assertEquals('1.1.0-SNAPSHOT', c2Pom.properties.'c1.version'.text())
     }
 
+    void testUpdateVersionsContinueFromComponent() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        // build parent
+        cleanInstallParent()
+        // update c1 version to 1.1.0-SNAPSHOT on master
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Maven.execute(new File(dir, 'pom.xml'),
+                            { InvocationRequest req ->
+                                req.setGoals(Arrays.asList("versions:set"))
+                                req.setInteractive(false)
+                                Properties properties = new Properties();
+                                properties.put("newVersion", '1.1.0-SNAPSHOT')
+                                properties.put('generateBackupPoms', 'false')
+                                req.setProperties(properties)
+                            }
+                    )
+                    Git.addUpdated(dir)
+                    Git.commit(dir, 'vup')
+                })
+        // update c2 version to 2.1.0-SNAPSHOT on master
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Maven.execute(new File(dir, 'pom.xml'),
+                            { InvocationRequest req ->
+                                req.setGoals(Arrays.asList("versions:set"))
+                                req.setInteractive(false)
+                                Properties properties = new Properties();
+                                properties.put("newVersion", '2.1.0-SNAPSHOT')
+                                properties.put('generateBackupPoms', 'false')
+                                req.setProperties(properties)
+                            }
+                    )
+                    Git.addUpdated(dir)
+                    Git.commit(dir, 'vup')
+                })
+
+        GitFeature.sync(env)
+        GitFeature.switch(env, 'feature/1')
+        GitFeature.mergeRelease(env, 'feature/1')
+
+        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Maven.execute(new File(dir, 'pom.xml'),
+                            { InvocationRequest req ->
+                                req.setGoals(Arrays.asList("clean"))
+                                req.setInteractive(false)
+                            }
+                    )
+                })
+
+        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', 'c2')
+
+        // check parent version
+        def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
+        assertEquals('1.1.0-SNAPSHOT', c2Pom.properties.'c1.version'.text())
+
+        def c1Target = new File(env.basedir, 'c1/target')
+        assertFalse(c1Target.exists())
+
+    }
+
     private Sandbox cleanInstallParent() {
         sandbox.component('parent',
                 { Sandbox sandbox, File dir ->

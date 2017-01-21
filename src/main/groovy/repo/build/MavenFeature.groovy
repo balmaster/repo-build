@@ -75,6 +75,11 @@ class MavenFeature {
 
     @CompileStatic
     static void updateVersions(RepoEnv env, String featureBranch, String includes) {
+        updateVersions(env, featureBranch, includes, null)
+    }
+
+    @CompileStatic
+    static void updateVersions(RepoEnv env, String featureBranch, String includes, String continueFromComponent) {
         Pom.generateXml(env, featureBranch, new File(env.basedir, 'pom.xml'))
 
         // получаем компоненты и зависимости
@@ -86,20 +91,25 @@ class MavenFeature {
             logger.info(it.groupId + ':' + it.artifactId)
         }
 
+        boolean found = continueFromComponent == null
         sortedComponents.each {
-            // call version plugin
-            Maven.execute(new File(it.basedir, "pom.xml"),
-                    { InvocationRequest req ->
-                        req.setGoals(Arrays.asList("versions:update-properties"))
-                        req.setInteractive(false)
-                        Properties properties = new Properties();
-                        properties.put("allowSnapshots", "true")
-                        properties.put("includes", includes)
-                        properties.put('generateBackupPoms', 'false')
-                        req.setProperties(properties)
-                    }
-            )
-            /*
+            if (continueFromComponent == it.path) {
+                found = true
+            }
+            if (found) {
+                // call version plugin
+                Maven.execute(new File(it.basedir, "pom.xml"),
+                        { InvocationRequest req ->
+                            req.setGoals(Arrays.asList("versions:update-properties"))
+                            req.setInteractive(false)
+                            Properties properties = new Properties();
+                            properties.put("allowSnapshots", "true")
+                            properties.put("includes", includes)
+                            properties.put('generateBackupPoms', 'false')
+                            req.setProperties(properties)
+                        }
+                )
+                /*
             Maven.execute(new File(it.basedir, "pom.xml"),
                     { InvocationRequest req ->
                         req.setGoals(Arrays.asList("versions:use-latest-versions"))
@@ -112,24 +122,25 @@ class MavenFeature {
                     }
             )
             */
-            // maven build with skipTests
-            Maven.execute(new File(it.basedir, "pom.xml"),
-                    { InvocationRequest req ->
-                        req.setGoals(Arrays.asList("clean", "install"))
-                        req.setInteractive(false)
-                        Properties properties = new Properties();
-                        properties.put("skipTests", 'true')
-                        req.setProperties(properties)
-                    }
-            )
+                // maven build with skipTests
+                Maven.execute(new File(it.basedir, "pom.xml"),
+                        { InvocationRequest req ->
+                            req.setGoals(Arrays.asList("clean", "install"))
+                            req.setInteractive(false)
+                            Properties properties = new Properties();
+                            properties.put("skipTests", 'true')
+                            req.setProperties(properties)
+                        }
+                )
 
-            // commit only if component has featureBranch
-            if(Git.getBranch(it.basedir) == featureBranch) {
-                // check modify pom.xml
-                if (Git.isFileModified(it.basedir, "pom.xml")) {
-                    // if it modifies - commit vup
-                    Git.add(it.basedir, "pom.xml")
-                    Git.commit(it.basedir, "update_dependencies_to_last_feature_snapshot")
+                // commit only if component has featureBranch
+                if (Git.getBranch(it.basedir) == featureBranch) {
+                    // check modify pom.xml
+                    if (Git.isFileModified(it.basedir, "pom.xml")) {
+                        // if it modifies - commit vup
+                        Git.add(it.basedir, "pom.xml")
+                        Git.commit(it.basedir, "update_dependencies_to_last_feature_snapshot")
+                    }
                 }
             }
         }
@@ -163,6 +174,7 @@ class MavenFeature {
             File componentBasedir = new File(basedir, it)
             def project = new XmlParser().parse(new File(componentBasedir, 'pom.xml'))
             MavenComponent component = new MavenComponent()
+            component.setPath(it)
             component.setBasedir(componentBasedir)
             component.setModules(getComponentModules(componentBasedir))
             component.setGroupId(getProjectGroup(project))

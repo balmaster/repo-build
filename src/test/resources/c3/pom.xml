@@ -29,7 +29,7 @@
         <version>${c1.version}</version>
       </dependency>
       <dependency>
-        <groupId>test.repo-build</groupId>
+        <groupId>${project.groupId}</groupId>
         <artifactId>c2-api</artifactId>
         <version>${c2.version}</version>
       </dependency>

@@ -34,6 +34,7 @@ class CliBuilderFactory {
             t( args:1, argName: 'targetExportDir', 'target export dir for bundles')
             M( args:1, argName: 'manifestGitUrl', '')
             P( args:1, argName: 'parent', 'parent component name')
+            C( args:1, argName: 'continue', 'continue from component')
             X( 'enable debug mode' )
         }
         return cli
