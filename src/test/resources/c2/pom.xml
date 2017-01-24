@@ -12,10 +12,6 @@
   <version>2.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <properties>
-    <c1.version>1.0.0-SNAPSHOT</c1.version>
-  </properties>
-
   <modules>
     <module>api</module>
   </modules>
@@ -25,7 +21,7 @@
       <dependency>
         <groupId>test.repo-build</groupId>
         <artifactId>c1-api</artifactId>
-        <version>${c1.version}</version>
+        <version>1.0.0-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

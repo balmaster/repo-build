@@ -155,7 +155,7 @@ class MavenFeatureTest extends BaseTestCase {
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
-        assertEquals('1.1.0-SNAPSHOT', c2Pom.properties.'c1.version'.text())
+        assertEquals('1.1.0-SNAPSHOT', c2Pom.dependencyManagement.dependencies.dependency.version.text())
     }
 
     void testUpdateVersionsContinueFromComponent() {

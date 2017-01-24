@@ -109,19 +109,19 @@ class MavenFeature {
                             req.setProperties(properties)
                         }
                 )
-                /*
-            Maven.execute(new File(it.basedir, "pom.xml"),
-                    { InvocationRequest req ->
-                        req.setGoals(Arrays.asList("versions:use-latest-versions"))
-                        req.setInteractive(false)
-                        Properties properties = new Properties();
-                        properties.put("allowSnapshots", "true")
-                        properties.put("includes", includes)
-                        properties.put('generateBackupPoms', 'false')
-                        req.setProperties(properties)
-                    }
-            )
-            */
+
+                Maven.execute(new File(it.basedir, "pom.xml"),
+                        { InvocationRequest req ->
+                            req.setGoals(Arrays.asList("versions:use-latest-versions"))
+                            req.setInteractive(false)
+                            Properties properties = new Properties();
+                            properties.put("allowSnapshots", "true")
+                            properties.put("includes", includes)
+                            properties.put('generateBackupPoms', 'false')
+                            req.setProperties(properties)
+                        }
+                )
+
                 // maven build with skipTests
                 Maven.execute(new File(it.basedir, "pom.xml"),
                         { InvocationRequest req ->
