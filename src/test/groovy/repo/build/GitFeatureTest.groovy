@@ -167,4 +167,30 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('', result.get('c2'))
 
     }
+
+    void testStash() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    def newFile = new File(dir, 'test')
+                    newFile.createNewFile()
+                    newFile.text = 'TEST123'
+                    Git.add(dir, 'test')
+                    Git.commit(dir, 'test')
+                })
+
+        GitFeature.sync(env)
+
+        def file = new File(env.basedir, 'c1/test')
+        assertEquals('TEST123', file.text)
+        // update file
+        file.text = '123TEST'
+        GitFeature.stash(env)
+        assertEquals('TEST123', file.text)
+        GitFeature.stashPop(env)
+        assertEquals('123TEST', file.text)
+    }
+
 }
