@@ -112,7 +112,7 @@ class RepoBuild {
                 new File(getRepoBasedir(), POM_XML)
         def featureBranch = options.f ?
                 options.f :
-                Git.getBranch(new File(getRepoBasedir(), MANIFEST))
+                Git.getBranch(new File(getRepoBasedir(), "manifest"))
         Pom.generateXml(env, featureBranch, buildPomFile)
     }
 
@@ -226,7 +226,7 @@ class RepoBuild {
     void doMavenFeatureUpdateVersions() {
         def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
         def includes = getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
-        def continueFromComponent = options.C
+        def continueFromComponent = options.C ? options.C : null
         MavenFeature.updateVersions(env, featureBranch, includes, continueFromComponent)
     }
 }
