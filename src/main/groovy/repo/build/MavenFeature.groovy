@@ -233,7 +233,7 @@ class MavenFeature {
 
     static String eval(Object expr, Node project) {
         if (expr.equals('${project.groupId}')) {
-            return project.groupId.text()
+            return getProjectGroup(project)
         } else if (expr.equals('${parent.groupId}')) {
             return project.parent.groupId.text()
         } else {
