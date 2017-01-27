@@ -100,22 +100,22 @@
 Процесс вливания релиза в фичу состоит из нескольких шагов 
 * Мерж релизных веток указанных в манифесте в фича ветки
  
-    repo-build -f featureBranch git-feature-merge-release 
+    repo-build -f featureBranch feature-merge-release 
 
 если при этом произошла ошибка требующая вмешательства пользователя то исправляем коллизию и заново запускаем команду
 
 * Обновлениее версии parent артифакта, потому что в релизе он мог изменится 
     
-    repo-build -f featureBranch -P parent maven-feature-update-parent 
+    repo-build -f featureBranch -P parent feature-update-parent 
 
 если при этом произошла ошибка требующая вмешательства пользователя то исправляем коллизию и заново запускаем команду
 
 * Обновление версий зависимостей между mygroup компонентами, потому что в релизе зависимости могли уйти вперед
     
-    repo-build -f featureBranch -i mygroup:* maven-feature-update-versions
+    repo-build -f featureBranch -i mygroup:* feature-update-versions
 
 если при этом произшла какая либо ошибка требующая вмешательства пользователя 
 то можно продолжить с нужного компонента 
 
-    repo-build -f featureBranch -i mygroup:* -С component2 maven-feature-update-versions
+    repo-build -f featureBranch -i mygroup:* -С component2 feature-update-versions
 

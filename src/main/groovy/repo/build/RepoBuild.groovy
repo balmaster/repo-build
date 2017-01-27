@@ -84,14 +84,14 @@ class RepoBuild {
                     case "stash-pop":
                         doStashPop()
                         break
-                    case "git-feature-merge-release":
-                        doGitFeatureMergeRelease()
+                    case "feature-merge-release":
+                        doFeatureMergeRelease()
                         break
-                    case "maven-feature-update-parent":
-                        doMavenFeatureUpdateParent()
+                    case "feature-update-parent":
+                        doFeatureUpdateParent()
                         break
-                    case "maven-feature-update-versions":
-                        doMavenFeatureUpdateVersions()
+                    case "feature-update-versions":
+                        doFeatureUpdateVersions()
                         break
                     default:
                         throw new RepoBuildException("Invalid command: $it")
@@ -212,18 +212,18 @@ class RepoBuild {
         GitFeature.stashPop(env)
     }
 
-    void doGitFeatureMergeRelease() {
+    void doFeatureMergeRelease() {
         def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
         GitFeature.mergeRelease(env, featureBranch)
     }
 
-    void doMavenFeatureUpdateParent() {
+    void doFeatureUpdateParent() {
         def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
         def parentComponent = getRequired(options.P, "Parent component required.\nUse: 'repo-build -P parent ...'")
         MavenFeature.updateParent(env, featureBranch, parentComponent)
     }
 
-    void doMavenFeatureUpdateVersions() {
+    void doFeatureUpdateVersions() {
         def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
         def includes = getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
         def continueFromComponent = options.C ? options.C : null

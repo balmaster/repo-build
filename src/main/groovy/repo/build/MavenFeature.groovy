@@ -110,6 +110,7 @@ class MavenFeature {
                         }
                 )
 
+                /*
                 Maven.execute(new File(it.basedir, "pom.xml"),
                         { InvocationRequest req ->
                             req.setGoals(Arrays.asList("versions:use-latest-versions"))
@@ -121,6 +122,7 @@ class MavenFeature {
                             req.setProperties(properties)
                         }
                 )
+                */
 
                 // maven build with skipTests
                 Maven.execute(new File(it.basedir, "pom.xml"),

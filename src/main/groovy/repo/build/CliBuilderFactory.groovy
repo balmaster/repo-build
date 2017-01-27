@@ -16,9 +16,9 @@ class CliBuilderFactory {
                 '| merge-abort ' +
                 '| stash ' +
                 '| stash-pop' +
-                '| git-feature-merge-release' +
-                '| maven-feature-update-parent' +
-                '| maven-feature-update-versions]*')
+                '| feature-merge-release' +
+                '| feature-update-parent' +
+                '| feature-update-versions]*')
         cli.with {
             a( 'execute merge --abort before merge' )
             b( args:1, argName: 'manifestBranchName', '')
