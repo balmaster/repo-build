@@ -121,4 +121,12 @@ class Git {
     static void init(File dir) {
         ExecuteProcess.executeCmd0(dir, "git init")
     }
+
+    static void pushBranch(File dir, String remote, String branch, boolean setUpstream) {
+        if(setUpstream) {
+            ExecuteProcess.executeCmd0(dir, "git push -u $remote $branch")
+        } else {
+            ExecuteProcess.executeCmd0(dir, "git push $remote $branch")
+        }
+    }
 }

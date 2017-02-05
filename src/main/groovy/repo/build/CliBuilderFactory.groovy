@@ -1,24 +1,48 @@
 package repo.build
 
+import com.google.common.base.Joiner
 import groovy.transform.CompileStatic;
 
 class CliBuilderFactory {
+    static final String CMD_INIT = 'init'
+    static final String CMD_SYNC = 'sync'
+    static final String CMD_BUILD_POM = 'build-pom'
+    static final String CMD_SWITCH = 'switch'
+    static final String CMD_PREPARE_MERGE = 'prepare-merge'
+    static final String CMD_EXPORT_BUNDLES = 'export-bundles'
+    static final String CMD_STATUS = 'status'
+    static final String CMD_GREP = 'grep'
+    static final String CMD_MERGE_ABORT = 'merge-abort'
+    static final String CMD_STASH = 'stash'
+    static final String CMD_STASH_POP = 'stash-pop'
+    static final String CMD_FEATURE_MERGE_RELEASE = 'feature-merge-release'
+    static final String CMD_FEATURE_UPDATE_PARENT = 'feature-update-parent'
+    static final String CMD_FEATURE_UPDATE_VERSIONS = 'feature-update-versions'
+    static final String CMD_PUSH_FEATURE = 'push-feature'
+    static final String CMD_PUSH_MANIFEST = 'push-manifest'
+
     static CliBuilder build() {
         def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] ' +
-                '[init ' +
-                '| sync ' +
-                '| build-pom ' +
-                '| switch ' +
-                '| prepare-merge ' +
-                '| export-bundles ' +
-                '| status ' +
-                '| grep ' +
-                '| merge-abort ' +
-                '| stash ' +
-                '| stash-pop' +
-                '| feature-merge-release' +
-                '| feature-update-parent' +
-                '| feature-update-versions]*')
+                '[' +
+                Joiner.on('\n').join(
+                        CMD_INIT,
+                        CMD_SYNC,
+                        CMD_BUILD_POM,
+                        CMD_SWITCH,
+                        CMD_PREPARE_MERGE,
+                        CMD_EXPORT_BUNDLES,
+                        CMD_STATUS,
+                        CMD_GREP,
+                        CMD_MERGE_ABORT,
+                        CMD_STASH,
+                        CMD_STASH_POP,
+                        CMD_FEATURE_MERGE_RELEASE,
+                        CMD_FEATURE_UPDATE_PARENT,
+                        CMD_FEATURE_UPDATE_VERSIONS,
+                        CMD_PUSH_FEATURE,
+                        CMD_PUSH_MANIFEST
+                ).toString() +
+                ']*')
         cli.with {
             a( 'execute merge --abort before merge' )
             b( args:1, argName: 'manifestBranchName', '')

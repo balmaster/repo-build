@@ -127,10 +127,16 @@ class GitFeature {
         )
     }
 
-    static Map<String, String> status(RepoEnv env) {
-        Map<String, String> result = new HashMap<>()
+    static void forEachWithProjectDirExists(RepoEnv env, Closure action) {
         RepoManifest.forEach(env,
                 { Node project -> return RepoManifest.projectDirExists(env, project) },
+                action
+        )
+    }
+
+    static Map<String, String> status(RepoEnv env) {
+        Map<String, String> result = new HashMap<>()
+        forEachWithProjectDirExists(env,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     def branch = Git.getBranch(dir)
@@ -146,8 +152,7 @@ class GitFeature {
 
     static Map<String, String> grep(RepoEnv env, String exp) {
         Map<String, String> result = new HashMap<>()
-        RepoManifest.forEach(env,
-                { Node project -> return RepoManifest.projectDirExists(env, project) },
+        forEachWithProjectDirExists(env,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     result.put(project.@path, Git.grep(dir, exp))
@@ -157,8 +162,7 @@ class GitFeature {
     }
 
     static void mergeAbort(RepoEnv env) {
-        RepoManifest.forEach(env,
-                { Node project -> return RepoManifest.projectDirExists(env, project) },
+        forEachWithProjectDirExists(env,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     Git.mergeAbort(dir)
@@ -167,8 +171,7 @@ class GitFeature {
     }
 
     static void stash(RepoEnv env) {
-        RepoManifest.forEach(env,
-                { Node project -> return RepoManifest.projectDirExists(env, project) },
+        forEachWithProjectDirExists(env,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     Git.stash(dir)
@@ -177,12 +180,36 @@ class GitFeature {
     }
 
     static void stashPop(RepoEnv env) {
-        RepoManifest.forEach(env,
-                { Node project -> return RepoManifest.projectDirExists(env, project) },
+        forEachWithProjectDirExists(env,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     Git.stashPop(dir)
                 }
         )
     }
+
+    static void pushFeatureBranch(RepoEnv env, String featureBranch, boolean setUpstream) {
+        RepoManifest.forEach(env,
+                // use only existing local componentn whith have featureBranch
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    return RepoManifest.projectDirExists(env, project) && Git.branchPresent(dir, featureBranch)
+                },
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    Git.pushBranch(dir, project.@remote, featureBranch, setUpstream)
+                }
+        )
+    }
+
+    static void pushManifestBranch(RepoEnv env, boolean setUpstream) {
+        forEachWithProjectDirExists(env,
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    def manifestBranch = RepoManifest.getBranch(env, project.@path)
+                    Git.pushBranch(dir, project.@remote, manifestBranch, setUpstream)
+                }
+        )
+    }
+
 }

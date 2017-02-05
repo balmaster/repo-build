@@ -8,8 +8,6 @@ class RepoBuild {
 
     static Logger logger = LogManager.getLogger(RepoBuild.class)
 
-    private static final String ORIGIN = "origin"
-
     static final String BUNDLES = "bundles"
 
     static final String POM_XML = "pom.xml"
@@ -48,50 +46,53 @@ class RepoBuild {
             commands.each {
                 logger.info("----- do command: {} -----", it)
                 switch (it) {
-                    case "build-pom":
+                    case CliBuilderFactory.CMD_BUILD_POM:
                         doBuildPom()
                         break
-                    case "switch":
+                    case CliBuilderFactory.CMD_SWITCH:
                         doSwitch()
                         break
-                    case "prepare-merge":
+                    case CliBuilderFactory.CMD_PREPARE_MERGE:
                         doPrepareMerge()
                         break
-                    case "import-bundles":
-                        doImportBundles()
-                        break
-                    case "export-bundles":
+                    case CliBuilderFactory.CMD_EXPORT_BUNDLES:
                         doExportBundles()
                         break
-                    case "init":
+                    case CliBuilderFactory.CMD_INIT:
                         doInit()
                         break
-                    case "sync":
+                    case CliBuilderFactory.CMD_SYNC:
                         doSync()
                         break
-                    case "status":
+                    case CliBuilderFactory.CMD_STATUS:
                         doStatus()
                         break
-                    case "grep":
+                    case CliBuilderFactory.CMD_GREP:
                         doGrep()
                         break
-                    case "merge-abort":
+                    case CliBuilderFactory.CMD_MERGE_ABORT:
                         doMergeAbort()
                         break
-                    case "stash":
+                    case CliBuilderFactory.CMD_STASH:
                         doStash()
                         break
-                    case "stash-pop":
+                    case CliBuilderFactory.CMD_STASH_POP:
                         doStashPop()
                         break
-                    case "feature-merge-release":
+                    case CliBuilderFactory.CMD_FEATURE_MERGE_RELEASE:
                         doFeatureMergeRelease()
                         break
-                    case "feature-update-parent":
+                    case CliBuilderFactory.CMD_FEATURE_UPDATE_PARENT:
                         doFeatureUpdateParent()
                         break
-                    case "feature-update-versions":
+                    case CliBuilderFactory.CMD_FEATURE_UPDATE_VERSIONS:
                         doFeatureUpdateVersions()
+                        break
+                    case CliBuilderFactory.CMD_PUSH_FEATURE:
+                        doPushFeature()
+                        break
+                    case CliBuilderFactory.CMD_PUSH_MANIFEST:
+                        doPushManifest()
                         break
                     default:
                         throw new RepoBuildException("Invalid command: $it")
@@ -104,6 +105,10 @@ class RepoBuild {
 
     File getRepoBasedir() {
         return options.r ? new File(options.r) : new File(".").getAbsoluteFile()
+    }
+
+    String getFeatureBranch() {
+        return getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
     }
 
     void doBuildPom() {
@@ -130,26 +135,17 @@ class RepoBuild {
     }
 
     void doPrepareMerge() {
-        def featureBranch = getRequired(options.f, "featureBranch")
-        if (featureBranch) {
-            GitFeature.mergeFeature(env, featureBranch, options.a)
-        } else {
-            throw new RepoBuildException("Use: 'repo-build -f <featureBranch> prepare-merge'")
-        }
-    }
-
-    void doImportBundles() {
+        GitFeature.mergeFeature(env, getFeatureBranch(), options.a)
     }
 
     void doExportBundles() {
         if (options.f) {
-            def featureBranch = getRequired(options.f, "featureBranch")
             def targetExportDir = options.t ?
                     new File(options.t)
                     : new File(getRepoBasedir(), BUNDLES)
 
             targetExportDir.mkdirs()
-            GitFeature.createFeatureBundles(env, targetExportDir, featureBranch)
+            GitFeature.createFeatureBundles(env, targetExportDir, getFeatureBranch())
         } else if (options.m) {
             def targetExportDir = options.t ?
                     new File(options.t)
@@ -213,20 +209,26 @@ class RepoBuild {
     }
 
     void doFeatureMergeRelease() {
-        def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
-        GitFeature.mergeRelease(env, featureBranch)
+        GitFeature.mergeRelease(env, getFeatureBranch())
     }
 
     void doFeatureUpdateParent() {
-        def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
         def parentComponent = getRequired(options.P, "Parent component required.\nUse: 'repo-build -P parent ...'")
-        MavenFeature.updateParent(env, featureBranch, parentComponent)
+        MavenFeature.updateParent(env, getFeatureBranch(), parentComponent)
     }
 
     void doFeatureUpdateVersions() {
-        def featureBranch = getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
         def includes = getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
         def continueFromComponent = options.C ? options.C : null
-        MavenFeature.updateVersions(env, featureBranch, includes, continueFromComponent, true)
+        MavenFeature.updateVersions(env, getFeatureBranch(), includes, continueFromComponent, true)
     }
+
+    void doPushFeature() {
+        GitFeature.pushFeatureBranch(env, getFeatureBranch(), true)
+    }
+
+    void doPushManifest() {
+        GitFeature.pushManifestBranch(env, true)
+    }
+
 }
