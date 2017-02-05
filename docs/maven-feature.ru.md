@@ -4,14 +4,15 @@
 Команда используется для обновления версии центрального parent компонента для компонентов имеющих фичабранчи
 Версия parent обновляется только при условии что компонент наследуется от центрального parent
 изменения коммитятся в фича бранчи с комментарием vup parent to <version>
-Параметры
 
-    -f фичабранч
-    -P parent
+Параметры:
+
+    -f <featureBranch>
+    -P <parentComponentPath>
 
 Перед пременение команды необходимо выполнить команды sync switch
-При выполнении команд группы maven-feature-..., Maven запускается с помощью [maven-invoker API](http://maven.apache.org/shared/maven-invoker/)
-требуется задать переменную окружения ```M2_HOME``` 
+При выполнении команд группы maven-feature-..., Maven запускается с помощью [maven-invoker API](http://maven.apache.org/shared/maven-invoker/),
+поэтому требуется задать переменную окружения ```M2_HOME``` 
 
 
 ## feature-update-versions
@@ -19,7 +20,6 @@
 Перед обновлением версий, строится ациклический граф зависимостей компонентов без учета версий
 затем этот граф топологически сортируется по зависимостям
 затем для отсортированных компонентов последовательно выполняются команды
-
 
     mvn versions:update-versions -Dincludes=$includes
     mvn clean install -DskipTests
@@ -32,6 +32,10 @@
 таким образом в локальном репозитории будут собраны корректные артефакты, кторые будут 
 учитываться version plugin
 
+Параметры:
+
+    -f <featureBranch>
+    -i <includesMavenArtifacts>
 
 ### Подерживаемые способы задания зависимостей между модулями
 Модули внутри одного помпонента организованы в структуру parent -> modules стандартную для Maven
@@ -40,12 +44,14 @@
 
 Для задания версии поддерживаются два варианта:
 Первый вариант - явно указывать версию в зависимости 
-    
-    <dependency>
-      <groupId>some.group</groupId>
-      <artifactId>some.artifact</artifactId>
-      <version>some.version</version>
-    </dependency>
+
+```xml
+<dependency>
+  <groupId>some.group</groupId>
+  <artifactId>some.artifact</artifactId>
+  <version>some.version</version>
+</dependency>
+```    
 
 в этом случае для управления зависимостями будут использоваться следующие goals maven-version-plugin:
 * use-last-versions 
@@ -54,24 +60,28 @@
 
 Второй вариант - использовать свойства для задания версий
 
-    <properties>
-      <some.version>some.version</some.version>
-    </properties    
+```xml
+<properties>
+  <some.version>some.version</some.version>
+</properties>    
     
-    <dependency>
-      <groupId>some.group</groupId>
-      <artifactId>some.artifact</artifactId>
-      <version>${some.version}</version>
-    </dependency>
+<dependency>
+  <groupId>some.group</groupId>
+  <artifactId>some.artifact</artifactId>
+  <version>${some.version}</version>
+</dependency>
+```
     
 в этом случае для для управления зависимостями будут использоваться следующие goals maven-version-plugin:
 * update-properties
 
 Важно: при использовании update-properties требуется чтобы свойства были объявлены в томже модуле что и зависимости 
 
-# Поддержка общей сборки релиза 
+# Поддержка общей сборки проекта 
 ## build-pom 
 Команда для формирования build pom файла по манифесту
     
-    -p <build pom file>
+Параметры:    
+    
+    -p <buildPomFile>
 		если параметр не задан то считается равным <repo project basedir>/pom.xml
