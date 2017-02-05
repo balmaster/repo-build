@@ -265,4 +265,5 @@ class MavenFeatureTest extends BaseTestCase {
         assertEquals('c2-parent', sortedComponents.get(2).getArtifactId())
         assertEquals('c3-parent', sortedComponents.get(3).getArtifactId())
     }
+
 }

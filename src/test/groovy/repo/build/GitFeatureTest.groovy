@@ -193,4 +193,95 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('123TEST', file.text)
     }
 
+
+    void testPushFeature() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(dir, 'feature/1')
+                })
+
+        GitFeature.sync(env)
+        GitFeature.switch(env, 'feature/1')
+
+        // modify branch
+        def c1Dir = new File(env.basedir, 'c1')
+        def c1File = new File(c1Dir, 'README.md')
+        c1File.text = 'update'
+        Git.add(c1Dir, 'README.md')
+        Git.commit(c1Dir, 'update')
+
+        // create branch
+        def c2Dir = new File(env.basedir, 'c2')
+        Git.createBranch(c2Dir, 'feature/1')
+        Git.checkout(c2Dir, 'feature/1')
+        def c2File = new File(c2Dir, 'README.md')
+        c2File.text = 'update'
+        Git.add(c2Dir, 'README.md')
+        Git.commit(c2Dir, 'update')
+
+        GitFeature.pushFeatureBranch(env, 'feature/1', true)
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.checkout(dir, 'feature/1')
+                    assertEquals('update', new File(dir, 'README.md').text)
+                })
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.checkout(dir, 'feature/1')
+                    assertEquals('update', new File(dir, 'README.md').text)
+                })
+    }
+
+
+    void testPushManifest() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        // for enable push to master
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(dir, 'master1')
+                    Git.checkout(dir, 'master1')
+                })
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(dir, 'master1')
+                    Git.checkout(dir, 'master1')
+                })
+
+
+        GitFeature.sync(env)
+
+        // modify branch
+        def c1Dir = new File(env.basedir, 'c1')
+        def c1File = new File(c1Dir, 'README.md')
+        c1File.text = 'update'
+        Git.add(c1Dir, 'README.md')
+        Git.commit(c1Dir, 'update')
+
+        // create branch
+        def c2Dir = new File(env.basedir, 'c2')
+        def c2File = new File(c2Dir, 'README.md')
+        c2File.text = 'update'
+        Git.add(c2Dir, 'README.md')
+        Git.commit(c2Dir, 'update')
+
+        GitFeature.pushManifestBranch(env, true)
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.checkout(dir, 'master')
+                    assertEquals('update', new File(dir, 'README.md').text)
+                })
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.checkout(dir, 'master')
+                    assertEquals('update', new File(dir, 'README.md').text)
+                })
+    }
+
 }
