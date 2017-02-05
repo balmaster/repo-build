@@ -4,7 +4,6 @@ import groovy.transform.CompileStatic
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.apache.maven.shared.invoker.InvocationRequest
-import org.apache.maven.shared.invoker.InvocationResult
 import repo.build.maven.MavenArtifact
 import repo.build.maven.MavenArtifactRef
 import repo.build.maven.MavenComponent
@@ -74,12 +73,52 @@ class MavenFeature {
     }
 
     @CompileStatic
-    static void updateVersions(RepoEnv env, String featureBranch, String includes) {
-        updateVersions(env, featureBranch, includes, null)
+    static void versionsUpdateProperties(File pomFile, String includes, boolean allowSnapshots) {
+        // call version plugin
+        Maven.execute(pomFile,
+                { InvocationRequest req ->
+                    req.setGoals(Arrays.asList("versions:update-properties"))
+                    req.setInteractive(false)
+                    Properties properties = new Properties();
+                    properties.put("allowSnapshots", Boolean.toString(allowSnapshots))
+                    properties.put("includes", includes)
+                    properties.put('generateBackupPoms', 'false')
+                    req.setProperties(properties)
+                }
+        )
     }
 
     @CompileStatic
-    static void updateVersions(RepoEnv env, String featureBranch, String includes, String continueFromComponent) {
+    static void versionsUseLastVersions(File pomFile, String includes, boolean allowSnapshots) {
+        Maven.execute(pomFile,
+                { InvocationRequest req ->
+                    req.setGoals(Arrays.asList("versions:use-latest-versions"))
+                    req.setInteractive(false)
+                    Properties properties = new Properties();
+                    properties.put("allowSnapshots", Boolean.toString(allowSnapshots))
+                    properties.put("includes", includes)
+                    properties.put('generateBackupPoms', 'false')
+                    req.setProperties(properties)
+                }
+        )
+    }
+
+    @CompileStatic
+    static void build(File pomFile, List<String> goals, Map<String, String> properties) {
+        Maven.execute(pomFile,
+                { InvocationRequest req ->
+                    req.setGoals(goals)
+                    req.setInteractive(false)
+                    Properties p = new Properties();
+                    p.putAll(properties)
+                    req.setProperties(p)
+                }
+        )
+    }
+
+    @CompileStatic
+    static void updateVersions(RepoEnv env, String featureBranch, String includes,
+                               String continueFromComponent, boolean allowSnapshots) {
         Pom.generateXml(env, featureBranch, new File(env.basedir, 'pom.xml'))
 
         // получаем компоненты и зависимости
@@ -97,56 +136,22 @@ class MavenFeature {
                 found = true
             }
             if (found) {
-                // call version plugin
-                Maven.execute(new File(it.basedir, "pom.xml"),
-                        { InvocationRequest req ->
-                            req.setGoals(Arrays.asList("versions:update-properties"))
-                            req.setInteractive(false)
-                            Properties properties = new Properties();
-                            properties.put("allowSnapshots", "true")
-                            properties.put("includes", includes)
-                            properties.put('generateBackupPoms', 'false')
-                            req.setProperties(properties)
-                        }
-                )
-
-                /*
-                Maven.execute(new File(it.basedir, "pom.xml"),
-                        { InvocationRequest req ->
-                            req.setGoals(Arrays.asList("versions:use-latest-versions"))
-                            req.setInteractive(false)
-                            Properties properties = new Properties();
-                            properties.put("allowSnapshots", "true")
-                            properties.put("includes", includes)
-                            properties.put('generateBackupPoms', 'false')
-                            req.setProperties(properties)
-                        }
-                )
-                */
-
+                def pomFile = new File(it.basedir, "pom.xml")
+                versionsUpdateProperties(pomFile, includes, allowSnapshots)
                 // maven build with skipTests
-                Maven.execute(new File(it.basedir, "pom.xml"),
-                        { InvocationRequest req ->
-                            req.setGoals(Arrays.asList("clean", "install"))
-                            req.setInteractive(false)
-                            Properties properties = new Properties();
-                            properties.put("skipTests", 'true')
-                            req.setProperties(properties)
-                        }
-                )
-
+                build(pomFile, ['clean', 'install'], ['skipTests': 'true'])
                 // commit only if component has featureBranch
                 if (Git.getBranch(it.basedir) == featureBranch) {
                     // check modify pom.xml
                     if (Git.isFileModified(it.basedir, "pom.xml")) {
                         // if it modifies - commit vup
                         Git.add(it.basedir, "pom.xml")
-                        Git.commit(it.basedir, "update_dependencies_to_last_feature_snapshot")
+                        // TODO, UGLY: _ fix bug on Linux with commit -m
+                        Git.commit(it.basedir, "update_dependencies_to_last_versions")
                     }
                 }
             }
         }
-
     }
 
     @CompileStatic

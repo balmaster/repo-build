@@ -151,11 +151,11 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(env, 'feature/1')
         GitFeature.mergeRelease(env, 'feature/1')
 
-        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*')
+        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', null, true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
-        assertEquals('1.1.0-SNAPSHOT', c2Pom.dependencyManagement.dependencies.dependency.version.text())
+        assertEquals('1.1.0-SNAPSHOT', c2Pom.properties."c1.version".text())
     }
 
     void testUpdateVersionsContinueFromComponent() {
@@ -201,7 +201,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(env, 'feature/1')
         GitFeature.mergeRelease(env, 'feature/1')
 
-        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*')
+        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', null, true)
 
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
@@ -213,11 +213,11 @@ class MavenFeatureTest extends BaseTestCase {
                     )
                 })
 
-        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', 'c2')
+        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', 'c2', true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
-        assertEquals('1.1.0-SNAPSHOT', c2Pom.dependencyManagement.dependencies.dependency.version.text())
+        assertEquals('1.1.0-SNAPSHOT', c2Pom.properties."c1.version".text())
 
         def c1Target = new File(env.basedir, 'c1/target')
         assertFalse(c1Target.exists())
@@ -260,9 +260,9 @@ class MavenFeatureTest extends BaseTestCase {
         def components = MavenFeature.getComponentsMap(env.basedir)
         def sortedComponents = MavenFeature.sortComponents(components)
         assertEquals(4, sortedComponents.size())
-        assertEquals('parent',sortedComponents.get(0).getArtifactId())
-        assertEquals('c1-parent',sortedComponents.get(1).getArtifactId())
-        assertEquals('c2-parent',sortedComponents.get(2).getArtifactId())
-        assertEquals('c3-parent',sortedComponents.get(3).getArtifactId())
+        assertEquals('parent', sortedComponents.get(0).getArtifactId())
+        assertEquals('c1-parent', sortedComponents.get(1).getArtifactId())
+        assertEquals('c2-parent', sortedComponents.get(2).getArtifactId())
+        assertEquals('c3-parent', sortedComponents.get(3).getArtifactId())
     }
 }

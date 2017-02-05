@@ -1,4 +1,4 @@
-/target/
+target
 repo-build.log
 .idea
 *.iml
