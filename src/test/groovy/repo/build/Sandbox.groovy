@@ -46,14 +46,15 @@ class Sandbox {
     }
 
     Sandbox buildManifest(File dir) {
-        def xmlWriter = new FileWriter(new File(dir, 'default.xml'))
-        def xmlMarkup = new MarkupBuilder(xmlWriter)
+        new FileWriter(new File(dir, 'default.xml')).withCloseable { xmlWriter ->
+            def xmlMarkup = new MarkupBuilder(xmlWriter)
 
-        xmlMarkup.'manifest'() {
-            'remote'('name': 'origin', 'fetch': dir.getParentFile().getAbsolutePath())
-            'default'('revision': 'refs/heads/develop', 'remote': 'origin', 'sync': '1')
-            components.each {
-                'project'('name': it.key, 'remote': 'origin', 'path': it.key, 'revision': 'refs/heads/master')
+            xmlMarkup.'manifest'() {
+                'remote'('name': 'origin', 'fetch': dir.getParentFile().getAbsolutePath())
+                'default'('revision': 'refs/heads/develop', 'remote': 'origin', 'sync': '1')
+                components.each {
+                    'project'('name': it.key, 'remote': 'origin', 'path': it.key, 'revision': 'refs/heads/master')
+                }
             }
         }
         return this
