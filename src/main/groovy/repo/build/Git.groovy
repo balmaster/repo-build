@@ -82,7 +82,7 @@ class Git {
     }
 
     static String logUnpushed(File dir, String remoteBranch) {
-        return ExecuteProcess.executeCmd0(dir, "git log $remoteBranch..HEAD --not --remotes --oneline")
+        return ExecuteProcess.executeCmd0(dir, "git log $remoteBranch..HEAD --not --oneline")
     }
 
     static String grep(File dir, String expr) {

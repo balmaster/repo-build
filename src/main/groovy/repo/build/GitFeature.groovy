@@ -133,8 +133,9 @@ class GitFeature {
                 { Node project -> return RepoManifest.projectDirExists(env, project) },
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
-                    def branch = RepoManifest.getBranch(env, project.@path)
-                    def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
+                    def branch = Git.getBranch(dir)
+                    def remoteName = RepoManifest.getRemoteName(env)
+                    def remoteBranch = "$remoteName/$branch"
                     def status = Git.status(dir)
                     def unpushed = Git.logUnpushed(dir, remoteBranch)
                     result.put(project.@path, status + '\n' + unpushed)
