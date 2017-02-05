@@ -67,26 +67,6 @@ class RepoManifest {
         )
     }
 
-    static void forEachManifestBranch(RepoEnv env) {
-        def remoteName = getRemoteName(env)
-        def remoteBaseUrl = getRemoteBaseUrl(env)
-        RepoManifest.forEach(env,
-                { Node project ->
-                    def branch = getBranch(env, project.@path)
-                    def remoteBranch = getRemoteBranch(env, branch)
-                    def dir = new File(env.basedir, project.@path)
-                    def name = project.@name
-                    if (new File(dir, ".git").exists()) {
-                        Git.fetch(env, remoteName, dir)
-                    } else {
-                        dir.mkdirs()
-                        Git.clone(env, "$remoteBaseUrl/$name", remoteName, dir)
-                    }
-                    Git.checkoutUpdate(env, branch, remoteBranch, dir)
-                }
-        )
-    }
-
     static String getBranch(RepoEnv env, String projectPath) {
         return env.manifest.project
                 .findAll {
