@@ -88,6 +88,15 @@ class RepoBuild {
                     case CliBuilderFactory.CMD_FEATURE_UPDATE_VERSIONS:
                         doFeatureUpdateVersions()
                         break
+                    case CliBuilderFactory.CMD_RELEASE_MERGE_FEATURE:
+                        doReleaseMergeFeature()
+                        break
+                    case CliBuilderFactory.CMD_RELEASE_UPDATE_PARENT:
+                        doReleaseUpdateParent()
+                        break
+                    case CliBuilderFactory.CMD_RELEASE_UPDATE_VERSIONS:
+                        doReleaseUpdateVersions()
+                        break
                     case CliBuilderFactory.CMD_PUSH_FEATURE:
                         doPushFeature()
                         break
@@ -103,12 +112,29 @@ class RepoBuild {
         }
     }
 
+    @CompileStatic
+    String getRequired(value, String msg) {
+        if (value) {
+            return value
+        } else {
+            throw new RepoBuildException(msg)
+        }
+    }
+
     File getRepoBasedir() {
         return options.r ? new File(options.r) : new File(".").getAbsoluteFile()
     }
 
     String getFeatureBranch() {
         return getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
+    }
+
+    private String getParent() {
+        getRequired(options.P, "Parent component required.\nUse: 'repo-build -P parent ...'")
+    }
+
+    private getContinueFromComponent() {
+        options.C ? options.C : null
     }
 
     void doBuildPom() {
@@ -178,15 +204,6 @@ class RepoBuild {
     }
 
     @CompileStatic
-    String getRequired(value, String msg) {
-        if (value) {
-            return value
-        } else {
-            throw new RepoBuildException(msg)
-        }
-    }
-
-    @CompileStatic
     void doStatus() {
         GitFeature.status(env)
     }
@@ -213,14 +230,33 @@ class RepoBuild {
     }
 
     void doFeatureUpdateParent() {
-        def parentComponent = getRequired(options.P, "Parent component required.\nUse: 'repo-build -P parent ...'")
-        MavenFeature.updateParent(env, getFeatureBranch(), parentComponent)
+        def parentComponent = getParent()
+        MavenFeature.updateParent(env, getFeatureBranch(), parentComponent, false, true)
     }
 
     void doFeatureUpdateVersions() {
-        def includes = getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
+        def includes = getIncludes()
+        def continueFromComponent = getContinueFromComponent()
+        MavenFeature.updateVersions(env, getFeatureBranch(), includes, continueFromComponent, true)
+    }
+
+    void doReleaseMergeFeature() {
+        GitFeature.mergeFeature(env, getFeatureBranch())
+    }
+
+    void doReleaseUpdateParent() {
+        def parentComponent = getParent()
+        MavenFeature.updateParent(env, getFeatureBranch(), parentComponent, false, true)
+    }
+
+    void doReleaseUpdateVersions() {
+        def includes = getIncludes()
         def continueFromComponent = options.C ? options.C : null
         MavenFeature.updateVersions(env, getFeatureBranch(), includes, continueFromComponent, true)
+    }
+
+    private String getIncludes() {
+        getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
     }
 
     void doPushFeature() {

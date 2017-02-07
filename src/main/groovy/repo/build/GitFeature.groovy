@@ -37,11 +37,23 @@ class GitFeature {
     }
 
     static void mergeRelease(RepoEnv env, String featureBranch) {
-        // для всех компонентов в кторых ест фича бранч
         RepoManifest.forEachWithFeatureBranch(env,
                 { project ->
                     def manifestBranch = RepoManifest.getBranch(env, project.@path)
                     Git.merge(manifestBranch, new File(env.basedir, project.@path))
+                }, featureBranch)
+    }
+
+    static void mergeFeature(RepoEnv env, String featureBranch) {
+        RepoManifest.forEachWithFeatureBranch(env,
+                { project ->
+                    // check current components branch
+                    def dir = new File(env.basedir, project.@path)
+                    def manifestBranch = RepoManifest.getBranch(env, project.@path)
+                    if(Git.getBranch(dir) != manifestBranch) {
+                        throw new RepoBuildException("Component ${project.@path} must be set to branch $manifestBranch")
+                    }
+                    Git.merge(featureBranch, dir)
                 }, featureBranch)
     }
 

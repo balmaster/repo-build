@@ -26,7 +26,8 @@ class MavenFeature {
         )
     }
 
-    static void updateParent(RepoEnv env, String featureBranch, String parentComponent) {
+    static void updateParent(RepoEnv env, String featureBranch, String parentComponent,
+                             boolean updateRelease, boolean allowSnapshots) {
         def parentBranch = Git.getBranch(new File(env.basedir, parentComponent))
         if (featureBranch != parentBranch) {
             throw new RepoBuildException("parent component must switched to feature branch $featureBranch")
@@ -36,7 +37,7 @@ class MavenFeature {
         def parentPom = XmlUtils.parse(parentPomFile)
         def groupId = parentPom.groupId.text()
         def artifactId = parentPom.artifactId.text()
-        def version = parentPom.version.text()
+        String version = parentPom.version.text()
 
         // rebuild parent
         Maven.execute(parentPomFile,
@@ -61,16 +62,19 @@ class MavenFeature {
                 def parentVersion = componentPom?.parent?.version?.text()
                 if (groupId == parentGroupId
                         && artifactId == parentArtifactId
-                        && version != parentVersion) {
+                        && version != parentVersion
+                        // its SNAPSHOT or updateReleases enabled
+                        && (version.contains('SNAPSHOT') || updateRelease)
+                ) {
                     // если группа, артефакт совпадают а версия нет - подменяем версию parent
                     Maven.execute(componentPomFile,
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:update-parent"))
                                 req.setInteractive(false)
                                 Properties properties = new Properties();
-                                properties.put("parentVersion", version)
+                                //properties.put("parentVersion", version)
                                 properties.put('generateBackupPoms', 'false')
-                                properties.put('allowSnapshots', 'true')
+                                properties.put('allowSnapshots', Boolean.toString(allowSnapshots))
                                 req.setProperties(properties)
                             }
                     )
@@ -78,7 +82,7 @@ class MavenFeature {
                     if (Git.isFileModified(dir, "pom.xml")) {
                         // if it modifies - commit vup
                         Git.add(dir, "pom.xml")
-                        Git.commit(dir, "update_parent_to_$parentVersion")
+                        Git.commit(dir, "update_parent")
                     }
                 }
             }

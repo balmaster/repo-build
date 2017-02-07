@@ -96,7 +96,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(env, 'feature/1')
         GitFeature.mergeRelease(env, 'feature/1')
 
-        MavenFeature.updateParent(env, 'feature/1', 'parent')
+        MavenFeature.updateParent(env, 'feature/1', 'parent', false, true)
 
         // check parent version
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))

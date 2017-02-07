@@ -18,13 +18,16 @@ class CliBuilderFactory {
     static final String CMD_FEATURE_MERGE_RELEASE = 'feature-merge-release'
     static final String CMD_FEATURE_UPDATE_PARENT = 'feature-update-parent'
     static final String CMD_FEATURE_UPDATE_VERSIONS = 'feature-update-versions'
+    static final String CMD_RELEASE_MERGE_FEATURE = 'release-merge-feature'
+    static final String CMD_RELEASE_UPDATE_PARENT = 'release-update-parent'
+    static final String CMD_RELEASE_UPDATE_VERSIONS = 'release-update-versions'
     static final String CMD_PUSH_FEATURE = 'push-feature'
     static final String CMD_PUSH_MANIFEST = 'push-manifest'
 
     static CliBuilder build() {
         def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] ' +
-                '[' +
                 Joiner.on('\n').join(
+                        '\n[',
                         CMD_INIT,
                         CMD_SYNC,
                         CMD_BUILD_POM,
@@ -39,10 +42,13 @@ class CliBuilderFactory {
                         CMD_FEATURE_MERGE_RELEASE,
                         CMD_FEATURE_UPDATE_PARENT,
                         CMD_FEATURE_UPDATE_VERSIONS,
+                        CMD_RELEASE_MERGE_FEATURE,
+                        CMD_RELEASE_UPDATE_PARENT,
+                        CMD_RELEASE_UPDATE_VERSIONS,
                         CMD_PUSH_FEATURE,
-                        CMD_PUSH_MANIFEST
-                ).toString() +
-                ']*')
+                        CMD_PUSH_MANIFEST,
+                        ']*'
+                ).toString())
         cli.with {
             a( 'execute merge --abort before merge' )
             b( args:1, argName: 'manifestBranchName', '')
