@@ -181,6 +181,7 @@
       <groupId>org.codehaus.groovy</groupId>
       <artifactId>groovy-ant</artifactId>
       <version>2.4.7</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
