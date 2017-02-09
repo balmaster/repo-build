@@ -18,7 +18,7 @@ class ExecuteProcess {
 
     static String executeCmd0(File dir, String[] args, boolean checkErrorCode) {
         String cmd = args.join(' ')
-        logger.debug("execute command '$cmd' in '$dir'")
+        logger.debug("execute name '$cmd' in '$dir'")
 
         ProcessBuilder builder = new ProcessBuilder()
                 .command(args)
@@ -39,7 +39,7 @@ class ExecuteProcess {
 
         def exitValue = process.waitFor()
         if( checkErrorCode && exitValue != 0 ) {
-            throw new RepoBuildException("command '$cmd' has exit code $exitValue");
+            throw new RepoBuildException("name '$cmd' has exit code $exitValue");
         }
         return writer.buffer.toString()
     }
