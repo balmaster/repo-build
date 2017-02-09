@@ -38,6 +38,9 @@ class ExecuteProcess {
                 }, System.err)
 
         def exitValue = process.waitFor()
+        // for read process output
+        Thread.sleep(100)
+
         if( checkErrorCode && exitValue != 0 ) {
             throw new RepoBuildException("name '$cmd' has exit code $exitValue");
         }
