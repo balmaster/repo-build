@@ -6,7 +6,7 @@ import repo.build.command.AbstractCommand
 
 @CompileStatic
 public class CommandRegistry {
-    Map<String, AbstractCommand> commandMap = new HashMap<>()
+    Map<String, AbstractCommand> commandMap = new TreeMap<>()
 
     public void registerCommand(AbstractCommand command) {
         if (commandMap.containsKey(command.name)) {
