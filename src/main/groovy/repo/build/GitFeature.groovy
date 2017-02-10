@@ -1,7 +1,5 @@
 package repo.build
 
-/**
- */
 class GitFeature {
 
     static File getManifestDir(RepoEnv env) {

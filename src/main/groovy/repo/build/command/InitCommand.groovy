@@ -6,7 +6,6 @@ import repo.build.CliOptions
 import repo.build.RepoBuildException
 import repo.build.RepoEnv
 
-@CompileStatic
 class InitCommand extends AbstractCommand {
     InitCommand() {
         super('init', 'Initialize project and set manifest branch')

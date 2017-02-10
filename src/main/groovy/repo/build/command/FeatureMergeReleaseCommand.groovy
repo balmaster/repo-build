@@ -5,7 +5,6 @@ import repo.build.GitFeature
 import repo.build.CliOptions
 import repo.build.RepoEnv
 
-@CompileStatic
 class FeatureMergeReleaseCommand extends AbstractCommand {
     FeatureMergeReleaseCommand() {
         super('feature-merge-release', 'Merge current releease into feature branches')

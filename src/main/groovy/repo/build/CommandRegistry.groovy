@@ -1,26 +1,28 @@
 package repo.build
 
+import groovy.transform.CompileStatic
 import repo.build.RepoBuildException
 import repo.build.command.AbstractCommand
 
+@CompileStatic
 public class CommandRegistry {
     Map<String, AbstractCommand> commandMap = new HashMap<>()
 
-    public void register(AbstractCommand command) {
+    public void registerCommand(AbstractCommand command) {
         if (commandMap.containsKey(command.name)) {
             throw new RepoBuildException("Command with name ${command.name} already registered")
         }
         commandMap.put(command.name, command)
     }
 
-    public AbstractCommand get(String name) {
-        if (!commandMap.containsKey(command.name)) {
-            throw new RepoBuildException("Command with name ${command.name} not registered")
+    public AbstractCommand getCommand(String name) {
+        if (!commandMap.containsKey(name)) {
+            throw new RepoBuildException("Command with name ${name} not registered")
         }
         return commandMap.get(name)
     }
 
-    public Set<AbstractCommand> getCommands() {
+    public Collection<AbstractCommand> getCommands() {
         return commandMap.values()
     }
 }

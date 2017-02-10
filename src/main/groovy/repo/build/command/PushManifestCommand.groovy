@@ -5,7 +5,6 @@ import repo.build.CliOptions
 import repo.build.GitFeature
 import repo.build.RepoEnv
 
-@CompileStatic
 class PushManifestCommand extends AbstractCommand {
     PushManifestCommand() {
         super('push-manifest', 'Push current manifest branches')

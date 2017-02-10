@@ -5,7 +5,6 @@ import repo.build.CliOptions
 import repo.build.GitFeature
 import repo.build.RepoEnv
 
-@CompileStatic
 class StashCommand extends AbstractCommand {
     StashCommand() {
         super('stash', 'Save changes for each component')

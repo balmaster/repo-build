@@ -5,7 +5,6 @@ import repo.build.GitFeature
 import repo.build.CliOptions
 import repo.build.RepoEnv
 
-@CompileStatic
 class PrepareMergeCommand extends AbstractCommand {
 
     PrepareMergeCommand() {

@@ -38,29 +38,28 @@ class RepoBuild {
 
     RepoBuild(String[] args) {
         this.commandRegistry = new CommandRegistry()
-        commandRegistry.register(new BuildPomCommand())
-        commandRegistry.register(new ExportBundlesCommand())
-        commandRegistry.register(new FeatureMergeReleaseCommand())
-        commandRegistry.register(new FeatureUpdateParentCommand())
-        commandRegistry.register(new FeatureUpdateVersionsCommand())
-        commandRegistry.register(new GrepCommand())
-        commandRegistry.register(new InitCommand())
-        commandRegistry.register(new InitCommand())
-        commandRegistry.register(new MergeAbortCommand())
-        commandRegistry.register(new PrepareMergeCommand())
-        commandRegistry.register(new PushFeatureCommand())
-        commandRegistry.register(new PushManifestCommand())
-        commandRegistry.register(new ReleaseMergeFeatureCommand())
-        commandRegistry.register(new ReleaseUpdateParentCommand())
-        commandRegistry.register(new ReleaseUpdateVersionsCommand())
-        commandRegistry.register(new StashCommand())
-        commandRegistry.register(new StashPopCommand())
-        commandRegistry.register(new StatusCommand())
-        commandRegistry.register(new SwitchCommand())
-        commandRegistry.register(new SyncCommand())
+        commandRegistry.registerCommand(new BuildPomCommand())
+        commandRegistry.registerCommand(new ExportBundlesCommand())
+        commandRegistry.registerCommand(new FeatureMergeReleaseCommand())
+        commandRegistry.registerCommand(new FeatureUpdateParentCommand())
+        commandRegistry.registerCommand(new FeatureUpdateVersionsCommand())
+        commandRegistry.registerCommand(new GrepCommand())
+        commandRegistry.registerCommand(new InitCommand())
+        commandRegistry.registerCommand(new MergeAbortCommand())
+        commandRegistry.registerCommand(new PrepareMergeCommand())
+        commandRegistry.registerCommand(new PushFeatureCommand())
+        commandRegistry.registerCommand(new PushManifestCommand())
+        commandRegistry.registerCommand(new ReleaseMergeFeatureCommand())
+        commandRegistry.registerCommand(new ReleaseUpdateParentCommand())
+        commandRegistry.registerCommand(new ReleaseUpdateVersionsCommand())
+        commandRegistry.registerCommand(new StashCommand())
+        commandRegistry.registerCommand(new StashPopCommand())
+        commandRegistry.registerCommand(new StatusCommand())
+        commandRegistry.registerCommand(new SwitchCommand())
+        commandRegistry.registerCommand(new SyncCommand())
         // combo
-        commandRegistry.register(new FeatureSyncComboCommand())
-        commandRegistry.register(new FeatureSyncStashComboCommand())
+        commandRegistry.registerCommand(new FeatureSyncComboCommand())
+        commandRegistry.registerCommand(new FeatureSyncStashComboCommand())
         this.cli = CliBuilderFactory.build(commandRegistry)
         this.args = args
         this.options = new CliOptions(cli.parse(args))
@@ -85,8 +84,8 @@ class RepoBuild {
     void execute() {
         def commands = options.getArguments()
         if (commands.size() > 0) {
-            commands.each {
-                executeCommand(it)
+            commands.each { String commandName ->
+                executeCommand(commandName)
             }
         } else {
             cli.usage()
@@ -95,7 +94,7 @@ class RepoBuild {
 
     def executeCommand(String commandName) {
         logger.info("--- do command: $commandName")
-        def command = commandRegistry.get(commandName)
+        def command = commandRegistry.getCommand(commandName)
         command.execute(env, options)
     }
 

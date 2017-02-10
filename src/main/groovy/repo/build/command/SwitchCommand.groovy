@@ -5,7 +5,6 @@ import repo.build.GitFeature
 import repo.build.CliOptions
 import repo.build.RepoEnv
 
-@CompileStatic
 class SwitchCommand extends AbstractCommand {
     SwitchCommand() {
         super('switch', 'Switch to feature branches and update it')

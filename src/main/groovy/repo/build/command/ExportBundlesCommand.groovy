@@ -15,11 +15,8 @@ class ExportBundlesCommand extends AbstractCommand {
         targetExportDir.mkdirs()
         if (options.hasFeatureBransh()) {
             GitFeature.createFeatureBundles(env, targetExportDir, options.getFeatureBranch())
-        } else if (options.m) {
-            GitFeature.createManifestBundles(env, targetExportDir)
         } else {
-            throw new RepoBuildException("Use: 'repo-build -m export-bundles' or 'repo-build -f <featureBranch> export-bundles'")
+            GitFeature.createManifestBundles(env, targetExportDir)
         }
-
     }
 }

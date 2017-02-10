@@ -5,7 +5,6 @@ import repo.build.MavenFeature
 import repo.build.CliOptions
 import repo.build.RepoEnv
 
-@CompileStatic
 class FeatureUpdateParentCommand extends AbstractCommand {
     FeatureUpdateParentCommand() {
         super('feature-update-parent', 'Update parent for each componnent with feature branch')

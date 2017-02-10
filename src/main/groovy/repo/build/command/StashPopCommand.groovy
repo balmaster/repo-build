@@ -5,7 +5,6 @@ import repo.build.CliOptions
 import repo.build.GitFeature
 import repo.build.RepoEnv
 
-@CompileStatic
 class StashPopCommand extends AbstractCommand {
     StashPopCommand() {
         super('stash-pop', 'Restore changes for each component')

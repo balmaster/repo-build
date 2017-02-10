@@ -5,7 +5,6 @@ import repo.build.CliOptions
 import repo.build.GitFeature
 import repo.build.RepoEnv
 
-@CompileStatic
 class StatusCommand extends AbstractCommand {
     StatusCommand() {
         super('status', 'Get status of components')

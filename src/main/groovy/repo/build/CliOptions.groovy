@@ -22,7 +22,7 @@ class CliOptions {
         getRequired(options.P, "Parent component required.\nUse: 'repo-build -P parent ...'")
     }
 
-    public getContinueFromComponent() {
+    public String getContinueFromComponent() {
         options.C ? options.C : null
     }
 
@@ -39,16 +39,16 @@ class CliOptions {
         }
     }
 
-    def getPomFile() {
+    File getPomFile() {
         return options.p ?
                 new File(options.p) :
-                new File(getRepoBasedir(options), 'pom.xml')
+                new File(getRepoBasedir(), 'pom.xml')
     }
 
-    def getTargetExportDir() {
+    File getTargetExportDir() {
         return options.t ?
                 new File(options.t)
-                : new File(getRepoBasedir(options), 'bundles')
+                : new File(getRepoBasedir(), 'bundles')
     }
 
     String getExpression() {
@@ -67,11 +67,11 @@ class CliOptions {
         return options.a
     }
 
-    def hasFeatureBransh() {
+    Boolean hasFeatureBransh() {
         return options.f
     }
 
-    def getArguments() {
+    List<String> getArguments() {
         return options.arguments()
     }
 

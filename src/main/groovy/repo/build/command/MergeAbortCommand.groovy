@@ -5,7 +5,6 @@ import repo.build.CliOptions
 import repo.build.GitFeature
 import repo.build.RepoEnv
 
-@CompileStatic
 class MergeAbortCommand extends AbstractCommand {
     MergeAbortCommand() {
         super('merge-abort', 'Abort merge for each component')

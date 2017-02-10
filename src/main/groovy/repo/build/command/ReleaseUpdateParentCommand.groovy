@@ -5,7 +5,6 @@ import repo.build.MavenFeature
 import repo.build.CliOptions
 import repo.build.RepoEnv
 
-@CompileStatic
 class ReleaseUpdateParentCommand extends AbstractCommand {
     ReleaseUpdateParentCommand() {
         super('release-update-parent', 'Update parent for each component')
@@ -13,6 +12,6 @@ class ReleaseUpdateParentCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         def parentComponent = options.getParent()
-        MavenFeature.updateParent(env, options.getFeatureBranch(), parentComponent, false, true)
+        MavenFeature.updateParent(env, options.getFeatureBranch(), parentComponent, true, false)
     }
 }
