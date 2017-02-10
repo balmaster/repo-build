@@ -16,6 +16,7 @@ class ComboCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         for (def command in commands) {
+            logger.info("-- do subcommand: ${command.name}")
             command.execute(env, options)
         }
     }
