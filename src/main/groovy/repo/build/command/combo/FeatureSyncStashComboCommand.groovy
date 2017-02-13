@@ -10,7 +10,7 @@ import repo.build.command.SyncCommand
 class FeatureSyncStashComboCommand extends ComboCommand {
 
     FeatureSyncStashComboCommand() {
-        super('fss', 'sequentially execute stassh sync switch stash-pop commands',
+        super('fss', 'stash sync switch stash-pop combo',
                 new StashCommand(),
                 new SyncCommand(),
                 new SwitchCommand(),

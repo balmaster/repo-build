@@ -8,7 +8,7 @@ import repo.build.command.SyncCommand
 class FeatureSyncComboCommand extends ComboCommand {
 
     FeatureSyncComboCommand() {
-        super('fs', 'sequentially execute sync switch commands',
+        super('fs', 'sync switch combo',
                 new SyncCommand(),
                 new SwitchCommand())
     }
