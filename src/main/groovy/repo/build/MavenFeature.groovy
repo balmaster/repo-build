@@ -1,8 +1,7 @@
 package repo.build
 
 import groovy.transform.CompileStatic
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import org.apache.log4j.Logger
 import org.apache.maven.shared.invoker.InvocationRequest
 import repo.build.maven.MavenArtifact
 import repo.build.maven.MavenArtifactRef
@@ -11,7 +10,7 @@ import repo.build.maven.MavenComponent
 /**
  */
 class MavenFeature {
-    static Logger logger = LogManager.getLogger(MavenFeature.class)
+    static Logger logger = Logger.getLogger(MavenFeature.class)
 
     static void forEachWithFeatureBranchAndPom(RepoEnv env, Closure action, String branch) {
         def remoteBranch = RepoManifest.getRemoteBranch(env, branch)

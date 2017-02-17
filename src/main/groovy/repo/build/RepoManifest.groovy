@@ -1,11 +1,10 @@
 package repo.build
 
 import groovy.transform.CompileStatic
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import org.apache.log4j.Logger
 
 class RepoManifest {
-    static Logger logger = LogManager.getLogger(RepoManifest.class)
+    static Logger logger = Logger.getLogger(RepoManifest.class)
 
     static String getRemoteName(RepoEnv env) {
         return env.manifest.remote[0].@name

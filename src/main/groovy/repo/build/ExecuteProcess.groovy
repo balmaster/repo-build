@@ -1,12 +1,12 @@
 package repo.build
 
 import groovy.transform.CompileStatic
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import org.apache.log4j.Logger
+import org.fusesource.jansi.AnsiOutputStream
 
 @CompileStatic
 class ExecuteProcess {
-    static Logger logger = LogManager.getLogger(ExecuteProcess.class)
+    static Logger logger = Logger.getLogger(ExecuteProcess.class)
     
     static String executeCmd0(File dir, String cmd) {
         return executeCmd0(dir, cmd, true)
@@ -18,7 +18,7 @@ class ExecuteProcess {
 
     static String executeCmd0(File dir, String[] args, boolean checkErrorCode) {
         String cmd = args.join(' ')
-        logger.debug("execute name '$cmd' in '$dir'")
+        logger.debug("execute '$cmd' in '$dir'")
 
         ProcessBuilder builder = new ProcessBuilder()
                 .command(args)
@@ -28,12 +28,13 @@ class ExecuteProcess {
         Process process = builder.start()
 
         def final StringWriter writer = new StringWriter()
+        def final outStream = new AnsiOutputStream(System.out)
 
         process.consumeProcessOutput(new OutputStream() {
                     @Override
                     void write(int b) throws IOException {
                         writer.write(b)
-                        System.out.write(b)
+                        outStream.write(b)
                     }
                 }, System.err)
 

@@ -1,13 +1,12 @@
 package repo.build
 
 import groovy.transform.CompileStatic
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import org.apache.log4j.Logger
 
 @CompileStatic
 class RepoEnv {
 
-    static Logger logger = LogManager.getLogger(RepoEnv.class)
+    static Logger logger = Logger.getLogger(RepoEnv.class)
 
     final File basedir
     Node manifest

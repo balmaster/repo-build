@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<!-- ******************************************************************* -->
+  <!-- JAnsiColorConsoleAppender -->
+  <!-- ******************************************************************* -->
+  <appender name="console" class="com.mihnita.colorlog.log4j.JAnsiColorConsoleAppender" >
+
+		<!-- Lets the ANSI escape sequences to pass thru, instead of calling Windows API to set color -->
+    <!-- <param name="PassThrough" value="true" /> -->
+    <!-- Remove the ANSI escape sequences -->
+    <!-- <param name="Strip" value="true" /> -->
+
+		<!-- see http://ascii-table.com/ansi-escape-sequences.php -->
+		<param name="FatalColour" value="{esc}[95m" />
+    <param name="ErrorColour" value="{esc}[31m" />
+    <param name="WarnColour" value="{esc}[33m" />
+    <param name="InfoColour" value="{esc}[1;37m" />
+    <param name="DebugColour" value="{esc}[96m" />
+    <param name="TraceColour" value="{esc}[90m" />
+
+    <layout class="org.apache.log4j.EnhancedPatternLayout">
+			<param name="ConversionPattern" value="%m%n"/>
+		</layout>
+	</appender>
+
+  <root>
+		<level value="info"/>
+		<appender-ref ref="console"/>
+	</root>
+
+</log4j:configuration>

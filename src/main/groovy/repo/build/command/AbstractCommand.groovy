@@ -1,13 +1,13 @@
 package repo.build.command
 
 import groovy.transform.CompileStatic
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import repo.build.CliOptions
 import repo.build.RepoEnv
 
 public abstract class AbstractCommand {
-    static Logger logger = LogManager.getLogger(AbstractCommand)
+    static Logger logger = LoggerFactory.getLogger(AbstractCommand)
 
     String name
     String description

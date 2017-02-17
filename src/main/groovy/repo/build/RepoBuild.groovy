@@ -1,8 +1,7 @@
 package repo.build
 
 import groovy.transform.CompileStatic
-import org.apache.logging.log4j.Logger
-import org.apache.logging.log4j.LogManager
+import org.apache.log4j.Logger
 import repo.build.command.BuildPomCommand
 import repo.build.command.ExportBundlesCommand
 import repo.build.command.FeatureMergeReleaseCommand
@@ -28,7 +27,7 @@ import repo.build.command.combo.FeatureSyncStashComboCommand
 @CompileStatic
 class RepoBuild {
 
-    static Logger logger = LogManager.getLogger(RepoBuild.class)
+    static Logger logger = Logger.getLogger(RepoBuild.class)
 
     final CliBuilder cli
     final String[] args
