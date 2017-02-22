@@ -11,10 +11,14 @@ class BuildPomCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        def buildPomFile = options.getPomFile()
+        def pomFile = options.getPomFile()
+        def dirName = pomFile.parentFile.name
+        if(dirName == '.') {
+            dirName = pomFile.parentFile.parentFile.name
+        }
         def nameSuffix = options.hasFeatureBransh() ?
                 options.getFeatureBranch() :
                 Git.getBranch(new File(options.getRepoBasedir(), "manifest"))
-        Pom.generateXml(env, nameSuffix, buildPomFile)
+        Pom.generateXml(env, "$dirName-$nameSuffix", pomFile)
     }
 }

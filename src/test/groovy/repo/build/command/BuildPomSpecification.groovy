@@ -23,7 +23,7 @@ class BuildPomSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * Pom.generateXml(_, '1.0', new File(dir, 'pom.xml'))
+        1 * Pom.generateXml(_, "${dir.parentFile.name}-1.0", new File(dir, 'pom.xml'))
     }
 
     def "with featureBranch"() {
@@ -33,7 +33,7 @@ class BuildPomSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * Pom.generateXml(_, 'feature/1', new File(dir, 'pom.xml'))
+        1 * Pom.generateXml(_, "${dir.parentFile.name}-feature/1", new File(dir, 'pom.xml'))
     }
 
 }
