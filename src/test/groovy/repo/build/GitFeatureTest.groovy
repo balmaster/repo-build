@@ -1,8 +1,4 @@
 package repo.build
-
-import java.nio.file.FileSystems
-import java.nio.file.Files
-
 /**
  */
 class GitFeatureTest extends BaseTestCase {
@@ -282,6 +278,84 @@ class GitFeatureTest extends BaseTestCase {
                     Git.checkout(dir, 'master')
                     assertEquals('update', new File(dir, 'README.md').text)
                 })
+    }
+
+
+    void testPushTag() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        GitFeature.sync(env)
+
+        GitFeature.addTagToCurrentHeads(env, '1')
+        GitFeature.pushTag(env, '1')
+
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    assertTrue(Git.tagPresent(dir, '1'))
+                })
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    assertTrue(Git.tagPresent(dir, '1'))
+                })
+
+    }
+
+    void testCheckoutTag() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        GitFeature.sync(env)
+
+        GitFeature.addTagToCurrentHeads(env, '1')
+        GitFeature.pushTag(env, '1')
+
+        GitFeature.sync(env)
+
+        // modify branch
+        def c1Dir = new File(env.basedir, 'c1')
+        def c1File = new File(c1Dir, 'README.md')
+        c1File.text = 'update'
+        Git.add(c1Dir, 'README.md')
+        Git.commit(c1Dir, 'update')
+
+        GitFeature.checkoutTag(env, '1')
+
+        assertEquals('', new File(c1Dir, 'README.md').text)
+    }
+
+
+    void testCheckoutTagWithNewComponent() {
+        def url = new File(sandbox.basedir, 'manifest')
+        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+
+        GitFeature.sync(env)
+
+        GitFeature.addTagToCurrentHeads(env, '1')
+        GitFeature.pushTag(env, '1')
+
+        sandbox
+                .newGitComponent('c3')
+                .component('manifest',
+                { Sandbox sandbox, File dir ->
+                    sandbox.buildManifest(dir)
+                    Git.add(dir, 'default.xml')
+                    Git.commit(dir, 'add_c3')
+                })
+
+        GitFeature.sync(env)
+
+        // modify branch
+        def c1Dir = new File(env.basedir, 'c1')
+        def c1File = new File(c1Dir, 'README.md')
+        c1File.text = 'update'
+        Git.add(c1Dir, 'README.md')
+        Git.commit(c1Dir, 'update')
+
+        GitFeature.checkoutTag(env, '1')
+
+        assertEquals('', new File(c1Dir, 'README.md').text)
     }
 
 }

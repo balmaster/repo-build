@@ -222,4 +222,36 @@ class GitFeature {
         )
     }
 
+    static void addTagToCurrentHeads(RepoEnv env, String tag) {
+        forEachWithProjectDirExists(env,
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    Git.addTagToCurrentHead(dir, tag)
+                }
+        )
+    }
+
+    static void pushTag(RepoEnv env, String tag) {
+        forEachWithProjectDirExists(env,
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    Git.pushTag(dir, project.@remote ,tag)
+                }
+        )
+    }
+
+    static void checkoutTag(RepoEnv env, String tag) {
+        RepoManifest.forEach(env,
+                // use only existing local componentn whith have tag
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    return RepoManifest.projectDirExists(env, project) && Git.tagPresent(dir, tag)
+                },
+                { Node project ->
+                    def dir = new File(env.basedir, project.@path)
+                    Git.checkoutTag(dir, tag)
+                }
+        )
+    }
+
 }

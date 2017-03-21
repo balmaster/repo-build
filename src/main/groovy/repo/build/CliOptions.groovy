@@ -78,4 +78,8 @@ class CliOptions {
     Boolean isDebugMode() {
         return options.X
     }
+
+    String getTag() {
+        return getRequired(options.T, "Tag required.\nUse: 'repo-build -T tag ...'")
+    }
 }

@@ -129,4 +129,21 @@ class Git {
             ExecuteProcess.executeCmd0(dir, "git push $remote $branch")
         }
     }
+
+    static void addTagToCurrentHead(File dir, String tag) {
+        ExecuteProcess.executeCmd0(dir, "git tag $tag")
+    }
+
+    static void pushTag(File dir, String remote, String tag) {
+        ExecuteProcess.executeCmd0(dir, "git push $remote tag $tag")
+    }
+
+    static void checkoutTag(File dir, String tag) {
+        ExecuteProcess.executeCmd0(dir, "git checkout tags/$tag")
+    }
+
+    static boolean tagPresent(File dir, String tag) {
+        return !ExecuteProcess.executeCmd0(dir, "git tag -l $tag").empty
+    }
+
 }

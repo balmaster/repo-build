@@ -27,6 +27,7 @@ class CliBuilderFactory {
             M( args:1, argName: 'manifestGitUrl', '')
             P( args:1, argName: 'parent', 'parent component name')
             C( args:1, argName: 'continue', 'continue from component')
+            T( args:1, argName: 'tag', 'tag')
             X( 'enable debug mode' )
 
 

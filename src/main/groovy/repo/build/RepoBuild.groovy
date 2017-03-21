@@ -2,7 +2,9 @@ package repo.build
 
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
+import repo.build.command.AddTagToCurrentHeadsCommand
 import repo.build.command.BuildPomCommand
+import repo.build.command.CheckoutTagCommand
 import repo.build.command.ExportBundlesCommand
 import repo.build.command.FeatureMergeReleaseCommand
 import repo.build.command.FeatureUpdateParentCommand
@@ -13,6 +15,7 @@ import repo.build.command.MergeAbortCommand
 import repo.build.command.PrepareMergeCommand
 import repo.build.command.PushFeatureCommand
 import repo.build.command.PushManifestCommand
+import repo.build.command.PushTagCommand
 import repo.build.command.ReleaseMergeFeatureCommand
 import repo.build.command.ReleaseUpdateParentCommand
 import repo.build.command.ReleaseUpdateVersionsCommand
@@ -56,6 +59,9 @@ class RepoBuild {
         commandRegistry.registerCommand(new StatusCommand())
         commandRegistry.registerCommand(new SwitchCommand())
         commandRegistry.registerCommand(new SyncCommand())
+        commandRegistry.registerCommand(new AddTagToCurrentHeadsCommand())
+        commandRegistry.registerCommand(new PushTagCommand())
+        commandRegistry.registerCommand(new CheckoutTagCommand())
         // combo
         commandRegistry.registerCommand(new FeatureSyncComboCommand())
         commandRegistry.registerCommand(new FeatureSyncStashComboCommand())
