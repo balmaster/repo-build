@@ -7,7 +7,8 @@ import org.fusesource.jansi.AnsiOutputStream
 @CompileStatic
 class ExecuteProcess {
     static Logger logger = Logger.getLogger(ExecuteProcess.class)
-    
+    static Object outSync = new Object();
+
     static String executeCmd0(File dir, String cmd) {
         return executeCmd0(dir, cmd, true)
     }
@@ -27,22 +28,31 @@ class ExecuteProcess {
 
         Process process = builder.start()
 
-        def final StringWriter writer = new StringWriter()
-        def final outStream = new AnsiOutputStream(System.out)
+        final StringWriter writer = new StringWriter()
+        final ByteArrayOutputStream bufferStream = new ByteArrayOutputStream(10000);
 
         process.consumeProcessOutput(new OutputStream() {
-                    @Override
-                    void write(int b) throws IOException {
-                        writer.write(b)
-                        outStream.write(b)
-                    }
-                }, System.err)
+            @Override
+            void write(int b) throws IOException {
+                writer.write(b)
+                bufferStream.write(b)
+            }
+        }, System.err)
 
         def exitValue = process.waitFor()
         // for read process output
         Thread.sleep(100)
 
-        if( checkErrorCode && exitValue != 0 ) {
+        def outStream = new AnsiOutputStream(System.out)
+        if (bufferStream.size() > 0) {
+            synchronized (outSync) {
+                for (int b : bufferStream.toByteArray()) {
+                    outStream.write(b);
+                }
+            }
+        }
+
+        if (checkErrorCode && exitValue != 0) {
             throw new RepoBuildException("name '$cmd' has exit code $exitValue");
         }
         return writer.buffer.toString()

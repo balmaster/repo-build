@@ -1,6 +1,7 @@
 package repo.build
 
 import groovy.transform.CompileStatic
+import groovyx.gpars.GParsPool
 import org.apache.log4j.Logger
 
 class RepoManifest {
@@ -39,7 +40,6 @@ class RepoManifest {
         env.manifest.project
                 .findAll { filter(it) }
                 .each { project ->
-            def path = project.@path
             if (logHeader != null) {
                 logHeader(project)
             }
@@ -48,6 +48,23 @@ class RepoManifest {
                 logFooter(project)
             }
         }
+    }
+
+    static void forEachParallel(RepoEnv env, Closure filter, Closure action, Closure numberOfThreads,
+                                Closure logFooter, Closure logHeader) {
+        GParsPool.withPool(numberOfThreads, {
+            env.manifest.project
+                    .findAll { filter(it) }
+                    .each { project ->
+                if (logHeader != null) {
+                    logHeader(project)
+                }
+                action(project)
+                if (logFooter != null) {
+                    logFooter(project)
+                }
+            }
+        })
     }
 
     @CompileStatic
