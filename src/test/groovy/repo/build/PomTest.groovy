@@ -24,7 +24,7 @@ class PomTest extends BaseTestCase {
     void testBuildPomNoModules() {
         def url = new File(sandbox.basedir, 'manifest')
         GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
-        GitFeature.sync(env)
+        GitFeature.sync(env, 2)
 
         def pomFile = new File(sandbox.basedir, 'pom.xml')
         Pom.generateXml(env, 'master', pomFile)
@@ -44,7 +44,7 @@ class PomTest extends BaseTestCase {
 
         def url = new File(sandbox.basedir, 'manifest')
         GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
-        GitFeature.sync(env)
+        GitFeature.sync(env, 2)
 
         def pomFile = new File(sandbox.basedir, 'pom.xml')
         Pom.generateXml(env, 'master', pomFile)

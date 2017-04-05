@@ -28,7 +28,17 @@ class CheckoutTagSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.checkoutTag(_, '1')
+        1 * GitFeature.checkoutTag(_, 1, '1')
+    }
+
+    def "with parallel with tag"() {
+        def repoBuild = new RepoBuild('checkout-tag', '-j', '2', '-T', '1')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * GitFeature.checkoutTag(_, 2, '1')
     }
 
 }

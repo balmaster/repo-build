@@ -11,6 +11,6 @@ class PushManifestCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        GitFeature.pushManifestBranch(env, true)
+        GitFeature.pushManifestBranch(env, options.getParallel(), true)
     }
 }

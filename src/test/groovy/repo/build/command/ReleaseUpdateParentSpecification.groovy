@@ -48,7 +48,18 @@ class ReleaseUpdateParentSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateParent(_, 'feature/1', 'parent1', true, false)
+        1 * MavenFeature.updateParent(_, 1, 'feature/1', 'parent1', true, false)
     }
+
+    def "with parallel with featureBranch with parent"() {
+        def repoBuild = new RepoBuild('release-update-parent', '-j', '2', '-f', 'feature/1', '-P', 'parent1')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * MavenFeature.updateParent(_, 2, 'feature/1', 'parent1', true, false)
+    }
+
 
 }

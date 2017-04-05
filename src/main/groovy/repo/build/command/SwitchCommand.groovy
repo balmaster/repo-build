@@ -12,6 +12,6 @@ class SwitchCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         def featureBranch = options.getFeatureBranch()
-        GitFeature.switch(env, featureBranch)
+        GitFeature.switch(env, options.getParallel(), featureBranch)
     }
 }

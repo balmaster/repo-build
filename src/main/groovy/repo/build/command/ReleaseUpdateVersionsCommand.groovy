@@ -13,6 +13,7 @@ class ReleaseUpdateVersionsCommand extends AbstractCommand {
     void execute(RepoEnv env, CliOptions options) {
         def includes = options.getIncludes()
         def continueFromComponent = options.getContinueFromComponent()
-        MavenFeature.updateVersions(env, options.getFeatureBranch(), includes, continueFromComponent, false)
+        MavenFeature.updateVersions(env,
+                options.getFeatureBranch(), includes, continueFromComponent, false)
     }
 }

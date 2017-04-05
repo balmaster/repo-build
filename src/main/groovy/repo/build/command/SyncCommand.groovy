@@ -11,6 +11,6 @@ class SyncCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        GitFeature.sync(env)
+        GitFeature.sync(env, options.getParallel())
     }
 }

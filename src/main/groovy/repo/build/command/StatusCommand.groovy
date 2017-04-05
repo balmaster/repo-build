@@ -11,6 +11,6 @@ class StatusCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        GitFeature.status(env)
+        GitFeature.status(env, options.getParallel())
     }
 }

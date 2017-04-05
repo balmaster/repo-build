@@ -18,7 +18,18 @@ class MergeAbortSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeAbort(_)
+        1 * GitFeature.mergeAbort(_, 1)
+
+    }
+
+    def "with parallel"() {
+        def repoBuild = new RepoBuild('merge-abort', '-j', '2')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * GitFeature.mergeAbort(_, 2)
 
     }
 

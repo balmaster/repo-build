@@ -11,6 +11,8 @@ class ReleaseMergeFeatureCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        GitFeature.mergeFeature(env, options.getFeatureBranch())
+        GitFeature.mergeFeature(env,
+                options.getParallel(),
+                options.getFeatureBranch())
     }
 }

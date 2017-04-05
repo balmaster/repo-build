@@ -12,10 +12,10 @@ import repo.build.maven.MavenComponent
 class MavenFeature {
     static Logger logger = Logger.getLogger(MavenFeature.class)
 
-    static void forEachWithFeatureBranchAndPom(RepoEnv env, Closure action, String branch) {
+    static void forEachWithFeatureBranchAndPom(RepoEnv env, int parallel, Closure action, String branch) {
         def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
 
-        RepoManifest.forEach(env,
+        RepoManifest.forEach(env, parallel,
                 { project ->
                     def dir = new File(env.basedir, project.@path)
                     def pomFile = new File(dir, 'pom.xml')
@@ -25,7 +25,7 @@ class MavenFeature {
         )
     }
 
-    static void updateParent(RepoEnv env, String featureBranch, String parentComponent,
+    static void updateParent(RepoEnv env, int parallel, String featureBranch, String parentComponent,
                              boolean updateRelease, boolean allowSnapshots) {
         def parentBranch = Git.getBranch(new File(env.basedir, parentComponent))
         if (featureBranch != parentBranch) {
@@ -50,7 +50,7 @@ class MavenFeature {
         )
 
         // для всех компонентов в кторых ест фича бранч
-        forEachWithFeatureBranchAndPom(env, { project ->
+        forEachWithFeatureBranchAndPom(env, parallel, { project ->
             // пропускаем parent
             if (parentComponent != project.@path) {
                 def dir = new File(env.basedir, project.@path)

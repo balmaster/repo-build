@@ -92,11 +92,11 @@ class MavenFeatureTest extends BaseTestCase {
                     Git.commit(dir, 'vup')
                 })
 
-        GitFeature.sync(env)
-        GitFeature.switch(env, 'feature/1')
-        GitFeature.mergeRelease(env, 'feature/1')
+        GitFeature.sync(env, 2)
+        GitFeature.switch(env, 2, 'feature/1')
+        GitFeature.mergeRelease(env, 2, 'feature/1')
 
-        MavenFeature.updateParent(env, 'feature/1', 'parent', false, true)
+        MavenFeature.updateParent(env, 2, 'feature/1', 'parent', false, true)
 
         // check parent version
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
@@ -147,9 +147,9 @@ class MavenFeatureTest extends BaseTestCase {
                     Git.commit(dir, 'vup')
                 })
 
-        GitFeature.sync(env)
-        GitFeature.switch(env, 'feature/1')
-        GitFeature.mergeRelease(env, 'feature/1')
+        GitFeature.sync(env, 2)
+        GitFeature.switch(env, 2, 'feature/1')
+        GitFeature.mergeRelease(env, 2, 'feature/1')
 
         MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', null, true)
 
@@ -197,9 +197,9 @@ class MavenFeatureTest extends BaseTestCase {
                     Git.commit(dir, 'vup')
                 })
 
-        GitFeature.sync(env)
-        GitFeature.switch(env, 'feature/1')
-        GitFeature.mergeRelease(env, 'feature/1')
+        GitFeature.sync(env, 2)
+        GitFeature.switch(env, 2, 'feature/1')
+        GitFeature.mergeRelease(env, 2, 'feature/1')
 
         MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', null, true)
 
@@ -242,8 +242,8 @@ class MavenFeatureTest extends BaseTestCase {
     void testGetComponentsMap() {
         def url = new File(sandbox.basedir, 'manifest')
         GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
-        GitFeature.sync(env)
-        GitFeature.switch(env, 'feature/1')
+        GitFeature.sync(env, 2)
+        GitFeature.switch(env, 2, 'feature/1')
         Pom.generateXml(env, 'feature/1', new File(env.basedir, 'pom.xml'))
 
         def components = MavenFeature.getComponentsMap(env.basedir)
@@ -253,8 +253,8 @@ class MavenFeatureTest extends BaseTestCase {
     void testSortComponents() {
         def url = new File(sandbox.basedir, 'manifest')
         GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
-        GitFeature.sync(env)
-        GitFeature.switch(env, 'feature/1')
+        GitFeature.sync(env, 2)
+        GitFeature.switch(env, 2, 'feature/1')
         Pom.generateXml(env, 'feature/1', new File(env.basedir, 'pom.xml'))
 
         def components = MavenFeature.getComponentsMap(env.basedir)

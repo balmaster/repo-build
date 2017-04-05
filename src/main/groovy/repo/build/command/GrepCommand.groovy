@@ -11,6 +11,6 @@ class GrepCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        GitFeature.grep(env, options.getExpression())
+        GitFeature.grep(env, options.getParallel(), options.getExpression())
     }
 }

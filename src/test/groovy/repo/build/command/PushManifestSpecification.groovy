@@ -18,7 +18,17 @@ class PushManifestSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.pushManifestBranch(_, true)
+        1 * GitFeature.pushManifestBranch(_, 1, true)
+    }
+
+    def "with parallel args"() {
+        def repoBuild = new RepoBuild('push-manifest', '-j', '2')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * GitFeature.pushManifestBranch(_, 2, true)
     }
 
 }

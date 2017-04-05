@@ -19,7 +19,7 @@ class GitFeature {
         Git.checkoutUpdate(branch, "origin/$branch", dir)
     }
 
-    static void sync(RepoEnv env) {
+    static void sync(RepoEnv env, int parallel) {
         def manifestDir = GitFeature.getManifestDir(env)
         if (manifestDir.exists()) {
             def manifestBranch = Git.getBranch(manifestDir)
@@ -28,36 +28,36 @@ class GitFeature {
             }
             updateManifest(env, manifestBranch)
             env.openManifest()
-            fetchUpdate(env)
+            fetchUpdate(env, parallel)
         } else {
             throw new RepoBuildException("manifest dir $manifestDir not found")
         }
     }
 
-    static void mergeRelease(RepoEnv env, String featureBranch) {
-        RepoManifest.forEachWithFeatureBranch(env,
+    static void mergeRelease(RepoEnv env, int parallel, String featureBranch) {
+        RepoManifest.forEachWithFeatureBranch(env, parallel,
                 { project ->
                     def manifestBranch = RepoManifest.getBranch(env, project.@path)
                     Git.merge(manifestBranch, new File(env.basedir, project.@path))
                 }, featureBranch)
     }
 
-    static void mergeFeature(RepoEnv env, String featureBranch) {
-        RepoManifest.forEachWithFeatureBranch(env,
+    static void mergeFeature(RepoEnv env, int parallel, String featureBranch) {
+        RepoManifest.forEachWithFeatureBranch(env, parallel,
                 { project ->
                     // check current components branch
                     def dir = new File(env.basedir, project.@path)
                     def manifestBranch = RepoManifest.getBranch(env, project.@path)
-                    if(Git.getBranch(dir) != manifestBranch) {
+                    if (Git.getBranch(dir) != manifestBranch) {
                         throw new RepoBuildException("Component ${project.@path} must be set to branch $manifestBranch")
                     }
                     Git.merge(featureBranch, dir)
                 }, featureBranch)
     }
 
-    static void 'switch'(RepoEnv env, String branch) {
+    static void 'switch'(RepoEnv env, int parallel, String branch) {
         def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
-        RepoManifest.forEach(env,
+        RepoManifest.forEach(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     // переключаемся только если есть локальная или удаленная фича ветка
@@ -68,10 +68,10 @@ class GitFeature {
         )
     }
 
-    static void fetchUpdate(RepoEnv env) {
+    static void fetchUpdate(RepoEnv env, int parallel) {
         def remoteName = RepoManifest.getRemoteName(env)
         def remoteBaseUrl = RepoManifest.getRemoteBaseUrl(env)
-        RepoManifest.forEach(env,
+        RepoManifest.forEach(env, parallel,
                 { Node project ->
                     def branch = RepoManifest.getBranch(env, project.@path)
                     def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
@@ -88,9 +88,9 @@ class GitFeature {
                 })
     }
 
-    static void mergeFeature(RepoEnv env, String branch, Boolean mergeAbort) {
+    static void mergeFeature(RepoEnv env, int parallel, String branch, Boolean mergeAbort) {
         def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
-        RepoManifest.forEachWithFeatureBranch(env,
+        RepoManifest.forEachWithFeatureBranch(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     println "branch $remoteBranch found in ${project.@path}"
@@ -108,10 +108,10 @@ class GitFeature {
         )
     }
 
-    static void createFeatureBundles(RepoEnv env, File targetDir, String branch) {
+    static void createFeatureBundles(RepoEnv env, int parallel, File targetDir, String branch) {
         def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
 
-        RepoManifest.forEachWithFeatureBranch(env,
+        RepoManifest.forEachWithFeatureBranch(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     def gitName = new File(project.@name).getName().split("\\.").first()
@@ -123,9 +123,9 @@ class GitFeature {
         )
     }
 
-    static void createManifestBundles(RepoEnv env, File targetDir) {
+    static void createManifestBundles(RepoEnv env, int parallel, File targetDir) {
 
-        RepoManifest.forEach(env,
+        RepoManifest.forEach(env, parallel,
                 { Node project ->
                     def remoteBranch = RepoManifest.getRemoteBranch(env, RepoManifest.getBranch(env, project.@path))
                     def dir = new File(env.basedir, project.@path)
@@ -137,16 +137,16 @@ class GitFeature {
         )
     }
 
-    static void forEachWithProjectDirExists(RepoEnv env, Closure action) {
-        RepoManifest.forEach(env,
+    static void forEachWithProjectDirExists(RepoEnv env, int parallel, Closure action) {
+        RepoManifest.forEach(env, parallel,
                 { Node project -> return RepoManifest.projectDirExists(env, project) },
                 action
         )
     }
 
-    static Map<String, String> status(RepoEnv env) {
+    static Map<String, String> status(RepoEnv env, int parallel) {
         Map<String, String> result = new HashMap<>()
-        forEachWithProjectDirExists(env,
+        forEachWithProjectDirExists(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     def branch = Git.getBranch(dir)
@@ -160,19 +160,22 @@ class GitFeature {
         return result
     }
 
-    static Map<String, String> grep(RepoEnv env, String exp) {
+    static Map<String, String> grep(RepoEnv env, int parallel, String exp) {
         Map<String, String> result = new HashMap<>()
-        forEachWithProjectDirExists(env,
+        forEachWithProjectDirExists(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
-                    result.put(project.@path, Git.grep(dir, exp))
+                    def grepResult = Git.grep(dir, exp)
+                    synchronized (result) {
+                        result.put(project.@path, grepResult)
+                    }
                 }
         )
         return result
     }
 
-    static void mergeAbort(RepoEnv env) {
-        forEachWithProjectDirExists(env,
+    static void mergeAbort(RepoEnv env, int parallel) {
+        forEachWithProjectDirExists(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     Git.mergeAbort(dir)
@@ -180,8 +183,8 @@ class GitFeature {
         )
     }
 
-    static void stash(RepoEnv env) {
-        forEachWithProjectDirExists(env,
+    static void stash(RepoEnv env, int parallel) {
+        forEachWithProjectDirExists(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     Git.stash(dir)
@@ -189,8 +192,8 @@ class GitFeature {
         )
     }
 
-    static void stashPop(RepoEnv env) {
-        forEachWithProjectDirExists(env,
+    static void stashPop(RepoEnv env, int parallel) {
+        forEachWithProjectDirExists(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     Git.stashPop(dir)
@@ -198,8 +201,8 @@ class GitFeature {
         )
     }
 
-    static void pushFeatureBranch(RepoEnv env, String featureBranch, boolean setUpstream) {
-        RepoManifest.forEach(env,
+    static void pushFeatureBranch(RepoEnv env, int parallel, String featureBranch, boolean setUpstream) {
+        RepoManifest.forEach(env, parallel,
                 // use only existing local componentn whith have featureBranch
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
@@ -212,8 +215,8 @@ class GitFeature {
         )
     }
 
-    static void pushManifestBranch(RepoEnv env, boolean setUpstream) {
-        forEachWithProjectDirExists(env,
+    static void pushManifestBranch(RepoEnv env, int parallel, boolean setUpstream) {
+        forEachWithProjectDirExists(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     def manifestBranch = RepoManifest.getBranch(env, project.@path)
@@ -222,8 +225,8 @@ class GitFeature {
         )
     }
 
-    static void addTagToCurrentHeads(RepoEnv env, String tag) {
-        forEachWithProjectDirExists(env,
+    static void addTagToCurrentHeads(RepoEnv env, int parallel, String tag) {
+        forEachWithProjectDirExists(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
                     Git.addTagToCurrentHead(dir, tag)
@@ -231,17 +234,17 @@ class GitFeature {
         )
     }
 
-    static void pushTag(RepoEnv env, String tag) {
-        forEachWithProjectDirExists(env,
+    static void pushTag(RepoEnv env, int parallel, String tag) {
+        forEachWithProjectDirExists(env, parallel,
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)
-                    Git.pushTag(dir, project.@remote ,tag)
+                    Git.pushTag(dir, project.@remote, tag)
                 }
         )
     }
 
-    static void checkoutTag(RepoEnv env, String tag) {
-        RepoManifest.forEach(env,
+    static void checkoutTag(RepoEnv env, int parallel, String tag) {
+        RepoManifest.forEach(env, parallel,
                 // use only existing local componentn whith have tag
                 { Node project ->
                     def dir = new File(env.basedir, project.@path)

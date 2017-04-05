@@ -11,6 +11,6 @@ class PushTagCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         def tag = options.getTag()
-        GitFeature.pushTag(env, tag)
+        GitFeature.pushTag(env, options.getParallel(), tag)
     }
 }

@@ -28,7 +28,17 @@ class AddTagToCurrentHeadsSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.addTagToCurrentHeads(_, '1')
+        1 * GitFeature.addTagToCurrentHeads(_, 1, '1')
+    }
+
+    def "with parallel with tag"() {
+        def repoBuild = new RepoBuild('add-tag-to-current-heads', '-T', '1', '-j', '2')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * GitFeature.addTagToCurrentHeads(_, 2, '1')
     }
 
 }

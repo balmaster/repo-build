@@ -11,6 +11,6 @@ class StashCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        GitFeature.stash(env)
+        GitFeature.stash(env, options.getParallel())
     }
 }

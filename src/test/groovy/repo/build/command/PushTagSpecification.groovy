@@ -28,7 +28,17 @@ class PushTagSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.pushTag(_, '1')
+        1 * GitFeature.pushTag(_, 1, '1')
+    }
+
+    def "with parallel with tag"() {
+        def repoBuild = new RepoBuild('push-tag', '-j', '2', '-T', '1')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * GitFeature.pushTag(_, 2, '1')
     }
 
 }

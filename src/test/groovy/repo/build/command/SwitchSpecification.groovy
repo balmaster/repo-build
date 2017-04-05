@@ -22,13 +22,13 @@ class SwitchSpecification extends Specification {
     }
 
     def "with featureBranch"() {
-        def repoBuild = new RepoBuild('switch', '-f', 'feature/1')
+        def repoBuild = new RepoBuild('switch', '-f', 'feature/1', '-j', '2')
 
         when:
         repoBuild.execute()
 
         then:
-        1 * GitFeature.switch(_, 'feature/1')
+        1 * GitFeature.switch(_, 2, 'feature/1')
     }
 
 }

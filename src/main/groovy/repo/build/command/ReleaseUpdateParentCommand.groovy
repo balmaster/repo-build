@@ -12,6 +12,8 @@ class ReleaseUpdateParentCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         def parentComponent = options.getParent()
-        MavenFeature.updateParent(env, options.getFeatureBranch(), parentComponent, true, false)
+        MavenFeature.updateParent(env,
+                options.getParallel(),
+                options.getFeatureBranch(), parentComponent, true, false)
     }
 }

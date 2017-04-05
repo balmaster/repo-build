@@ -11,6 +11,6 @@ class MergeAbortCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        GitFeature.mergeAbort(env)
+        GitFeature.mergeAbort(env, options.getParallel())
     }
 }

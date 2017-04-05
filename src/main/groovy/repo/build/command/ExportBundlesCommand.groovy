@@ -14,9 +14,9 @@ class ExportBundlesCommand extends AbstractCommand {
         def targetExportDir = options.getTargetExportDir()
         targetExportDir.mkdirs()
         if (options.hasFeatureBransh()) {
-            GitFeature.createFeatureBundles(env, targetExportDir, options.getFeatureBranch())
+            GitFeature.createFeatureBundles(env, options.getParallel(), targetExportDir, options.getFeatureBranch())
         } else {
-            GitFeature.createManifestBundles(env, targetExportDir)
+            GitFeature.createManifestBundles(env, options.getParallel(), targetExportDir)
         }
     }
 }

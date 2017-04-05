@@ -11,6 +11,6 @@ class AddTagToCurrentHeadsCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         def tag = options.getTag()
-        GitFeature.addTagToCurrentHeads(env, tag)
+        GitFeature.addTagToCurrentHeads(env, options.getParallel(), tag)
     }
 }

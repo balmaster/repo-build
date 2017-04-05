@@ -13,6 +13,7 @@ class PrepareMergeCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         GitFeature.mergeFeature(env,
+                options.getParallel(),
                 options.getFeatureBranch(),
                 options.getAllFlag())
     }

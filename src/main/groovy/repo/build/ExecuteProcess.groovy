@@ -57,4 +57,36 @@ class ExecuteProcess {
         }
         return writer.buffer.toString()
     }
+
+    static String executeCmd0(File dir, String[] args, boolean checkErrorCode,
+                              Closure writeOutHandler) {
+        String cmd = args.join(' ')
+        logger.debug("execute '$cmd' in '$dir'")
+
+        ProcessBuilder builder = new ProcessBuilder()
+                .command(args)
+                .redirectErrorStream(true)
+                .directory(dir)
+
+        Process process = builder.start()
+
+        StringWriter writer = new StringWriter()
+        process.consumeProcessOutput(new OutputStream() {
+            @Override
+            void write(int b) throws IOException {
+                writer.write(b)
+                writeOutHandler(b)
+            }
+        }, System.err)
+
+        def exitValue = process.waitFor()
+        // for read process output
+        Thread.sleep(100)
+
+        if (checkErrorCode && exitValue != 0) {
+            throw new RepoBuildException("name '$cmd' has exit code $exitValue");
+        }
+        return writer.buffer.toString()
+    }
+
 }

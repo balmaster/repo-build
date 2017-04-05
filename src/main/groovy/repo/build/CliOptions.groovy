@@ -82,4 +82,8 @@ class CliOptions {
     String getTag() {
         return getRequired(options.T, "Tag required.\nUse: 'repo-build -T tag ...'")
     }
+
+    int getParallel() {
+        return options.j ? Integer.parseInt(options.j) : 1
+    }
 }

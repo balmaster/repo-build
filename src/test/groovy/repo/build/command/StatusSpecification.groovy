@@ -17,7 +17,17 @@ class StatusSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.status(_)
+        1 * GitFeature.status(_, 1)
+    }
+
+    def "with args"() {
+        def repoBuild = new RepoBuild('status', '-j', '2')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * GitFeature.status(_, 2)
     }
 
 }

@@ -4,6 +4,8 @@ import groovy.transform.CompileStatic
 import groovyx.gpars.GParsPool
 import org.apache.log4j.Logger
 
+import java.util.concurrent.Future
+
 class RepoManifest {
     static Logger logger = Logger.getLogger(RepoManifest.class)
 
@@ -26,8 +28,8 @@ class RepoManifest {
         return "$remoteName/$branch"
     }
 
-    static void forEach(RepoEnv env, Closure filter, Closure action) {
-        forEach(env, filter, action,
+    static void forEach(RepoEnv env, int parallel, Closure filter, Closure<Future<ActionResult>> action) {
+        forEach(env, parallel, filter, action,
                 { project ->
                     def path = project.@path
                     logger.info("$path")
@@ -36,30 +38,18 @@ class RepoManifest {
         )
     }
 
-    static void forEach(RepoEnv env, Closure filter, Closure action, Closure logHeader, Closure logFooter) {
-        env.manifest.project
-                .findAll { filter(it) }
-                .each { project ->
-            if (logHeader != null) {
-                logHeader(project)
-            }
-            action(project)
-            if (logFooter != null) {
-                logFooter(project)
-            }
-        }
-    }
-
-    static void forEachParallel(RepoEnv env, Closure filter, Closure action, Closure numberOfThreads,
-                                Closure logFooter, Closure logHeader) {
-        GParsPool.withPool(numberOfThreads, {
+    static void forEach(RepoEnv env, int parallel, Closure filter, Closure<Future<ActionResult>> action, Closure logHeader, Closure logFooter) {
+        GParsPool.withPool(parallel, {
             env.manifest.project
                     .findAll { filter(it) }
-                    .each { project ->
+                    .eachParallel { project ->
+                def feature = action(project)
                 if (logHeader != null) {
                     logHeader(project)
                 }
-                action(project)
+                if(feature != null ) {
+                    def actionResult = feature.get()
+                }
                 if (logFooter != null) {
                     logFooter(project)
                 }
@@ -68,14 +58,14 @@ class RepoManifest {
     }
 
     @CompileStatic
-    static void forEach(RepoEnv env, Closure action) {
-        forEach(env, { true }, action)
+    static void forEach(RepoEnv env, int parallel, Closure<Future<ActionResult>> action) {
+        forEach(env, parallel, { true }, action)
     }
 
-    static void forEachWithFeatureBranch(RepoEnv env, Closure action, String branch) {
+    static void forEachWithFeatureBranch(RepoEnv env, int parallel, Closure<Future<ActionResult>> action, String branch) {
         def remoteBranch = getRemoteBranch(env, branch)
 
-        forEach(env,
+        forEach(env, parallel,
                 { project ->
                     Git.branchPresent(new File(env.basedir, project.@path), remoteBranch)
                 },

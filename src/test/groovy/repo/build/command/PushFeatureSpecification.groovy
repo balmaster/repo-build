@@ -28,7 +28,7 @@ class PushFeatureSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.pushFeatureBranch(_, 'feature/1', true)
+        1 * GitFeature.pushFeatureBranch(_, 1, 'feature/1', true)
     }
 
     def "with featureBranch and abort flag"() {
@@ -38,6 +38,16 @@ class PushFeatureSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeFeature(_, 'feature/1', true)
+        1 * GitFeature.mergeFeature(_, 1, 'feature/1', true)
+    }
+
+    def "with parallel with featureBranch and abort flag"() {
+        def repoBuild = new RepoBuild('prepare-merge', '-j', '2', '-f', 'feature/1', '-a')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * GitFeature.mergeFeature(_, 2, 'feature/1', true)
     }
 }

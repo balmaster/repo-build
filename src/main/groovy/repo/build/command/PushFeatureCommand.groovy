@@ -11,6 +11,8 @@ class PushFeatureCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        GitFeature.pushFeatureBranch(env, options.getFeatureBranch(), true)
+        GitFeature.pushFeatureBranch(env,
+                options.getParallel(),
+                options.getFeatureBranch(), true)
     }
 }

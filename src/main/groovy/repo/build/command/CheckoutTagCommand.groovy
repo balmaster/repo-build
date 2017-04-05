@@ -11,6 +11,6 @@ class CheckoutTagCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         def tag = options.getTag()
-        GitFeature.checkoutTag(env, tag)
+        GitFeature.checkoutTag(env, options.getParallel(), tag)
     }
 }
