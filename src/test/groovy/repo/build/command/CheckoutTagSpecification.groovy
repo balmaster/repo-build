@@ -28,7 +28,7 @@ class CheckoutTagSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.checkoutTag(_, 1, '1')
+        1 * GitFeature.checkoutTag(_, '1')
     }
 
     def "with parallel with tag"() {
@@ -38,7 +38,7 @@ class CheckoutTagSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.checkoutTag(_, 2, '1')
+        1 * GitFeature.checkoutTag(_, '1')
     }
 
 }

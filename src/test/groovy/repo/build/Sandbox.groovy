@@ -5,20 +5,22 @@ import groovy.xml.MarkupBuilder
 /**
  */
 class Sandbox {
-    File basedir;
+    RepoEnv env
+    ActionContext context
     Map<String, File> components;
 
-    Sandbox(File basedir) {
+    Sandbox(RepoEnv env) {
         this.components = new HashMap<>()
-        this.basedir = basedir
+        this.env = env
+        this.context = new ActionContext(env, null, 1, new DefaultParallelActionHandler())
 
     }
 
     Sandbox newGitComponent(String component, Closure action) {
-        def dir = new File(basedir, component)
+        def dir = new File(env.basedir, component)
         dir.mkdirs()
-        Git.init(dir)
-        Git.user(dir, "you@example.com", "Your Name")
+        Git.init(context, dir)
+        Git.user(context, dir, "you@example.com", "Your Name")
         action(this, dir)
         components.put(component, dir)
         return this
@@ -40,8 +42,8 @@ class Sandbox {
     Sandbox gitInitialCommit(File dir) {
         def readme = new File(dir, "README.md")
         readme.createNewFile()
-        Git.add(dir, readme.canonicalPath)
-        Git.commit(dir, "init")
+        Git.add(context, dir, readme.canonicalPath)
+        Git.commit(context, dir, "init")
         return this
     }
 

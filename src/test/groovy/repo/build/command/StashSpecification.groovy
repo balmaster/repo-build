@@ -18,7 +18,7 @@ class StashSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.stash(_, 1)
+        1 * GitFeature.stash(_)
     }
 
     def "with args"() {
@@ -28,7 +28,7 @@ class StashSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.stash(_, 2)
+        1 * GitFeature.stash(_)
     }
 
 }

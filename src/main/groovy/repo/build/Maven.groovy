@@ -10,7 +10,7 @@ import org.apache.maven.shared.invoker.Invoker
  */
 class Maven {
 
-    static void execute(File pomFile, Closure handleRequest, Closure handleResult) {
+    static void execute(ActionContext context, File pomFile, Closure handleRequest, Closure handleResult) {
         InvocationRequest request = new DefaultInvocationRequest()
         request.setPomFile(pomFile)
         handleRequest(request)
@@ -28,8 +28,8 @@ class Maven {
         }
     }
 
-    static void execute(File pomFile, Closure handleRequest) {
-        execute(pomFile, handleRequest, {})
+    static void execute(ActionContext context, File pomFile, Closure handleRequest) {
+        execute(context, pomFile, handleRequest, {})
     }
 }
 

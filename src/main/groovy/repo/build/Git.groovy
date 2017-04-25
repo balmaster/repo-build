@@ -4,146 +4,283 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class Git {
-
     static final String PREPARE_BUILD = "prepareBuild"
 
-    static boolean branchPresent(File dir, String branch) {
-        return !ExecuteProcess.executeCmd0(dir, "git ls-remote . $branch").empty
-    }
+    public static final String ACTION_BRANCH_PRESENT = 'gitBranchPresent'
 
-    static String getBranch(File dir) {
-        return ExecuteProcess.executeCmd0(dir, "git rev-parse --abbrev-ref HEAD").replace("\n", "")
-    }
-
-    static void createBranch(File dir, String branch) {
-        ExecuteProcess.executeCmd0(dir, "git branch $branch")
-    }
-
-    static void checkout(File dir, String branch) {
-        ExecuteProcess.executeCmd0(dir, "git checkout $branch")
-    }
-
-    static void deleteBranch(File dir, String branch) {
-        ExecuteProcess.executeCmd0(dir, "git branch -d $branch")
-    }
-
-    static void mergeFeatureBranch(String branch, String remoteBranch, String startCommit, File dir) {
-        ExecuteProcess.executeCmd0(dir, "git checkout -B $PREPARE_BUILD $startCommit")
-        merge(remoteBranch, dir)
-    }
-
-    static void merge(String branch, File dir) {
-        ExecuteProcess.executeCmd0(dir, "git merge $branch")
-    }
-
-    static void mergeAbort(File dir) {
-        ExecuteProcess.executeCmd0(dir, "git merge --abort", false)
-    }
-
-    static void createFeatureBundle(String branch, File dir, File bundleFile) {
-        ExecuteProcess.executeCmd0(dir, "git bundle create $bundleFile $branch")
-    }
-
-    static void fetch(String remoteName, File dir) {
-        ExecuteProcess.executeCmd0(dir, "git fetch $remoteName")
-    }
-
-    static void user(File dir, String userName, String userEmail) {
-        ExecuteProcess.executeCmd0(dir, 'git config --local --remove-section user', false)
-        if (userName?.trim() && userEmail?.trim()) {
-            String[] args = ["git", "config", "--local", "user.name", userName]
-            ExecuteProcess.executeCmd0(dir, args, true)
-
-            args = ["git", "config", "--local", "user.email", userEmail]
-            ExecuteProcess.executeCmd0(dir, args, true)
+    static boolean branchPresent(ActionContext parentContext, File dir, String branch) {
+        def context = parentContext.newChild(ACTION_BRANCH_PRESENT)
+        context.withCloseable {
+            return !ExecuteProcess.executeCmd0(context, dir, "git ls-remote . $branch", true).empty
         }
     }
 
-    static void checkoutUpdate(String branch, String remoteBranch, File dir) {
-        if (Git.branchPresent(dir, branch)) {
-            ExecuteProcess.executeCmd0(dir, "git checkout $branch")
-            if (branchPresent(dir, remoteBranch)) {
-                ExecuteProcess.executeCmd0(dir, "git merge $remoteBranch")
+    public static final String ACTION_GET_BRANCH = 'gitGetBranch'
+
+    static String getBranch(ActionContext parentContext, File dir) {
+        def context = parentContext.newChild(ACTION_GET_BRANCH)
+        context.withCloseable {
+            return ExecuteProcess.executeCmd0(context, dir, "git rev-parse --abbrev-ref HEAD", true).replace("\n", "")
+        }
+    }
+
+    public static final String ACTION_CREATE_BRANCH = 'gitCreateBranch'
+
+    static void createBranch(ActionContext parentContext, File dir, String branch) {
+        def context = parentContext.newChild(ACTION_CREATE_BRANCH)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git branch $branch", true)
+        }
+    }
+
+    public static final String ACTION_CHECKOUT = 'gitCheckout'
+
+    static void checkout(ActionContext parentContext, File dir, String branch) {
+        def context = parentContext.newChild(ACTION_CHECKOUT)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git checkout $branch", true)
+        }
+    }
+
+    public static final String ACTION_DELETE_BRANCH = 'gitDeleteBranch'
+
+    static void deleteBranch(ActionContext parentContext, File dir, String branch) {
+        def context = parentContext.newChild(ACTION_DELETE_BRANCH)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git branch -d $branch", true)
+        }
+    }
+
+    public static final String ACTION_MERGE_FEATURE_BRANCH = 'gitMergeFeatureBranch'
+
+    static void mergeFeatureBranch(ActionContext parentContext, String branch, String remoteBranch,
+                                   String startCommit, File dir) {
+        def context = parentContext.newChild(ACTION_MERGE_FEATURE_BRANCH)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git checkout -B $PREPARE_BUILD $startCommit", true)
+            merge(context, remoteBranch, dir)
+        }
+    }
+
+    public static final String ACTION_MERGE = 'gitMerge'
+
+    static void merge(ActionContext parentContext, String branch, File dir) {
+        def context = parentContext.newChild(ACTION_MERGE)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git merge $branch", true)
+        }
+    }
+
+    public static final String ACTION_MERGE_ABORT = 'gitMergeAbort'
+
+    static void mergeAbort(ActionContext parentContext, File dir) {
+        def context = parentContext.newChild(ACTION_MERGE_ABORT)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git merge --abort", false)
+        }
+    }
+
+    public static final String ACTION_CREATE_FEATURE_BUNDLE = 'gitCreateFeatureBundle'
+
+    static void createFeatureBundle(ActionContext parentContext, String branch, File dir, File bundleFile) {
+        def context = parentContext.newChild(ACTION_CREATE_FEATURE_BUNDLE)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git bundle create $bundleFile $branch", true)
+        }
+    }
+
+    public static final String ACTION_FETCH = 'gitFetch'
+
+    static void fetch(ActionContext parentContext, String remoteName, File dir) {
+        def context = parentContext.newChild(ACTION_FETCH)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git fetch $remoteName", true)
+        }
+    }
+
+    public static final String ACTION_USER = 'gitUser'
+
+    static void user(ActionContext parentContext, File dir, String userName, String userEmail) {
+        def context = parentContext.newChild(ACTION_USER)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, 'git config --local --remove-section user', false)
+            if (userName?.trim() && userEmail?.trim()) {
+                ExecuteProcess.executeCmd0(context, dir, "git config --local user.name $userName", true)
+                ExecuteProcess.executeCmd0(context, dir, "git config --local user.email $userEmail", true)
             }
-        } else if (branchPresent(dir, remoteBranch)) {
-            ExecuteProcess.executeCmd0(dir, "git checkout $branch")
-        } else {
-            throw new RepoBuildException(" no branch $branch or remote branch $remoteBranch present")
         }
     }
 
-    static void clone(String url, String remoteName, File dir) {
-        dir.mkdirs()
-        ExecuteProcess.executeCmd0(dir, "git clone -o $remoteName $url .")
+    public static final String ACTION_CHECKOUT_UPDATE = 'gitCheckoutUpdate'
+
+    static void checkoutUpdate(ActionContext parentContext, String branch, String remoteBranch, File dir) {
+        def context = parentContext.newChild(ACTION_CHECKOUT_UPDATE)
+        context.withCloseable {
+            if (Git.branchPresent(context, dir, branch)) {
+                ExecuteProcess.executeCmd0(context, dir, "git checkout $branch", true)
+                if (branchPresent(context, dir, remoteBranch)) {
+                    ExecuteProcess.executeCmd0(context, dir, "git merge $remoteBranch", true)
+                }
+            } else if (branchPresent(context, dir, remoteBranch)) {
+                ExecuteProcess.executeCmd0(context, dir, "git checkout $branch", true)
+            } else {
+                throw new RepoBuildException(" no branch $branch or remote branch $remoteBranch present")
+            }
+        }
     }
 
-    static String status(File dir) {
-        return ExecuteProcess.executeCmd0(dir, "git status -s")
+    public static final String ACTION_CLONE = 'gitClone'
+
+    static void clone(ActionContext parentContext, String url, String remoteName, File dir) {
+        def context = parentContext.newChild(ACTION_CLONE)
+        context.withCloseable {
+            dir.mkdirs()
+            ExecuteProcess.executeCmd0(context, dir, "git clone -o $remoteName $url .", true)
+        }
     }
 
-    static String logUnpushed(File dir, String remoteBranch) {
-        return ExecuteProcess.executeCmd0(dir, "git log $remoteBranch..HEAD --not --oneline")
+    public static final String ACTION_STATUS = 'gitStatus'
+
+    static String status(ActionContext parentContext, File dir) {
+        def context = parentContext.newChild(ACTION_STATUS)
+        context.withCloseable {
+            return ExecuteProcess.executeCmd0(context, dir, "git status -s", true)
+        }
     }
 
-    static String grep(File dir, String expr) {
-        return ExecuteProcess.executeCmd0(dir, "git grep $expr", false)
+    public static final String ACTION_LOG_UNPUSHED = 'gitLogUnpushed'
+
+    static String logUnpushed(ActionContext parentContext, File dir, String remoteBranch) {
+        def context = parentContext.newChild(ACTION_LOG_UNPUSHED)
+        context.withCloseable {
+            return ExecuteProcess.executeCmd0(context, dir, "git log $remoteBranch..HEAD --not --oneline", true)
+        }
     }
 
-    static void stash(File dir) {
-        ExecuteProcess.executeCmd0(dir, "git stash", false)
+    public static final String ACTION_GREP = 'gitGrep'
+
+    static String grep(ActionContext parentContext, File dir, String expr) {
+        def context = parentContext.newChild(ACTION_GREP)
+        context.withCloseable {
+            return ExecuteProcess.executeCmd0(context, dir, "git grep $expr", false)
+        }
     }
 
-    static void stashPop(File dir) {
-        ExecuteProcess.executeCmd0(dir, "git stash pop", false)
+    public static final String ACTION_STASH = 'gitStash'
+
+    static void stash(ActionContext parentContext, File dir) {
+        def context = parentContext.newChild(ACTION_STASH)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git stash", false)
+        }
     }
 
-    static String getFileStatus(File dir, String fileName) {
-        return ExecuteProcess.executeCmd0(dir, "git status $fileName -s")
+    public static final String ACTION_STASH_POP = 'gitStashPop'
+
+    static void stashPop(ActionContext parentContext, File dir) {
+        def context = parentContext.newChild(ACTION_STASH_POP)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git stash pop", false)
+        }
     }
 
-    static boolean isFileModified(File dir, String fileName) {
-        def status = getFileStatus(dir, fileName)
+    public static final String ACTION_GET_FILE_STATUS = 'gitGetFileStatus'
+
+    static String getFileStatus(ActionContext parentContext, File dir, String fileName) {
+        def context = parentContext.newChild(ACTION_GET_FILE_STATUS)
+        context.withCloseable {
+            return ExecuteProcess.executeCmd0(context, dir, "git status $fileName -s", true)
+        }
+    }
+
+    static boolean isFileModified(ActionContext parentContext, File dir, String fileName) {
+        def status = getFileStatus(parentContext, dir, fileName)
         return status.startsWith(" M ")
     }
 
-    static void add(File dir, String fileName) {
-        ExecuteProcess.executeCmd0(dir, "git add $fileName")
-    }
+    public static final String ACTION_ADD = 'gitAdd'
 
-    static void addUpdated(File dir) {
-        ExecuteProcess.executeCmd0(dir, "git add -u")
-    }
-
-    static void commit(File dir, String message) {
-        ExecuteProcess.executeCmd0(dir, "git commit -m \"$message\"")
-    }
-
-    static void init(File dir) {
-        ExecuteProcess.executeCmd0(dir, "git init")
-    }
-
-    static void pushBranch(File dir, String remote, String branch, boolean setUpstream) {
-        if(setUpstream) {
-            ExecuteProcess.executeCmd0(dir, "git push -u $remote $branch")
-        } else {
-            ExecuteProcess.executeCmd0(dir, "git push $remote $branch")
+    static void add(ActionContext parentContext, File dir, String fileName) {
+        def context = parentContext.newChild(ACTION_ADD)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git add $fileName", true)
         }
     }
 
-    static void addTagToCurrentHead(File dir, String tag) {
-        ExecuteProcess.executeCmd0(dir, "git tag $tag")
+    public static final String ACTION_ADD_UPDATED = 'gitAddUpdated'
+
+    static void addUpdated(ActionContext parentContext, File dir) {
+        def context = parentContext.newChild(ACTION_ADD_UPDATED)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git add -u", true)
+        }
     }
 
-    static void pushTag(File dir, String remote, String tag) {
-        ExecuteProcess.executeCmd0(dir, "git push $remote tag $tag")
+    public static final String ACTION_COMMIT = 'gitCommit'
+
+    static void commit(ActionContext parentContext, File dir, String message) {
+        def context = parentContext.newChild(ACTION_COMMIT)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git commit -m \"$message\"", true)
+        }
     }
 
-    static void checkoutTag(File dir, String tag) {
-        ExecuteProcess.executeCmd0(dir, "git checkout tags/$tag")
+    public static final String ACTION_INIT = 'gitInit'
+
+    static void init(ActionContext parentContext, File dir) {
+        def context = parentContext.newChild(ACTION_INIT)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git init", true)
+        }
     }
 
-    static boolean tagPresent(File dir, String tag) {
-        return !ExecuteProcess.executeCmd0(dir, "git tag -l $tag").empty
+    public static final String ACTION_PUSH_BRANCH = 'gitPushBranch'
+
+    static void pushBranch(ActionContext parentContext, File dir, String remote, String branch, boolean setUpstream) {
+        def context = parentContext.newChild(ACTION_PUSH_BRANCH)
+        context.withCloseable {
+            if (setUpstream) {
+                ExecuteProcess.executeCmd0(context, dir, "git push -u $remote $branch", true)
+            } else {
+                ExecuteProcess.executeCmd0(context, dir, "git push $remote $branch", true)
+            }
+        }
+    }
+
+    public static final String ACTION_ADD_TAG_TO_CURRENT_HEAD = 'gitAddTagToCurrentHead'
+
+    static void addTagToCurrentHead(ActionContext parentContext, File dir, String tag) {
+        def context = parentContext.newChild(ACTION_ADD_TAG_TO_CURRENT_HEAD)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git tag $tag", true)
+        }
+    }
+
+    public static final String ACTION_PUSH_TAG = 'gitPushTag'
+
+    static void pushTag(ActionContext parentContext, File dir, String remote, String tag) {
+        def context = parentContext.newChild(ACTION_PUSH_TAG)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git push $remote tag $tag", true)
+        }
+    }
+
+    public static final String ACTION_CHECKOUT_TAG = 'gitCheckoutTag'
+
+    static void checkoutTag(ActionContext parentContext, File dir, String tag) {
+        def context = parentContext.newChild(ACTION_CHECKOUT_TAG)
+        context.withCloseable {
+            ExecuteProcess.executeCmd0(context, dir, "git checkout tags/$tag", true)
+        }
+    }
+
+    public static final String ACTION_TAG_PRESENT = 'gitTagPresent'
+
+    static boolean tagPresent(ActionContext parentContext, File dir, String tag) {
+        def context = parentContext.newChild(ACTION_TAG_PRESENT)
+        context.withCloseable {
+            return !ExecuteProcess.executeCmd0(context, dir, "git tag -l $tag", true).empty
+        }
     }
 
 }

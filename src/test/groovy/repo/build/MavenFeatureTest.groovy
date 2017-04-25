@@ -9,7 +9,7 @@ class MavenFeatureTest extends BaseTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp()
-        sandbox = new Sandbox(createTempDir())
+        sandbox = new Sandbox(new RepoEnv(createTempDir()))
                 .newGitComponent('parent',
                 { Sandbox sandbox, File dir ->
                     def ant = new AntBuilder()
@@ -18,9 +18,9 @@ class MavenFeatureTest extends BaseTestCase {
                             include(name: '**/**')
                         }
                     }
-                    Git.add(dir, '*.*')
-                    Git.commit(dir, 'add')
-                    Git.createBranch(dir, 'feature/1')
+                    Git.add(sandbox.context, dir, '*.*')
+                    Git.commit(sandbox.context, dir, 'add')
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
                 })
                 .newGitComponent('c1',
                 { Sandbox sandbox, File dir ->
@@ -30,9 +30,9 @@ class MavenFeatureTest extends BaseTestCase {
                             include(name: '**/**')
                         }
                     }
-                    Git.add(dir, '*.*')
-                    Git.commit(dir, 'add')
-                    Git.createBranch(dir, 'feature/1')
+                    Git.add(sandbox.context, dir, '*.*')
+                    Git.commit(sandbox.context, dir, 'add')
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
                 })
                 .newGitComponent('c2',
                 { Sandbox sandbox, File dir ->
@@ -42,9 +42,9 @@ class MavenFeatureTest extends BaseTestCase {
                             include(name: '**/**')
                         }
                     }
-                    Git.add(dir, '*.*')
-                    Git.commit(dir, 'add')
-                    Git.createBranch(dir, 'feature/1')
+                    Git.add(sandbox.context, dir, '*.*')
+                    Git.commit(sandbox.context, dir, 'add')
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
                 })
                 .newGitComponent('c3',
                 { Sandbox sandbox, File dir ->
@@ -54,23 +54,22 @@ class MavenFeatureTest extends BaseTestCase {
                             include(name: '**/**')
                         }
                     }
-                    Git.add(dir, '*.*')
-                    Git.commit(dir, 'add')
-                    Git.createBranch(dir, 'feature/1')
+                    Git.add(sandbox.context, dir, '*.*')
+                    Git.commit(sandbox.context, dir, 'add')
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
                 })
                 .newGitComponent('manifest',
                 { Sandbox sandbox, File dir ->
                     sandbox.gitInitialCommit(dir)
                     sandbox.buildManifest(dir)
-                    Git.add(dir, 'default.xml')
-                    Git.commit(dir, 'manifest')
+                    Git.add(sandbox.context, dir, 'default.xml')
+                    Git.commit(sandbox.context, dir, 'manifest')
                 })
-        env = new RepoEnv(createTempDir())
     }
 
     void testUpdateParent() {
-        def url = new File(sandbox.basedir, 'manifest')
-        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
         // build parent
         cleanInstallParent()
@@ -78,7 +77,7 @@ class MavenFeatureTest extends BaseTestCase {
         // update parent version to 1.1.0-SNAPSHOT on master
         sandbox.component('parent',
                 { Sandbox sandbox, File dir ->
-                    Maven.execute(new File(dir, 'pom.xml'),
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
@@ -88,15 +87,15 @@ class MavenFeatureTest extends BaseTestCase {
                                 req.setProperties(properties)
                             }
                     )
-                    Git.add(dir, 'pom.xml')
-                    Git.commit(dir, 'vup')
+                    Git.add(sandbox.context, dir, 'pom.xml')
+                    Git.commit(sandbox.context, dir, 'vup')
                 })
 
-        GitFeature.sync(env, 2)
-        GitFeature.switch(env, 2, 'feature/1')
-        GitFeature.mergeRelease(env, 2, 'feature/1')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        GitFeature.mergeRelease(context, 'feature/1')
 
-        MavenFeature.updateParent(env, 2, 'feature/1', 'parent', false, true)
+        MavenFeature.updateParent(context, 'feature/1', 'parent', false, true)
 
         // check parent version
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
@@ -109,15 +108,15 @@ class MavenFeatureTest extends BaseTestCase {
 
 
     void testUpdateVersions() {
-        def url = new File(sandbox.basedir, 'manifest')
-        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
         // build parent
         cleanInstallParent()
         // update c1 version to 1.1.0-SNAPSHOT on master
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
-                    Maven.execute(new File(dir, 'pom.xml'),
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
@@ -127,13 +126,13 @@ class MavenFeatureTest extends BaseTestCase {
                                 req.setProperties(properties)
                             }
                     )
-                    Git.addUpdated(dir)
-                    Git.commit(dir, 'vup')
+                    Git.addUpdated(sandbox.context, dir)
+                    Git.commit(sandbox.context, dir, 'vup')
                 })
         // update c2 version to 2.1.0-SNAPSHOT on master
         sandbox.component('c2',
                 { Sandbox sandbox, File dir ->
-                    Maven.execute(new File(dir, 'pom.xml'),
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
@@ -143,15 +142,15 @@ class MavenFeatureTest extends BaseTestCase {
                                 req.setProperties(properties)
                             }
                     )
-                    Git.addUpdated(dir)
-                    Git.commit(dir, 'vup')
+                    Git.addUpdated(sandbox.context, dir)
+                    Git.commit(sandbox.context, dir, 'vup')
                 })
 
-        GitFeature.sync(env, 2)
-        GitFeature.switch(env, 2, 'feature/1')
-        GitFeature.mergeRelease(env, 2, 'feature/1')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        GitFeature.mergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', null, true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
@@ -159,15 +158,15 @@ class MavenFeatureTest extends BaseTestCase {
     }
 
     void testUpdateVersionsContinueFromComponent() {
-        def url = new File(sandbox.basedir, 'manifest')
-        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
         // build parent
         cleanInstallParent()
         // update c1 version to 1.1.0-SNAPSHOT on master
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
-                    Maven.execute(new File(dir, 'pom.xml'),
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
@@ -177,13 +176,13 @@ class MavenFeatureTest extends BaseTestCase {
                                 req.setProperties(properties)
                             }
                     )
-                    Git.addUpdated(dir)
-                    Git.commit(dir, 'vup')
+                    Git.addUpdated(sandbox.context, dir)
+                    Git.commit(sandbox.context, dir, 'vup')
                 })
         // update c2 version to 2.1.0-SNAPSHOT on master
         sandbox.component('c2',
                 { Sandbox sandbox, File dir ->
-                    Maven.execute(new File(dir, 'pom.xml'),
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
@@ -193,19 +192,19 @@ class MavenFeatureTest extends BaseTestCase {
                                 req.setProperties(properties)
                             }
                     )
-                    Git.addUpdated(dir)
-                    Git.commit(dir, 'vup')
+                    Git.addUpdated(sandbox.context, dir)
+                    Git.commit(sandbox.context, dir, 'vup')
                 })
 
-        GitFeature.sync(env, 2)
-        GitFeature.switch(env, 2, 'feature/1')
-        GitFeature.mergeRelease(env, 2, 'feature/1')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        GitFeature.mergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', null, true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
 
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
-                    Maven.execute(new File(dir, 'pom.xml'),
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("clean"))
                                 req.setInteractive(false)
@@ -213,7 +212,7 @@ class MavenFeatureTest extends BaseTestCase {
                     )
                 })
 
-        MavenFeature.updateVersions(env, 'feature/1', 'test.repo-build:*', 'c2', true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', 'c2', true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
@@ -227,7 +226,7 @@ class MavenFeatureTest extends BaseTestCase {
     private Sandbox cleanInstallParent() {
         sandbox.component('parent',
                 { Sandbox sandbox, File dir ->
-                    Maven.execute(new File(dir, 'pom.xml'),
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList('clean', 'install'))
                                 req.setInteractive(false)
@@ -240,22 +239,22 @@ class MavenFeatureTest extends BaseTestCase {
     }
 
     void testGetComponentsMap() {
-        def url = new File(sandbox.basedir, 'manifest')
-        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
-        GitFeature.sync(env, 2)
-        GitFeature.switch(env, 2, 'feature/1')
-        Pom.generateXml(env, 'feature/1', new File(env.basedir, 'pom.xml'))
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
         def components = MavenFeature.getComponentsMap(env.basedir)
         assertEquals(7, components.size())
     }
 
     void testSortComponents() {
-        def url = new File(sandbox.basedir, 'manifest')
-        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
-        GitFeature.sync(env, 2)
-        GitFeature.switch(env, 2, 'feature/1')
-        Pom.generateXml(env, 'feature/1', new File(env.basedir, 'pom.xml'))
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
         def components = MavenFeature.getComponentsMap(env.basedir)
         def sortedComponents = MavenFeature.sortComponents(components)

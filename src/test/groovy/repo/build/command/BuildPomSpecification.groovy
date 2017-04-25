@@ -17,7 +17,7 @@ class BuildPomSpecification extends Specification {
         def repoBuild = new RepoBuild('build-pom')
 
         setup:
-        1 * Git.getBranch(new File(dir, 'manifest')) >> '1.0'
+        1 * Git.getBranch(_, new File(dir, 'manifest')) >> '1.0'
 
         when:
         repoBuild.execute()

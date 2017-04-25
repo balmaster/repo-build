@@ -3,12 +3,13 @@ package repo.build
 import groovy.xml.MarkupBuilder;
 
 class Pom {
-    static void generateXml(RepoEnv env, String artifactName, File targetPom) {
+    static void generateXml(ActionContext parentContext, String artifactName, File targetPom) {
         println "Generate pom $targetPom"
 
         new FileWriter(targetPom).withCloseable { xmlWriter ->
             def xmlMarkup = new MarkupBuilder(xmlWriter)
             def artifact = artifactName.replace('/', '-')
+            def env = parentContext.env
             xmlMarkup
                     ."project"("xmlns": "http://maven.apache.org/POM/4.0.0", "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
                     "xsi:schemaLocation": "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd") {

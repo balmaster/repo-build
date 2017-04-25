@@ -18,7 +18,7 @@ class MergeAbortSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeAbort(_, 1)
+        1 * GitFeature.mergeAbort(_)
 
     }
 
@@ -29,7 +29,7 @@ class MergeAbortSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeAbort(_, 2)
+        1 * GitFeature.mergeAbort(_)
 
     }
 

@@ -12,86 +12,92 @@ import repo.build.maven.MavenComponent
 class MavenFeature {
     static Logger logger = Logger.getLogger(MavenFeature.class)
 
-    static void forEachWithFeatureBranchAndPom(RepoEnv env, int parallel, Closure action, String branch) {
-        def remoteBranch = RepoManifest.getRemoteBranch(env, branch)
+    static void forEachWithFeatureBranchAndPom(ActionContext parentContext, Closure action, String branch) {
+        def remoteBranch = RepoManifest.getRemoteBranch(parentContext, branch)
 
-        RepoManifest.forEach(env, parallel,
-                { project ->
-                    def dir = new File(env.basedir, project.@path)
+        RepoManifest.forEach(parentContext,
+                { ActionContext actionContext, project ->
+                    def dir = new File(actionContext.env.basedir, project.@path)
                     def pomFile = new File(dir, 'pom.xml')
-                    return Git.branchPresent(dir, remoteBranch) && pomFile.exists()
+                    return Git.branchPresent(actionContext, dir, remoteBranch) && pomFile.exists()
                 },
                 action
         )
     }
 
-    static void updateParent(RepoEnv env, int parallel, String featureBranch, String parentComponent,
+    public static final String ACTION_UPDATE_PARENT = 'mavenFeatureUpdateParent'
+
+    static void updateParent(ActionContext parentContext, String featureBranch, String parentComponent,
                              boolean updateRelease, boolean allowSnapshots) {
-        def parentBranch = Git.getBranch(new File(env.basedir, parentComponent))
-        if (featureBranch != parentBranch) {
-            throw new RepoBuildException("parent component must switched to feature branch $featureBranch")
-        }
-        // get parent artifact
-        def parentPomFile = new File(env.basedir, parentComponent + "/pom.xml")
-        def parentPom = XmlUtils.parse(parentPomFile)
-        def groupId = parentPom.groupId.text()
-        def artifactId = parentPom.artifactId.text()
-        String version = parentPom.version.text()
-
-        // rebuild parent
-        Maven.execute(parentPomFile,
-                { InvocationRequest req ->
-                    req.setGoals(Arrays.asList("clean", "install"))
-                    req.setInteractive(false)
-                    Properties properties = new Properties();
-                    properties.put("skipTest", 'true')
-                    req.setProperties(properties)
-                }
-        )
-
-        // для всех компонентов в кторых ест фича бранч
-        forEachWithFeatureBranchAndPom(env, parallel, { project ->
-            // пропускаем parent
-            if (parentComponent != project.@path) {
-                def dir = new File(env.basedir, project.@path)
-                def componentPomFile = new File(dir, "/pom.xml")
-                def componentPom = XmlUtils.parse(componentPomFile)
-                def parentGroupId = componentPom?.parent?.groupId?.text()
-                def parentArtifactId = componentPom?.parent?.artifactId?.text()
-                def parentVersion = componentPom?.parent?.version?.text()
-                if (groupId == parentGroupId
-                        && artifactId == parentArtifactId
-                        && version != parentVersion
-                        // its SNAPSHOT or updateReleases enabled
-                        && (version.contains('SNAPSHOT') || updateRelease)
-                ) {
-                    // если группа, артефакт совпадают а версия нет - подменяем версию parent
-                    Maven.execute(componentPomFile,
-                            { InvocationRequest req ->
-                                req.setGoals(Arrays.asList("versions:update-parent"))
-                                req.setInteractive(false)
-                                Properties properties = new Properties();
-                                //properties.put("parentVersion", version)
-                                properties.put('generateBackupPoms', 'false')
-                                properties.put('allowSnapshots', Boolean.toString(allowSnapshots))
-                                req.setProperties(properties)
-                            }
-                    )
-                    // check modify pom.xml
-                    if (Git.isFileModified(dir, "pom.xml")) {
-                        // if it modifies - commit vup
-                        Git.add(dir, "pom.xml")
-                        Git.commit(dir, "update_parent")
-                    }
-                }
+        def context = parentContext.newChild(ACTION_UPDATE_PARENT)
+        context.withCloseable {
+            def parentBranch = Git.getBranch(context, new File(context.env.basedir, parentComponent))
+            if (featureBranch != parentBranch) {
+                throw new RepoBuildException("parent component must switched to feature branch $featureBranch")
             }
-        }, featureBranch)
+            // get parent artifact
+            def parentPomFile = new File(context.env.basedir, parentComponent + "/pom.xml")
+            def parentPom = XmlUtils.parse(parentPomFile)
+            def groupId = parentPom.groupId.text()
+            def artifactId = parentPom.artifactId.text()
+            String version = parentPom.version.text()
+
+            // rebuild parent
+            Maven.execute(context, parentPomFile,
+                    { InvocationRequest req ->
+                        req.setGoals(Arrays.asList("clean", "install"))
+                        req.setInteractive(false)
+                        Properties properties = new Properties();
+                        properties.put("skipTest", 'true')
+                        req.setProperties(properties)
+                    }
+            )
+
+            // для всех компонентов в кторых ест фича бранч
+            forEachWithFeatureBranchAndPom(context,
+                    { ActionContext actionContext, project ->
+                        // пропускаем parent
+                        if (parentComponent != project.@path) {
+                            def dir = new File(actionContext.env.basedir, project.@path)
+                            def componentPomFile = new File(dir, "/pom.xml")
+                            def componentPom = XmlUtils.parse(componentPomFile)
+                            def parentGroupId = componentPom?.parent?.groupId?.text()
+                            def parentArtifactId = componentPom?.parent?.artifactId?.text()
+                            def parentVersion = componentPom?.parent?.version?.text()
+                            if (groupId == parentGroupId
+                                    && artifactId == parentArtifactId
+                                    && version != parentVersion
+                                    // its SNAPSHOT or updateReleases enabled
+                                    && (version.contains('SNAPSHOT') || updateRelease)
+                            ) {
+                                // если группа, артефакт совпадают а версия нет - подменяем версию parent
+                                Maven.execute(actionContext, componentPomFile,
+                                        { InvocationRequest req ->
+                                            req.setGoals(Arrays.asList("versions:update-parent"))
+                                            req.setInteractive(false)
+                                            Properties properties = new Properties();
+                                            //properties.put("parentVersion", version)
+                                            properties.put('generateBackupPoms', 'false')
+                                            properties.put('allowSnapshots', Boolean.toString(allowSnapshots))
+                                            req.setProperties(properties)
+                                        }
+                                )
+                                // check modify pom.xml
+                                if (Git.isFileModified(actionContext, dir, "pom.xml")) {
+                                    // if it modifies - commit vup
+                                    Git.add(actionContext, dir, "pom.xml")
+                                    Git.commit(actionContext, dir, "update_parent")
+                                }
+                            }
+                        }
+                    }, featureBranch)
+        }
     }
 
     @CompileStatic
-    static void versionsUpdateProperties(File pomFile, String includes, boolean allowSnapshots) {
+    static void versionsUpdateProperties(ActionContext context, File pomFile, String includes, boolean allowSnapshots) {
         // call version plugin
-        Maven.execute(pomFile,
+        Maven.execute(context, pomFile,
                 { InvocationRequest req ->
                     req.setGoals(Arrays.asList("versions:update-properties"))
                     req.setInteractive(false)
@@ -105,8 +111,8 @@ class MavenFeature {
     }
 
     @CompileStatic
-    static void versionsUseLastVersions(File pomFile, String includes, boolean allowSnapshots) {
-        Maven.execute(pomFile,
+    static void versionsUseLastVersions(ActionContext context, File pomFile, String includes, boolean allowSnapshots) {
+        Maven.execute(context, pomFile,
                 { InvocationRequest req ->
                     req.setGoals(Arrays.asList("versions:use-latest-versions"))
                     req.setInteractive(false)
@@ -120,8 +126,8 @@ class MavenFeature {
     }
 
     @CompileStatic
-    static void build(File pomFile, List<String> goals, Map<String, String> properties) {
-        Maven.execute(pomFile,
+    static void build(ActionContext context, File pomFile, List<String> goals, Map<String, String> properties) {
+        Maven.execute(context, pomFile,
                 { InvocationRequest req ->
                     req.setGoals(goals)
                     req.setInteractive(false)
@@ -132,13 +138,16 @@ class MavenFeature {
         )
     }
 
+    public static final String ACTION_UPDATE_VERSIONS = 'mavenFeatureUpdateVersons'
+
     @CompileStatic
-    static void updateVersions(RepoEnv env, String featureBranch, String includes,
+    static void updateVersions(ActionContext parentContext, String featureBranch, String includes,
                                String continueFromComponent, boolean allowSnapshots) {
-        Pom.generateXml(env, featureBranch, new File(env.basedir, 'pom.xml'))
+        def context = parentContext.newChild(ACTION_UPDATE_VERSIONS)
+        Pom.generateXml(context, featureBranch, new File(context.env.basedir, 'pom.xml'))
 
         // получаем компоненты и зависимости
-        def componentsMap = getComponentsMap(env.basedir)
+        def componentsMap = getComponentsMap(context.env.basedir)
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
         logger.info("sort component by dependency tree")
@@ -153,17 +162,17 @@ class MavenFeature {
             }
             if (found) {
                 def pomFile = new File(it.basedir, "pom.xml")
-                versionsUpdateProperties(pomFile, includes, allowSnapshots)
+                versionsUpdateProperties(context, pomFile, includes, allowSnapshots)
                 // maven build with skipTests
-                build(pomFile, ['clean', 'install'], ['skipTests': 'true'])
+                build(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
                 // commit only if component has featureBranch
-                if (Git.getBranch(it.basedir) == featureBranch) {
+                if (Git.getBranch(context, it.basedir) == featureBranch) {
                     // check modify pom.xml
-                    if (Git.isFileModified(it.basedir, "pom.xml")) {
+                    if (Git.isFileModified(context, it.basedir, "pom.xml")) {
                         // if it modifies - commit vup
-                        Git.add(it.basedir, "pom.xml")
+                        Git.add(context, it.basedir, "pom.xml")
                         // TODO, UGLY: _ fix bug on Linux with commit -m
-                        Git.commit(it.basedir, "update_dependencies_to_last_versions")
+                        Git.commit(context, it.basedir, "update_dependencies_to_last_versions")
                     }
                 }
             }

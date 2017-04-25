@@ -21,7 +21,7 @@ class ExportBundlesSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.createManifestBundles(_, 1, new File(dir, 'bundles'))
+        1 * GitFeature.createManifestBundles(_, new File(dir, 'bundles'))
 
     }
 
@@ -32,7 +32,7 @@ class ExportBundlesSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.createFeatureBundles(_, 1, new File(dir, 'bundles'), 'feature/1')
+        1 * GitFeature.createFeatureBundles(_, new File(dir, 'bundles'), 'feature/1')
     }
 
     def "with parallel with featureBranch"() {
@@ -42,7 +42,7 @@ class ExportBundlesSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.createFeatureBundles(_, 2, new File(dir, 'bundles'), 'feature/1')
+        1 * GitFeature.createFeatureBundles(_, new File(dir, 'bundles'), 'feature/1')
     }
 
 }

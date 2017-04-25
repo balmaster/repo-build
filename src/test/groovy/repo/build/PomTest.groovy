@@ -8,26 +8,25 @@ class PomTest extends BaseTestCase {
     protected void setUp() throws Exception {
         super.setUp()
 
-        sandbox = new Sandbox(createTempDir())
+        sandbox = new Sandbox(new RepoEnv(createTempDir()))
                 .newGitComponent('c1')
                 .newGitComponent('c2')
                 .newGitComponent('manifest',
                 { Sandbox sandbox, File dir ->
                     sandbox.gitInitialCommit(dir)
                     sandbox.buildManifest(dir)
-                    Git.add(dir, 'default.xml')
-                    Git.commit(dir, 'manifest')
+                    Git.add(sandbox.context, dir, 'default.xml')
+                    Git.commit(sandbox.context, dir, 'manifest')
                 })
-        env = new RepoEnv(createTempDir())
     }
 
     void testBuildPomNoModules() {
-        def url = new File(sandbox.basedir, 'manifest')
-        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
-        GitFeature.sync(env, 2)
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
 
-        def pomFile = new File(sandbox.basedir, 'pom.xml')
-        Pom.generateXml(env, 'master', pomFile)
+        def pomFile = new File(sandbox.env.basedir, 'pom.xml')
+        Pom.generateXml(context, 'master', pomFile)
         assertTrue(pomFile.exists())
         def pom = new XmlParser().parse(pomFile)
         assertEquals(0, pom.project.modules.module.findAll().size)
@@ -38,16 +37,16 @@ class PomTest extends BaseTestCase {
                 { Sandbox sandbox, File dir ->
                     def newFile = new File(dir, 'pom.xml')
                     newFile.createNewFile()
-                    Git.add(dir, 'pom.xml')
-                    Git.commit(dir, 'pom')
+                    Git.add(sandbox.context, dir, 'pom.xml')
+                    Git.commit(sandbox.context, dir, 'pom')
                 })
 
-        def url = new File(sandbox.basedir, 'manifest')
-        GitFeature.cloneManifest(env, url.getAbsolutePath(), 'master')
-        GitFeature.sync(env, 2)
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
 
-        def pomFile = new File(sandbox.basedir, 'pom.xml')
-        Pom.generateXml(env, 'master', pomFile)
+        def pomFile = new File(sandbox.env.basedir, 'pom.xml')
+        Pom.generateXml(context, 'master', pomFile)
         assertTrue(pomFile.exists())
         def pom = new XmlParser().parse(pomFile)
         assertEquals(1, pom.modules.module.findAll().size)

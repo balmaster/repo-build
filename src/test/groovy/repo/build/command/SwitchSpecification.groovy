@@ -28,7 +28,7 @@ class SwitchSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.switch(_, 2, 'feature/1')
+        1 * GitFeature.switch(_, 'feature/1')
     }
 
 }

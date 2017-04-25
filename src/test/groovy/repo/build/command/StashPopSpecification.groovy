@@ -17,7 +17,7 @@ class StashPopSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.stashPop(_, 1)
+        1 * GitFeature.stashPop(_)
     }
 
     def "with args"() {
@@ -27,7 +27,7 @@ class StashPopSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.stashPop(_, 2)
+        1 * GitFeature.stashPop(_)
     }
 
 }

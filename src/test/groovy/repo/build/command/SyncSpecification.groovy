@@ -17,7 +17,7 @@ class SyncSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.sync(_, 1)
+        1 * GitFeature.sync(_)
     }
 
     def "with args"() {
@@ -27,6 +27,6 @@ class SyncSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.sync(_, 2)
+        1 * GitFeature.sync(_)
     }
 }

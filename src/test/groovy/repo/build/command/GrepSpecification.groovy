@@ -29,7 +29,7 @@ class GrepSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.grep(_, 1, 'exp1')
+        1 * GitFeature.grep(_, 'exp1')
     }
 
     def "with parallel with expr"() {
@@ -39,7 +39,7 @@ class GrepSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.grep(_, 2, 'exp1')
+        1 * GitFeature.grep(_, 'exp1')
     }
 
 }
