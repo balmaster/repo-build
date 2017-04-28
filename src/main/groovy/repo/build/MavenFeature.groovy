@@ -150,9 +150,9 @@ class MavenFeature {
         def componentsMap = getComponentsMap(context.env.basedir)
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
-        logger.info("sort component by dependency tree")
+        context.writeOut("sort component by dependency tree\n")
         sortedComponents.each {
-            logger.info(it.groupId + ':' + it.artifactId)
+            context.writeOut(it.groupId + ':' + it.artifactId + '\n')
         }
 
         boolean found = continueFromComponent == null

@@ -33,10 +33,10 @@ class RepoManifest {
         forEach(parentContext, filter, action,
                 { ActionContext actionContext, project ->
                     def path = project.@path
-                    logger.info("$path")
+                    actionContext.writeOut("$path\n")
                 },
                 { ActionContext actionContext, project ->
-
+                    actionContext.writeOut("\n")
                 }
         )
     }

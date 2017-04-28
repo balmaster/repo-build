@@ -1,5 +1,7 @@
 package repo.build
 
+import java.nio.charset.Charset
+
 /**
  * @author Markelov Ruslan markelov@jet.msk.su
  */
@@ -31,6 +33,13 @@ class ActionContext implements Closeable {
         }
         return { int b ->
             out.write(b)
+        }
+    }
+
+    void writeOut(String msg) {
+        if (msg != null) {
+            def out = newWriteOutHandler();
+            msg.getBytes("utf-8").each { out(it) }
         }
     }
 
