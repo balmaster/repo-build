@@ -4,9 +4,6 @@ import groovy.transform.CompileStatic
 import groovyx.gpars.GParsPool
 import org.apache.log4j.Logger
 
-import java.util.concurrent.Future
-import java.util.function.Consumer
-
 class RepoManifest {
     static Logger logger = Logger.getLogger(RepoManifest.class)
 
@@ -33,35 +30,38 @@ class RepoManifest {
         forEach(parentContext, filter, action,
                 { ActionContext actionContext, project ->
                     def path = project.@path
-                    actionContext.writeOut("$path\n")
+                    actionContext.newChildWriteOut("$path\n")
                 },
                 { ActionContext actionContext, project ->
-                    actionContext.writeOut("\n")
+                    actionContext.newChildWriteOut("\n")
                 }
         )
     }
 
     public final static String ACTION_FOR_EACH = 'repoManifestForEach'
+    public final static String ACTION_FOR_EACH_ITERATION = 'repoManifestForEachIteraction'
 
     static void forEach(ActionContext parentContext, Closure filter, Closure action, Closure logHeader, Closure logFooter) {
-        GParsPool.withPool(parentContext.parallel, {
-            parentContext.env.manifest.project
-                    .eachParallel { project ->
-                def context = parentContext.newChild(ACTION_FOR_EACH)
-
-                if (filter(context, project)) {
-                    if (logHeader != null) {
-                        logHeader(context, project)
-                    }
-                    action(context, project)
-                    if (logFooter != null) {
-                        logFooter(context, project)
+        def context = parentContext.newChild(ACTION_FOR_EACH)
+        context.withCloseable {
+            GParsPool.withPool(context.parallel, {
+                parentContext.env.manifest.project
+                        .eachParallel { project ->
+                    def actionContext = context.newChild(ACTION_FOR_EACH_ITERATION)
+                    actionContext.withCloseable {
+                        if (filter(actionContext, project)) {
+                            if (logHeader != null) {
+                                logHeader(actionContext, project)
+                            }
+                            action(actionContext, project)
+                            if (logFooter != null) {
+                                logFooter(actionContext, project)
+                            }
+                        }
                     }
                 }
-            }
+            })
         }
-
-        )
     }
 
     @CompileStatic

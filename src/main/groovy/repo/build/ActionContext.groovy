@@ -36,6 +36,10 @@ class ActionContext implements Closeable {
         }
     }
 
+    void newChildWriteOut(String msg) {
+        newChild('').writeOut(msg)
+    }
+
     void writeOut(String msg) {
         if (msg != null) {
             def out = newWriteOutHandler();
