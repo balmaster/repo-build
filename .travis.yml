@@ -1,4 +1,22 @@
+dist: trusty
+sudo: required
+
+addons:
+  sonarqube:
+    organization: "balmaster-github"
+    token:
+      secure: "FuksPNuaPV9rsCEVNuvSjyZE9Vyuqjp1GzM/Q3j4UMMwvOn63ObBbHEGi/69ojGCXibP0WHdDK0vnGVAQuodSXS1z0lLjYu65iLjp64/x4xp/zVWeThkxncbTi3eJDJhSkmvHSASsaxhB+BvO22lf2UTyYTFlvrsfMrLxyGMour785bCCTT26KZ92hk7P22b8qUUCMQPTEYVp8rFL/BZpl4sZp+AAHTjKdAAOe3ZfwC8MVRp08Kz6VHfz/4UWXGWmjjWxliZYHCP6JiEdCM7maCJE0i+v2Rk1eOaD5VHVW2pbwFG+QY8KYgHLydI5vWz59zrJfpNKTzQgWVdmydgG6a4Yk+s6kRwU8O3fR8XBB33mW96yJLdy4v2x8id3OK7HcY6mGyI3GITJrFJunaft+Mvp9WtuKGgSnmZAZnSm1RHD3uKI1Z9cdeg1eRRPTln6DEK2HKUWlgCv2Sg+sqtBdDB128pvlO6amMRgZB9cvpVRzYR6p1dbVY5iCC+LlnaFfFN4TPOJWhhM4E+fw1HrLdx6hDBcxgty+SaU7DoAaGwhy1hA/9CcRJnHbhUFyXvQrxJfwrSFW/d5k4VoXehrPhhRNkWxctl3I3oWlGrrRrGrm8tB1rjk228xa2iimvP8+KVsUgBfnH8DWP8QxpI1rWifidXH0vdltLH78cnwgU="
+jdk:
+  - oraclejdk8
+script:
+  - sonar-scanner
+cache:
+  directories:
+    - '$HOME/.sonar/cache'
+
 language: java
 before_install:
     - git config --global user.email "you@example.com"
     - git config --global user.name "Your Name"
+
+
