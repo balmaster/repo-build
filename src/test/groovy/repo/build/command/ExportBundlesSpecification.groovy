@@ -1,10 +1,7 @@
 package repo.build.command
 
-import repo.build.Git
 import repo.build.GitFeature
-import repo.build.Pom
 import repo.build.RepoBuild
-import repo.build.RepoBuildException
 import spock.lang.Specification
 
 class ExportBundlesSpecification extends Specification {

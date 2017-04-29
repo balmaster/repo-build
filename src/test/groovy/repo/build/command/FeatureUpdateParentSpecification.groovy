@@ -1,6 +1,5 @@
 package repo.build.command
 
-import repo.build.GitFeature
 import repo.build.MavenFeature
 import repo.build.RepoBuild
 import repo.build.RepoBuildException

@@ -2,7 +2,6 @@ package repo.build.command
 
 import repo.build.GitFeature
 import repo.build.RepoBuild
-import repo.build.RepoBuildException
 import spock.lang.Specification
 
 class MergeAbortSpecification extends Specification {

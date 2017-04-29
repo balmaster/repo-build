@@ -1,6 +1,5 @@
 package repo.build.command
 
-import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import repo.build.CliOptions

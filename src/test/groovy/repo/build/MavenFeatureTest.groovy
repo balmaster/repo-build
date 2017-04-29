@@ -101,9 +101,9 @@ class MavenFeatureTest extends BaseTestCase {
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
         assertEquals('1.1.0-SNAPSHOT', c1Pom.parent.version.text())
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
-        assertEquals('1.1.0-SNAPSHOT', c1Pom.parent.version.text())
+        assertEquals('1.1.0-SNAPSHOT', c2Pom.parent.version.text())
         def c3Pom = new XmlParser().parse(new File(env.basedir, 'c3/pom.xml'))
-        assertEquals('1.1.0-SNAPSHOT', c1Pom.parent.version.text())
+        assertEquals('1.1.0-SNAPSHOT', c3Pom.parent.version.text())
     }
 
 

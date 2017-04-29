@@ -1,11 +1,6 @@
 package repo.build.command
 
-import repo.build.ActionContext
-import repo.build.DefaultParallelActionHandler
-import repo.build.Git
-import repo.build.CliOptions
-import repo.build.Pom
-import repo.build.RepoEnv
+import repo.build.*
 
 class BuildPomCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'buildPomCommandExecute'

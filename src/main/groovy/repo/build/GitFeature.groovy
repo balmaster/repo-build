@@ -58,7 +58,7 @@ class GitFeature {
                     { ActionContext actionContext, project ->
                         def env = actionContext.env
                         def manifestBranch = RepoManifest.getBranch(actionContext, project.@path)
-                        Git.merge(actionContext, manifestBranch, new File(actionContext.env.basedir, project.@path))
+                        Git.merge(actionContext, manifestBranch, new File(env.basedir, project.@path))
                     }, featureBranch)
         }
     }

@@ -1,7 +1,6 @@
 package repo.build
 
 import groovy.transform.CompileStatic
-import repo.build.RepoBuildException
 import repo.build.command.AbstractCommand
 
 @CompileStatic

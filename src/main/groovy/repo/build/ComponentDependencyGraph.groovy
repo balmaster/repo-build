@@ -6,7 +6,6 @@ import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.traverse.TopologicalOrderIterator
-import repo.build.maven.MavenArtifact
 import repo.build.maven.MavenArtifactRef
 import repo.build.maven.MavenComponent
 
