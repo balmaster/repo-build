@@ -19,7 +19,11 @@ class CliOptions {
     }
 
     public String getParent() {
-        getRequired(options.P, "Parent component required.\nUse: 'repo-build -P parent ...'")
+        if (options.P) {
+            return options.P
+        } else {
+            return 'parent'
+        }
     }
 
     public String getContinueFromComponent() {
@@ -85,5 +89,14 @@ class CliOptions {
 
     int getParallel() {
         return options.j ? Integer.parseInt(options.j) : 1
+    }
+
+    Map<String, String> getSystemProperties() {
+        def systemProperties = new HashMap<String, String>();
+        def p = options.getInner().getOptionProperties('D')
+        for (def name : p.propertyNames()) {
+            systemProperties.put(name, p.getProperty(name))
+        }
+        return systemProperties
     }
 }

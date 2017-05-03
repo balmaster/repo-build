@@ -12,6 +12,7 @@ import repo.build.command.FeatureUpdateVersionsCommand
 import repo.build.command.GrepCommand
 import repo.build.command.InitCommand
 import repo.build.command.MergeAbortCommand
+import repo.build.command.MvnBuildCommand
 import repo.build.command.PrepareMergeCommand
 import repo.build.command.PushFeatureCommand
 import repo.build.command.PushManifestCommand
@@ -62,6 +63,7 @@ class RepoBuild {
         commandRegistry.registerCommand(new AddTagToCurrentHeadsCommand())
         commandRegistry.registerCommand(new PushTagCommand())
         commandRegistry.registerCommand(new CheckoutTagCommand())
+        commandRegistry.registerCommand(new MvnBuildCommand())
         // combo
         commandRegistry.registerCommand(new FeatureSyncComboCommand())
         commandRegistry.registerCommand(new FeatureSyncStashComboCommand())
