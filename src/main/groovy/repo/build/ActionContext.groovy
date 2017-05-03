@@ -13,6 +13,7 @@ class ActionContext implements Closeable {
     final List<ByteArrayOutputStream> processOutList = new ArrayList<>()
     final List<ActionContext> childList = new ArrayList<>()
     final ActionHandler actionHandler
+    boolean output = false
 
     ActionContext(RepoEnv env, String id, int parallel, ActionHandler actionHandler1) {
         this.env = env
