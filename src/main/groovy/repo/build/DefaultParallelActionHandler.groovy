@@ -33,10 +33,13 @@ class DefaultParallelActionHandler implements ActionHandler {
     }
 
     void logOutputTree(ActionContext context) {
-        for (ActionContext childContext : context.childList) {
-            logOutputTree(childContext)
+        if (!context.output) {
+            for (ActionContext childContext : context.childList) {
+                logOutputTree(childContext)
+            }
+            logOutput(context)
+            context.output = true
         }
-        logOutput(context)
     }
 
     void logOutput(ActionContext context) {
