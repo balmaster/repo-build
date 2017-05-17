@@ -142,6 +142,31 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('\n', result.get('c2'))
     }
 
+    void testStatusUnpushed() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        GitFeature.sync(context)
+
+        def c1Dir = new File(env.basedir, 'c1')
+
+        Git.createBranch(context,c1Dir,'newBranch')
+        Git.checkout(context,c1Dir,'newBranch')
+
+        def newFile = new File(c1Dir, 'new')
+        newFile.text = 'new'
+
+        def unpushedFile = new File(c1Dir, 'unpushed')
+        unpushedFile.text = 'unpushed'
+        Git.add(context, c1Dir, 'unpushed')
+        Git.commit(context, c1Dir, 'unpushed')
+
+        def result = GitFeature.status(context)
+        assertTrue(result.get('c1').contains('?? new'))
+        assertTrue(result.get('c1').contains('Branch not pushed'))
+        assertEquals('\n', result.get('c2'))
+    }
+
     void testGrep() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')

@@ -1,5 +1,7 @@
 package repo.build
 
+import java.util.concurrent.ConcurrentHashMap
+
 class GitFeature {
 
     static File getManifestDir(ActionContext context) {
@@ -202,7 +204,7 @@ class GitFeature {
 
     static Map<String, String> status(ActionContext parentContext) {
         def context = parentContext.newChild(ACTION_STATUS)
-        Map<String, String> result = new HashMap<>()
+        Map<String, String> result = new ConcurrentHashMap<>()
         context.withCloseable {
             forEachWithProjectDirExists(context,
                     { ActionContext actionContext, Node project ->
@@ -211,7 +213,18 @@ class GitFeature {
                         def remoteName = RepoManifest.getRemoteName(actionContext)
                         def remoteBranch = "$remoteName/$branch"
                         def status = Git.status(actionContext, dir)
-                        def unpushed = Git.logUnpushed(actionContext, dir, remoteBranch)
+                        def unpushed
+                        if (Git.branchPresent(actionContext, dir, remoteBranch)) {
+                            unpushed = Git.logUnpushed(actionContext, dir, remoteBranch)
+                        } else {
+                            Git.fetch(actionContext, remoteName, dir)
+                            if (Git.branchPresent(actionContext, dir, remoteBranch)) {
+                                unpushed = Git.logUnpushed(actionContext, dir, remoteBranch)
+                            } else {
+                                unpushed = "Branch not pushed"
+                                actionContext.writeOut(unpushed + '\n')
+                            }
+                        }
                         result.put(project.@path, status + '\n' + unpushed)
                     }
             )
