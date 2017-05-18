@@ -77,6 +77,7 @@ class RepoBuild {
         def repoBuild = new RepoBuild(args)
         try {
             repoBuild.execute()
+            repoBuild.waitIfRequired()
         }
         catch (Exception e) {
             if (repoBuild.options.isDebugMode()) {
@@ -84,7 +85,15 @@ class RepoBuild {
             } else {
                 logger.error(e.message)
             }
+            repoBuild.waitIfRequired()
             System.exit(1);
+        }
+    }
+
+    void waitIfRequired() {
+        if(options.isWaitBeforeExit()) {
+            System.out.println('Press <Enter> to continue')
+            System.in.read()
         }
     }
 

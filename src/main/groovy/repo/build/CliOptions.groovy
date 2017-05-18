@@ -83,6 +83,10 @@ class CliOptions {
         return options.X
     }
 
+    Boolean isWaitBeforeExit() {
+        return options.W
+    }
+
     String getTag() {
         return getRequired(options.T, "Tag required.\nUse: 'repo-build -T tag ...'")
     }

@@ -29,8 +29,8 @@ class CliBuilderFactory {
             P(args: 1, argName: 'parent', 'parent component name')
             C(args: 1, argName: 'continue', 'continue from component')
             T(args: 1, argName: 'tag', 'tag')
+            W('pause before exit')
             X('enable debug mode')
-
 
             posix = false
             stopAtNonOption = false
