@@ -49,20 +49,26 @@ class RepoManifest {
                         .eachParallel { project ->
                     def actionContext = context.newChild(ACTION_FOR_EACH_ITERATION)
                     actionContext.withCloseable {
-                        if (filter(actionContext, project)) {
-                            if (logHeader != null) {
-                                logHeader(actionContext, project)
+                        try {
+                            if (filter(actionContext, project)) {
+                                if (logHeader != null) {
+                                    logHeader(actionContext, project)
+                                }
+                                action(actionContext, project)
+                                if (logFooter != null) {
+                                    logFooter(actionContext, project)
+                                }
                             }
-                            action(actionContext, project)
-                            if (logFooter != null) {
-                                logFooter(actionContext, project)
-                            }
+                        }
+                        catch (Exception e) {
+                            throw new RepoBuildException("Project ${project.@path} error ${e.message}", e)
                         }
                     }
                 }
             })
         }
     }
+
 
     @CompileStatic
     static void forEach(ActionContext parentContext, Closure action) {
