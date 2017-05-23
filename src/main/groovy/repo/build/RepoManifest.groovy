@@ -79,7 +79,7 @@ class RepoManifest {
                 action)
     }
 
-    static void forEachWithFeatureBranch(ActionContext parentContext, Closure action, String branch) {
+    static void forEachWithBranch(ActionContext parentContext, Closure action, String branch) {
         def remoteBranch = getRemoteBranch(parentContext, branch)
 
         forEach(parentContext,

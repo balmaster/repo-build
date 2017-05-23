@@ -4,7 +4,7 @@ import repo.build.*
 
 class SwitchCommand extends AbstractCommand {
     SwitchCommand() {
-        super('switch', 'Switch to feature branches and update it')
+        super('switch', 'Switch to feature and optionally task branches and update its')
     }
 
     public static final String ACTION_EXECUTE = 'switchCommandExecute'
@@ -12,8 +12,10 @@ class SwitchCommand extends AbstractCommand {
     void execute(RepoEnv env, CliOptions options) {
         def context = new ActionContext(env, ACTION_EXECUTE, options.getParallel(), new DefaultParallelActionHandler())
         context.withCloseable {
-            def featureBranch = options.getFeatureBranch()
-            GitFeature.switch(context, featureBranch)
+            GitFeature.switch(context,
+                    options.getFeatureBranch(),
+                    options.getTaskBranch()
+            )
         }
     }
 }

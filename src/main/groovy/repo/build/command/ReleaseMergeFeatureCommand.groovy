@@ -12,7 +12,7 @@ class ReleaseMergeFeatureCommand extends AbstractCommand {
     void execute(RepoEnv env, CliOptions options) {
         def context = new ActionContext(env, ACTION_EXECUTE, options.getParallel(), new DefaultParallelActionHandler())
         context.withCloseable {
-            GitFeature.mergeFeature(context, options.getFeatureBranch())
+            GitFeature.releaseMergeFeature(context, options.getFeatureBranch())
         }
     }
 }

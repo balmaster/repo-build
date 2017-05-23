@@ -93,7 +93,7 @@ class MavenFeatureTest extends BaseTestCase {
 
         GitFeature.sync(context)
         GitFeature.switch(context, 'feature/1')
-        GitFeature.mergeRelease(context, 'feature/1')
+        GitFeature.featureMergeRelease(context, 'feature/1')
 
         MavenFeature.updateParent(context, 'feature/1', 'parent', false, true)
 
@@ -148,7 +148,7 @@ class MavenFeatureTest extends BaseTestCase {
 
         GitFeature.sync(context)
         GitFeature.switch(context, 'feature/1')
-        GitFeature.mergeRelease(context, 'feature/1')
+        GitFeature.featureMergeRelease(context, 'feature/1')
 
         MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
 
@@ -198,7 +198,7 @@ class MavenFeatureTest extends BaseTestCase {
 
         GitFeature.sync(context)
         GitFeature.switch(context, 'feature/1')
-        GitFeature.mergeRelease(context, 'feature/1')
+        GitFeature.featureMergeRelease(context, 'feature/1')
 
         MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
 

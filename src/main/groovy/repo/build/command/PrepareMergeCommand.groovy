@@ -13,7 +13,7 @@ class PrepareMergeCommand extends AbstractCommand {
     void execute(RepoEnv env, CliOptions options) {
         def context = new ActionContext(env, ACTION_EXECUTE, options.getParallel(), new DefaultParallelActionHandler())
         context.withCloseable {
-            GitFeature.mergeFeature(context,
+            GitFeature.releaseMergeFeature(context,
                     options.getFeatureBranch(),
                     options.getAllFlag())
         }

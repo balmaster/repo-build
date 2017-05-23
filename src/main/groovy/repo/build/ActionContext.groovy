@@ -47,6 +47,11 @@ class ActionContext implements Closeable {
         }
     }
 
+    ActionContext newChild()
+    {
+        return newChild('')
+    }
+
     ActionContext newChild(String id) {
         def child = new ActionContext(this, id)
         synchronized (childList) {

@@ -28,7 +28,7 @@ class PrepareMergeSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeFeature(_, 'feature/1', false)
+        1 * GitFeature.releaseMergeFeature(_, 'feature/1', false)
     }
 
     def "with parallel with featureBranch"() {
@@ -38,7 +38,7 @@ class PrepareMergeSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeFeature(_, 'feature/1', false)
+        1 * GitFeature.releaseMergeFeature(_, 'feature/1', false)
     }
 
     def "with featureBranch and abort flag"() {
@@ -48,6 +48,6 @@ class PrepareMergeSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeFeature(_, 'feature/1', true)
+        1 * GitFeature.releaseMergeFeature(_, 'feature/1', true)
     }
 }

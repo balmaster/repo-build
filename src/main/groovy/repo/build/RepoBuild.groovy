@@ -25,6 +25,7 @@ import repo.build.command.StashPopCommand
 import repo.build.command.StatusCommand
 import repo.build.command.SwitchCommand
 import repo.build.command.SyncCommand
+import repo.build.command.TaskMergeFeatureCommand
 import repo.build.command.combo.FeatureSyncComboCommand
 import repo.build.command.combo.FeatureSyncStashComboCommand
 
@@ -41,7 +42,9 @@ class RepoBuild {
 
     RepoBuild(String[] args) {
         this.commandRegistry = new CommandRegistry()
+        commandRegistry.registerCommand(new AddTagToCurrentHeadsCommand())
         commandRegistry.registerCommand(new BuildPomCommand())
+        commandRegistry.registerCommand(new CheckoutTagCommand())
         commandRegistry.registerCommand(new ExportBundlesCommand())
         commandRegistry.registerCommand(new FeatureMergeReleaseCommand())
         commandRegistry.registerCommand(new FeatureUpdateParentCommand())
@@ -49,9 +52,11 @@ class RepoBuild {
         commandRegistry.registerCommand(new GrepCommand())
         commandRegistry.registerCommand(new InitCommand())
         commandRegistry.registerCommand(new MergeAbortCommand())
+        commandRegistry.registerCommand(new MvnBuildCommand())
         commandRegistry.registerCommand(new PrepareMergeCommand())
         commandRegistry.registerCommand(new PushFeatureCommand())
         commandRegistry.registerCommand(new PushManifestCommand())
+        commandRegistry.registerCommand(new PushTagCommand())
         commandRegistry.registerCommand(new ReleaseMergeFeatureCommand())
         commandRegistry.registerCommand(new ReleaseUpdateParentCommand())
         commandRegistry.registerCommand(new ReleaseUpdateVersionsCommand())
@@ -60,10 +65,7 @@ class RepoBuild {
         commandRegistry.registerCommand(new StatusCommand())
         commandRegistry.registerCommand(new SwitchCommand())
         commandRegistry.registerCommand(new SyncCommand())
-        commandRegistry.registerCommand(new AddTagToCurrentHeadsCommand())
-        commandRegistry.registerCommand(new PushTagCommand())
-        commandRegistry.registerCommand(new CheckoutTagCommand())
-        commandRegistry.registerCommand(new MvnBuildCommand())
+        commandRegistry.registerCommand(new TaskMergeFeatureCommand())
         // combo
         commandRegistry.registerCommand(new FeatureSyncComboCommand())
         commandRegistry.registerCommand(new FeatureSyncStashComboCommand())
@@ -91,7 +93,7 @@ class RepoBuild {
     }
 
     void waitIfRequired() {
-        if(options.isWaitBeforeExit()) {
+        if (options.isWaitBeforeExit()) {
             System.out.println('Press <Enter> to continue')
             System.in.read()
         }
@@ -101,7 +103,12 @@ class RepoBuild {
         def commands = options.getArguments()
         if (commands.size() > 0) {
             commands.each { String commandName ->
-                executeCommand(commandName)
+                try {
+                    executeCommand(commandName)
+                }
+                catch (Exception e) {
+                    throw new RepoBuildException("Command $commandName error ${e.message}", e)
+                }
             }
         } else {
             cli.usage()

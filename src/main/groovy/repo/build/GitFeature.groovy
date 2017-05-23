@@ -51,54 +51,96 @@ class GitFeature {
         }
     }
 
-    public static final String ACTION_MERGE_RELEASE = 'gitFeatureMergeRelease'
-
-    static void mergeRelease(ActionContext parentContext, String featureBranch) {
-        def context = parentContext.newChild(ACTION_MERGE_RELEASE)
+    static void featureMergeRelease(ActionContext parentContext, String featureBranch) {
+        def context = parentContext.newChild()
         context.withCloseable {
-            RepoManifest.forEachWithFeatureBranch(context,
+            RepoManifest.forEachWithBranch(context,
                     { ActionContext actionContext, project ->
-                        def env = actionContext.env
+                        def dir = new File(actionContext.env.basedir, project.@path)
+                        if (Git.getBranch(actionContext, dir) != featureBranch) {
+                            throw new RepoBuildException("must be set to branch $featureBranch")
+                        }
                         def manifestBranch = RepoManifest.getBranch(actionContext, project.@path)
-                        Git.merge(actionContext, manifestBranch, new File(env.basedir, project.@path))
+                        Git.merge(actionContext, manifestBranch, dir)
                     }, featureBranch)
         }
     }
 
-
-    public static final String ACTION_MERGE_FEATURE = 'gitFeatureMergeFeature'
-
-    static void mergeFeature(ActionContext parentContext, String featureBranch) {
-        def context = parentContext.newChild(ACTION_MERGE_FEATURE)
+    static void releaseMergeFeature(ActionContext parentContext, String featureBranch) {
+        def context = parentContext.newChild()
         context.withCloseable {
-            RepoManifest.forEachWithFeatureBranch(context,
+            RepoManifest.forEachWithBranch(context,
                     { ActionContext actionContext, project ->
                         // check current components branch
                         def dir = new File(actionContext.env.basedir, project.@path)
                         def manifestBranch = RepoManifest.getBranch(actionContext, project.@path)
                         if (Git.getBranch(actionContext, dir) != manifestBranch) {
-                            throw new RepoBuildException("Component ${project.@path} must be set to branch $manifestBranch")
+                            throw new RepoBuildException("must be set to branch $manifestBranch")
                         }
                         Git.merge(actionContext, featureBranch, dir)
                     }, featureBranch)
         }
     }
 
-    public static final String ACTION_SWITCH = 'gitFeatureSwitch'
-
-    static void 'switch'(ActionContext parentContext, String branch) {
-        def context = parentContext.newChild(ACTION_SWITCH)
+    static void taskMergeFeature(ActionContext parentContext, String taskBranch, String featureBranch) {
+        def context = parentContext.newChild()
         context.withCloseable {
-            def remoteBranch = RepoManifest.getRemoteBranch(context, branch)
+            RepoManifest.forEachWithBranch(context,
+                    { ActionContext actionContext, project ->
+                        // check current components branch
+                        def dir = new File(actionContext.env.basedir, project.@path)
+                        if (Git.branchPresent(actionContext, dir, taskBranch)) {
+                            if (Git.getBranch(actionContext, dir) != taskBranch) {
+                                throw new RepoBuildException("must be set to branch $taskBranch")
+                            }
+                            Git.merge(actionContext, featureBranch, dir)
+                        }
+                    }, featureBranch)
+        }
+    }
+
+    static void branchMergeFeature(ActionContext parentContext, String branch, String featureBranch) {
+        def context = parentContext.newChild()
+        context.withCloseable {
+            RepoManifest.forEachWithBranch(context,
+                    { ActionContext actionContext, project ->
+                        // check current components branch
+                        def dir = new File(actionContext.env.basedir, project.@path)
+                        if (Git.branchPresent(actionContext, dir, branch)) {
+                            def remoteBranch = RepoManifest.getRemoteBranch(actionContext, branch)
+                            Git.checkoutUpdate(actionContext, branch, remoteBranch, dir)
+                            Git.merge(actionContext, featureBranch, dir)
+                        }
+                    }, branch)
+        }
+    }
+
+    static void 'switch'(ActionContext parentContext, String featureBranch) {
+        'switch'(parentContext, featureBranch, null)
+    }
+
+    static void 'switch'(ActionContext parentContext, String featureBranch, String taskBranch) {
+        def context = parentContext.newChild()
+        context.withCloseable {
             RepoManifest.forEach(context,
                     { ActionContext actionContext, Node project ->
                         def dir = new File(actionContext.env.basedir, project.@path)
-                        // переключаемся только если есть локальная или удаленная фича ветка
-                        if (Git.branchPresent(actionContext, dir, branch) || Git.branchPresent(actionContext, dir, remoteBranch)) {
-                            Git.checkoutUpdate(actionContext, branch, remoteBranch, new File(actionContext.env.basedir, project.@path))
+                        // switch if feature the branch exists
+                        checkoutUpdateIfExists(actionContext, dir, featureBranch)
+                        // switch task if the branch exists
+                        if (taskBranch != null) {
+                            checkoutUpdateIfExists(actionContext, dir, taskBranch)
                         }
                     }
             )
+        }
+    }
+
+    private static void checkoutUpdateIfExists(ActionContext context, File dir, String branch) {
+        def remoteBranch = RepoManifest.getRemoteBranch(context, branch)
+        if (Git.branchPresent(context, dir, branch)
+                || Git.branchPresent(context, dir, remoteBranch)) {
+            Git.checkoutUpdate(context, branch, remoteBranch, dir)
         }
     }
 
@@ -130,15 +172,18 @@ class GitFeature {
         }
     }
 
-    static void mergeFeature(ActionContext parentContext, String branch, Boolean mergeAbort) {
-        def context = parentContext.newChild(ACTION_MERGE_FEATURE)
+    static void releaseMergeFeature(ActionContext parentContext, String branch, Boolean mergeAbort) {
+        def context = parentContext.newChild()
         context.withCloseable {
             def remoteBranch = RepoManifest.getRemoteBranch(context, branch)
-            RepoManifest.forEachWithFeatureBranch(context,
+            RepoManifest.forEachWithBranch(context,
                     { ActionContext actionContext, Node project ->
                         def env = actionContext.env
                         def dir = new File(env.basedir, project.@path)
-                        //println "branch $remoteBranch found in ${project.@path}"
+                        def manifestBranch = RepoManifest.getBranch(actionContext, project.@path)
+                        if (Git.getBranch(actionContext, dir) != manifestBranch) {
+                            throw new RepoBuildException("must be set to branch $manifestBranch")
+                        }
                         def startCommit = project.@revision.replaceFirst("refs/heads", env.manifest.remote[0].@name)
                         if (mergeAbort) {
                             try {
@@ -161,7 +206,7 @@ class GitFeature {
         context.withCloseable {
             def remoteBranch = RepoManifest.getRemoteBranch(context, branch)
 
-            RepoManifest.forEachWithFeatureBranch(context,
+            RepoManifest.forEachWithBranch(context,
                     { ActionContext actionContext, Node project ->
                         def dir = new File(actionContext.env.basedir, project.@path)
                         def gitName = new File(project.@name).getName().split("\\.").first()

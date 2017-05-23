@@ -28,7 +28,17 @@ class SwitchSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.switch(_, 'feature/1')
+        1 * GitFeature.switch(_, 'feature/1', null)
+    }
+
+    def "with featureBranch and taskBranch"() {
+        def repoBuild = new RepoBuild('switch', '-f', 'feature/1', '-I', 'YYY-XXXX', '-j', '2')
+
+        when:
+        repoBuild.execute()
+
+        then:
+        1 * GitFeature.switch(_, 'feature/1', 'YYY-XXXX')
     }
 
 }

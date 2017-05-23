@@ -28,7 +28,7 @@ class ReleaseMergeFeatureSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeFeature(_, 'feature/1')
+        1 * GitFeature.releaseMergeFeature(_, 'feature/1')
     }
 
     def "with parallel with featureBranch"() {
@@ -38,7 +38,7 @@ class ReleaseMergeFeatureSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.mergeFeature(_, 'feature/1')
+        1 * GitFeature.releaseMergeFeature(_, 'feature/1')
     }
 
 }

@@ -75,7 +75,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
-    void testMergeFeature() {
+    void testReleaseMergeFeature() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
@@ -90,14 +90,14 @@ class GitFeatureTest extends BaseTestCase {
 
         GitFeature.sync(context)
 
-        GitFeature.mergeFeature(context, 'feature/1', true)
+        GitFeature.releaseMergeFeature(context, 'feature/1', true)
 
         assertEquals('prepareBuild', Git.getBranch(context, new File(env.basedir, 'c1')))
         assertTrue(new File(new File(env.basedir, 'c1'), 'test').exists())
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
-    void testMergeRelease() {
+    void testFeatureMergeRelease() {
         def context = new ActionContext(env, null, 2, new DefaultParallelActionHandler())
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -114,9 +114,42 @@ class GitFeatureTest extends BaseTestCase {
         GitFeature.sync(context)
         GitFeature.switch(context, 'feature/1')
 
-        GitFeature.mergeRelease(context, 'feature/1')
+        GitFeature.featureMergeRelease(context, 'feature/1')
 
         assertEquals('feature/1', Git.getBranch(context, new File(env.basedir, 'c1')))
+        assertTrue(new File(new File(env.basedir, 'c1'), 'test').exists())
+        assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
+    }
+
+    void testTaskMergeFeature() {
+        def context = new ActionContext(env, null, 2, new DefaultParallelActionHandler())
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    // create task branch
+                    def c1Dir = new File(sandbox.env.basedir, 'c1')
+                    Git.createBranch(context, c1Dir, 'task/1')
+                    Git.createBranch(context, dir, 'feature/1')
+                    Git.checkout(context, dir, 'feature/1')
+                    def newFile = new File(dir, 'test')
+                    newFile.createNewFile()
+                    newFile.text = 'test'
+                    Git.add(context, dir, 'test')
+                    Git.commit(context, dir, 'test')
+                })
+
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1', 'task/1')
+
+        GitFeature.taskMergeFeature(context, 'task/1', 'feature/1')
+
+        def c1Dir = new File(env.basedir, 'c1')
+        def testFile = new File(c1Dir, 'test')
+
+        assertEquals('task/1', Git.getBranch(context, new File(env.basedir, 'c1')))
+        assertEquals('test', testFile.text)
         assertTrue(new File(new File(env.basedir, 'c1'), 'test').exists())
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
@@ -150,8 +183,8 @@ class GitFeatureTest extends BaseTestCase {
 
         def c1Dir = new File(env.basedir, 'c1')
 
-        Git.createBranch(context,c1Dir,'newBranch')
-        Git.checkout(context,c1Dir,'newBranch')
+        Git.createBranch(context, c1Dir, 'newBranch')
+        Git.checkout(context, c1Dir, 'newBranch')
 
         def newFile = new File(c1Dir, 'new')
         newFile.text = 'new'

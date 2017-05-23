@@ -15,7 +15,19 @@ class CliOptions {
     }
 
     public String getFeatureBranch() {
-        return getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f feature ...'")
+        return getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f <featureBranch> ...'")
+    }
+
+    public String getTaskBranch() {
+        if(options.I) {
+            return options.I
+        } else {
+            return null
+        }
+    }
+
+    public String getRequiredTaskBranch() {
+        return getRequired(getTaskBranch(),"Task branch required.\nUse: 'repo-build -I <taskBranch> ...'")
     }
 
     public String getParent() {

@@ -28,7 +28,7 @@ class FeatureUpdateParentSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        thrown(RepoBuildException)
+        1 * MavenFeature.updateParent(_, 'feature/1', 'parent', false, true)
     }
 
     def "without featureBranch"() {
