@@ -75,6 +75,73 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
+    void testSwitchManifest() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
+                    Git.createBranch(sandbox.context, dir, 'feature/2')
+                })
+
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
+                })
+
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        GitFeature.switch(context, 'feature/2')
+        assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
+    }
+
+    void testSwitchTask() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
+                    Git.createBranch(sandbox.context, dir, 'task/1')
+                })
+
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
+                })
+
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1', 'task/1')
+        assertEquals('task/1', Git.getBranch(context, new File(env.basedir, 'c1')))
+    }
+
+    void testSwitchTaskFeatureDasntExists() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, 'task/1')
+                })
+
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
+                })
+
+        GitFeature.sync(context)
+        try {
+            GitFeature.switch(context, 'feature/1', 'task/1')
+            fail()
+        }
+        catch (Exception e) {
+            assertEquals('Project c1 error task task/1 exists but feature/1 not exists', e.message)
+            assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c1')))
+        }
+    }
+
+
     void testReleaseMergeFeature() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')

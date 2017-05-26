@@ -126,21 +126,32 @@ class GitFeature {
                     { ActionContext actionContext, Node project ->
                         def dir = new File(actionContext.env.basedir, project.@path)
                         // switch if feature the branch exists
-                        checkoutUpdateIfExists(actionContext, dir, featureBranch)
-                        // switch task if the branch exists
-                        if (taskBranch != null) {
-                            checkoutUpdateIfExists(actionContext, dir, taskBranch)
+                        if (checkoutUpdateIfExists(actionContext, dir, featureBranch)) {
+                            // switch task if the branch exists
+                            if (taskBranch != null) {
+                                checkoutUpdateIfExists(actionContext, dir, taskBranch)
+                            }
+                        } else if (Git.branchPresent(context, dir, taskBranch)) {
+                            throw new RepoBuildException("task $taskBranch exists but $featureBranch not exists")
+                        } else {
+                            // switch to manifest branch
+                            def manifestBranch = RepoManifest.getBranch(actionContext, project.@path)
+                            def remoteManifestBranch = RepoManifest.getRemoteBranch(context, manifestBranch)
+                            Git.checkoutUpdate(context, manifestBranch, remoteManifestBranch, dir)
                         }
                     }
             )
         }
     }
 
-    private static void checkoutUpdateIfExists(ActionContext context, File dir, String branch) {
+    private static boolean checkoutUpdateIfExists(ActionContext context, File dir, String branch) {
         def remoteBranch = RepoManifest.getRemoteBranch(context, branch)
         if (Git.branchPresent(context, dir, branch)
                 || Git.branchPresent(context, dir, remoteBranch)) {
             Git.checkoutUpdate(context, branch, remoteBranch, dir)
+            return true
+        } else {
+            return false
         }
     }
 
