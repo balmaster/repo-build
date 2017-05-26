@@ -28,7 +28,7 @@ class FeatureUpdateParentSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateParent(_, 'feature/1', 'parent', false, true)
+        1 * MavenFeature.updateParent(_, 'feature/1', 'parent', false, true, _)
     }
 
     def "without featureBranch"() {
@@ -48,7 +48,7 @@ class FeatureUpdateParentSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateParent(_, 'feature/1', 'parent1', false, true)
+        1 * MavenFeature.updateParent(_, 'feature/1', 'parent1', false, true, _)
     }
 
     def "with parallel with featureBranch with parent"() {
@@ -58,7 +58,7 @@ class FeatureUpdateParentSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateParent(_, 'feature/1', 'parent1', false, true)
+        1 * MavenFeature.updateParent(_, 'feature/1', 'parent1', false, true, _)
     }
 
 }

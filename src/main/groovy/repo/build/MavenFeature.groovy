@@ -11,6 +11,8 @@ import repo.build.maven.MavenComponent
  */
 class MavenFeature {
     static Logger logger = Logger.getLogger(MavenFeature.class)
+    static final String P_USER_SETTINGS_FILE = 'maven.user.settings.file'
+    static final String P_LOCAL_REPOSITORY_DIR = 'maven.local.repository.dir'
 
     static void forEachWithFeatureBranchAndPom(ActionContext parentContext, Closure action, String branch) {
         def remoteBranch = RepoManifest.getRemoteBranch(parentContext, branch)
@@ -27,8 +29,12 @@ class MavenFeature {
 
     public static final String ACTION_UPDATE_PARENT = 'mavenFeatureUpdateParent'
 
-    static void updateParent(ActionContext parentContext, String featureBranch, String parentComponent,
-                             boolean updateRelease, boolean allowSnapshots) {
+    static void updateParent(ActionContext parentContext,
+                             String featureBranch,
+                             String parentComponent,
+                             boolean updateRelease,
+                             boolean allowSnapshots,
+                             Map<String, String> p) {
         def context = parentContext.newChild(ACTION_UPDATE_PARENT)
         context.withCloseable {
             def parentBranch = Git.getBranch(context, new File(context.env.basedir, parentComponent))
@@ -45,10 +51,12 @@ class MavenFeature {
             // rebuild parent
             Maven.execute(context, parentPomFile,
                     { InvocationRequest req ->
+                        initInvocationRequest(req, p)
                         req.setGoals(Arrays.asList("clean", "install"))
                         req.setInteractive(false)
                         Properties properties = new Properties();
                         properties.put("skipTest", 'true')
+                        properties.putAll(p)
                         req.setProperties(properties)
                     }
             )
@@ -73,12 +81,14 @@ class MavenFeature {
                                 // если группа, артефакт совпадают а версия нет - подменяем версию parent
                                 Maven.execute(actionContext, componentPomFile,
                                         { InvocationRequest req ->
+                                            initInvocationRequest(req, p)
                                             req.setGoals(Arrays.asList("versions:update-parent"))
                                             req.setInteractive(false)
                                             Properties properties = new Properties();
                                             //properties.put("parentVersion", version)
                                             properties.put('generateBackupPoms', 'false')
                                             properties.put('allowSnapshots', Boolean.toString(allowSnapshots))
+                                            properties.putAll(p)
                                             req.setProperties(properties)
                                         }
                                 )
@@ -95,45 +105,71 @@ class MavenFeature {
     }
 
     @CompileStatic
-    static void versionsUpdateProperties(ActionContext context, File pomFile, String includes, boolean allowSnapshots) {
+    static void initInvocationRequest(InvocationRequest req, Map<String, String> properties) {
+        if (properties.containsKey(P_LOCAL_REPOSITORY_DIR)) {
+            req.setLocalRepositoryDirectory(new File(properties.get(P_LOCAL_REPOSITORY_DIR)))
+        }
+        if (properties.containsKey(P_USER_SETTINGS_FILE)) {
+            req.setUserSettingsFile(new File(properties.get(P_USER_SETTINGS_FILE)))
+        }
+    }
+
+    @CompileStatic
+    static void versionsUpdateProperties(ActionContext context,
+                                         File pomFile,
+                                         String includes,
+                                         boolean allowSnapshots,
+                                         Map<String, String> p) {
         // call version plugin
         Maven.execute(context, pomFile,
                 { InvocationRequest req ->
+                    initInvocationRequest(req, p)
                     req.setGoals(Arrays.asList("versions:update-properties"))
                     req.setInteractive(false)
                     Properties properties = new Properties();
                     properties.put("allowSnapshots", Boolean.toString(allowSnapshots))
                     properties.put("includes", includes)
                     properties.put('generateBackupPoms', 'false')
+                    properties.putAll(p)
                     req.setProperties(properties)
                 }
         )
     }
 
     @CompileStatic
-    static void versionsUseLastVersions(ActionContext context, File pomFile, String includes, boolean allowSnapshots) {
+    static void versionsUseLastVersions(ActionContext context,
+                                        File pomFile,
+                                        String includes,
+                                        boolean allowSnapshots,
+                                        Map<String, String> p) {
         Maven.execute(context, pomFile,
                 { InvocationRequest req ->
+                    initInvocationRequest(req, p)
                     req.setGoals(Arrays.asList("versions:use-latest-versions"))
                     req.setInteractive(false)
                     Properties properties = new Properties();
                     properties.put("allowSnapshots", Boolean.toString(allowSnapshots))
                     properties.put("includes", includes)
                     properties.put('generateBackupPoms', 'false')
+                    properties.putAll(p)
                     req.setProperties(properties)
                 }
         )
     }
 
     @CompileStatic
-    static void build(ActionContext context, File pomFile, List<String> goals, Map<String, String> properties) {
+    static void build(ActionContext context,
+                      File pomFile,
+                      List<String> goals,
+                      Map<String, String> p) {
         Maven.execute(context, pomFile,
                 { InvocationRequest req ->
+                    initInvocationRequest(req, p)
                     req.setGoals(goals)
                     req.setInteractive(false)
-                    Properties p = new Properties();
-                    p.putAll(properties)
-                    req.setProperties(p)
+                    Properties properties = new Properties();
+                    properties.putAll(p)
+                    req.setProperties(properties)
                 }
         )
     }
@@ -141,8 +177,12 @@ class MavenFeature {
     public static final String ACTION_UPDATE_VERSIONS = 'mavenFeatureUpdateVersons'
 
     @CompileStatic
-    static void updateVersions(ActionContext parentContext, String featureBranch, String includes,
-                               String continueFromComponent, boolean allowSnapshots) {
+    static void updateVersions(ActionContext parentContext,
+                               String featureBranch,
+                               String includes,
+                               String continueFromComponent,
+                               boolean allowSnapshots,
+                               Map<String, String> p) {
         def context = parentContext.newChild(ACTION_UPDATE_VERSIONS)
         Pom.generateXml(context, featureBranch, new File(context.env.basedir, 'pom.xml'))
 
@@ -162,7 +202,7 @@ class MavenFeature {
             }
             if (found) {
                 def pomFile = new File(it.basedir, "pom.xml")
-                versionsUpdateProperties(context, pomFile, includes, allowSnapshots)
+                versionsUpdateProperties(context, pomFile, includes, allowSnapshots, p)
                 // maven build with skipTests
                 build(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
                 // commit only if component has featureBranch

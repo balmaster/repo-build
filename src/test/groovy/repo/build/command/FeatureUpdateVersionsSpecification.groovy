@@ -48,7 +48,7 @@ class FeatureUpdateVersionsSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateVersions(_, 'feature/1', 'group', null, true)
+        1 * MavenFeature.updateVersions(_, 'feature/1', 'group', null, true, _)
     }
 
     def "with featureBranch with includes continue"() {
@@ -58,7 +58,7 @@ class FeatureUpdateVersionsSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateVersions(_, 'feature/1', 'group', 'component', true)
+        1 * MavenFeature.updateVersions(_, 'feature/1', 'group', 'component', true, _)
     }
 
 }

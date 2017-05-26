@@ -14,7 +14,12 @@ class FeatureUpdateVersionsCommand extends AbstractCommand {
         context.withCloseable {
             def includes = options.getIncludes()
             def continueFromComponent = options.getContinueFromComponent()
-            MavenFeature.updateVersions(context, options.getFeatureBranch(), includes, continueFromComponent, true)
+            MavenFeature.updateVersions(context,
+                    options.getFeatureBranch(),
+                    includes,
+                    continueFromComponent,
+                    true,
+                    options.getSystemProperties())
         }
     }
 }

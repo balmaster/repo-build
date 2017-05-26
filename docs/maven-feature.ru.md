@@ -14,6 +14,10 @@
 При выполнении команд группы maven-feature-..., Maven запускается с помощью [maven-invoker API](http://maven.apache.org/shared/maven-invoker/),
 поэтому требуется задать переменную окружения ```M2_HOME``` 
 
+Дополнительные параметры:
+
+    -Dmaven.user.settings.file=/tmp/settings.xml    для задания альтернативного settings.xml
+    -Dmaven.local.repository.dir=/tmp/.m2           для задания альтернативного .m2
 
 ## feature-update-versions
 Команда используется для обновления свойств задающих версии для зависимостей, для компонентов имеющих фичабранчи

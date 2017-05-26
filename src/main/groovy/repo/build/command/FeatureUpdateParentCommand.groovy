@@ -10,10 +10,15 @@ class FeatureUpdateParentCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'featureUpdateParentCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env,ACTION_EXECUTE,options.getParallel(),new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options.getParallel(), new DefaultParallelActionHandler())
         context.withCloseable {
             def parentComponent = options.getParent()
-            MavenFeature.updateParent(context, options.getFeatureBranch(), parentComponent, false, true)
+            MavenFeature.updateParent(context,
+                    options.getFeatureBranch(),
+                    parentComponent,
+                    false,
+                    true,
+                    options.getSystemProperties())
         }
     }
 }

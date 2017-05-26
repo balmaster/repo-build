@@ -4,6 +4,7 @@ import org.apache.maven.shared.invoker.InvocationRequest
 
 /**
  */
+//@CompileStatic
 class MavenFeatureTest extends BaseTestCase {
 
     @Override
@@ -95,7 +96,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateParent(context, 'feature/1', 'parent', false, true)
+        MavenFeature.updateParent(context, 'feature/1', 'parent', false, true, new HashMap<String, String>())
 
         // check parent version
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
@@ -150,7 +151,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true, new HashMap<String, String>())
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
@@ -200,7 +201,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true, new HashMap<String, String>())
 
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
@@ -212,7 +213,7 @@ class MavenFeatureTest extends BaseTestCase {
                     )
                 })
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', 'c2', true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', 'c2', true, new HashMap<String, String>())
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
