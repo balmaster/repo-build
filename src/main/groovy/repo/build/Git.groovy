@@ -103,10 +103,10 @@ class Git {
     static void user(ActionContext parentContext, File dir, String userName, String userEmail) {
         def context = parentContext.newChild(ACTION_USER)
         context.withCloseable {
-            //ExecuteProcess.executeCmd0(context, dir, 'git config --local --remove-section user', false)
+            ExecuteProcess.executeCmd0(context, dir, 'git config --local --remove-section user', false)
             if (userName?.trim() && userEmail?.trim()) {
-                ExecuteProcess.executeCmd0(context, dir, "git config --local user.name $userName", true)
-                ExecuteProcess.executeCmd0(context, dir, "git config --local user.email $userEmail", true)
+                ExecuteProcess.executeCmd0(context, dir, ['git', 'config', '--local', 'user.name', userName] as String[], true);
+                ExecuteProcess.executeCmd0(context, dir, ['git', 'config', '--local', 'user.email', userEmail] as String[], true);
             }
         }
     }
