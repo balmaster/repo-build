@@ -68,7 +68,66 @@ class MavenFeatureTest extends BaseTestCase {
                 })
     }
 
-    void testUpdateParent() {
+    void testUpdateFeatureParent() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        // update parent version to 1.1.0 on master
+        sandbox.component('parent',
+                { Sandbox sandbox, File dir ->
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
+                            { InvocationRequest req ->
+                                req.setGoals(Arrays.asList("versions:set"))
+                                req.setInteractive(false)
+                                Properties properties = new Properties();
+                                properties.put("newVersion", '1.1.0')
+                                properties.put('generateBackupPoms', 'false')
+                                req.setProperties(properties)
+                            }
+                    )
+                    Git.add(sandbox.context, dir, 'pom.xml')
+                    Git.commit(sandbox.context, dir, 'vup')
+                })
+
+        GitFeature.sync(context)
+
+        // build parent
+        cleanInstallParent()
+
+        // update parent version to 1.1.0 on master
+        sandbox.component('parent',
+                { Sandbox sandbox, File dir ->
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
+                            { InvocationRequest req ->
+                                req.setGoals(Arrays.asList("versions:set"))
+                                req.setInteractive(false)
+                                Properties properties = new Properties();
+                                properties.put("newVersion", '1.1.1-SNAPSHOT')
+                                properties.put('generateBackupPoms', 'false')
+                                req.setProperties(properties)
+                            }
+                    )
+                    Git.add(sandbox.context, dir, 'pom.xml')
+                    Git.commit(sandbox.context, dir, 'vup')
+                })
+
+        GitFeature.sync(context)
+
+        // build parent
+        cleanInstallParent()
+
+        MavenFeature.updateReleaseParent(context, 'parent', false, true, new HashMap<String, String>())
+
+        // check parent version
+        def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
+        assertEquals('1.1.0', c1Pom.parent.version.text())
+        def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
+        assertEquals('1.1.0', c2Pom.parent.version.text())
+        def c3Pom = new XmlParser().parse(new File(env.basedir, 'c3/pom.xml'))
+        assertEquals('1.1.0', c3Pom.parent.version.text())
+    }
+
+    void testUpdateReleaseParent() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
@@ -96,7 +155,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateParent(context, 'feature/1', 'parent', false, true, new HashMap<String, String>())
+        MavenFeature.updateFeatureParent(context, 'feature/1', 'parent', false, true, new HashMap<String, String>())
 
         // check parent version
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
@@ -106,7 +165,6 @@ class MavenFeatureTest extends BaseTestCase {
         def c3Pom = new XmlParser().parse(new File(env.basedir, 'c3/pom.xml'))
         assertEquals('1.1.0-SNAPSHOT', c3Pom.parent.version.text())
     }
-
 
     void testUpdateVersions() {
         def url = new File(sandbox.env.basedir, 'manifest')
