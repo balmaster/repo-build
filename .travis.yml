@@ -13,13 +13,13 @@ cache:
     - '$HOME/.sonar/cache'
 
 env:
-  - M2_HOME=/usr/share/maven
+  - M2_HOME=/usr/local/maven
 
 language: java
 before_install:
     - git config --global user.email "you@example.com"
     - git config --global user.name "Your Name"
-    - la ls -la /etc/alternatives/mvn
+    - ls -la /usr/local/maven*
 
 script:
   - mvn clean test -B -P coverage 
