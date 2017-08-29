@@ -12,6 +12,8 @@ cache:
   directories:
     - '$HOME/.sonar/cache'
 
+env:
+  - M2_HOME=/usr/share/maven
 
 language: java
 before_install:
