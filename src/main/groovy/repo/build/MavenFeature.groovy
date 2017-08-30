@@ -115,6 +115,15 @@ class MavenFeature {
         }
     }
 
+    /**
+     *
+     * @param parentContext
+     * @param parentComponent
+     * @param updateRelease параметр определяет надо ли обновлять ссылки на релизные версии парент артефакта
+     * @param allowSnapshots параметр определяет разрешено ли при поиске последней версии использовать снапшотные
+     * версии парент артефакта
+     * @param p
+     */
     static void updateReleaseParent(ActionContext parentContext,
                                     String parentComponent,
                                     boolean updateRelease,
@@ -394,5 +403,26 @@ class MavenFeature {
         } else {
             return expr
         }
+    }
+
+    static void purgeLocal(ActionContext parentContext,
+                           String manualInclude,
+                           Map<String, String> p) {
+        def context = parentContext.newChild()
+        context.withCloseable {
+            // rebuild parent
+            Maven.execute(context, null,
+                    { InvocationRequest req ->
+                        initInvocationRequest(req, p)
+                        req.setGoals(Arrays.asList("dependency:purge-local-repository"))
+                        req.setInteractive(false)
+                        Properties properties = new Properties();
+                        properties.put("manualInclude", manualInclude)
+                        properties.putAll(p)
+                        req.setProperties(properties)
+                    }
+            )
+        }
+
     }
 }

@@ -68,72 +68,69 @@ class MavenFeatureTest extends BaseTestCase {
                 })
     }
 
-    void testUpdateFeatureParent() {
+    void testUpdateReleaseParent() {
+
+        MavenFeature.purgeLocal(sandbox.context,
+                'test.repo-build:parent',
+                new Properties()
+        )
+
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
-        // update parent version to 1.1.0 on master
-        sandbox.component('parent',
-                { Sandbox sandbox, File dir ->
-                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
-                            { InvocationRequest req ->
-                                req.setGoals(Arrays.asList("versions:set"))
-                                req.setInteractive(false)
-                                Properties properties = new Properties();
-                                properties.put("newVersion", '1.1.0')
-                                properties.put('generateBackupPoms', 'false')
-                                req.setProperties(properties)
-                            }
-                    )
-                    Git.add(sandbox.context, dir, 'pom.xml')
-                    Git.commit(sandbox.context, dir, 'vup')
-                })
+        // install parent 1.0.0-SNAPSHOT
+        cleanInstallParent()
+
+        updateInstallParent('1.1.0')
+        updateInstallParent('1.1.1')
+        updateInstallParent('1.1.2-SNAPSHOT')
 
         GitFeature.sync(context)
 
-        // build parent
-        cleanInstallParent()
-
-        // update parent version to 1.1.0 on master
-        sandbox.component('parent',
-                { Sandbox sandbox, File dir ->
-                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
-                            { InvocationRequest req ->
-                                req.setGoals(Arrays.asList("versions:set"))
-                                req.setInteractive(false)
-                                Properties properties = new Properties();
-                                properties.put("newVersion", '1.1.1-SNAPSHOT')
-                                properties.put('generateBackupPoms', 'false')
-                                req.setProperties(properties)
-                            }
-                    )
-                    Git.add(sandbox.context, dir, 'pom.xml')
-                    Git.commit(sandbox.context, dir, 'vup')
-                })
-
-        GitFeature.sync(context)
-
-        // build parent
-        cleanInstallParent()
-
-        MavenFeature.updateReleaseParent(context, 'parent', false, true, new HashMap<String, String>())
+        MavenFeature.updateReleaseParent(context, 'parent', false, false, new HashMap<String, String>())
 
         // check parent version
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
-        assertEquals('1.1.0', c1Pom.parent.version.text())
+        assertEquals('1.1.1', c1Pom.parent.version.text())
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
-        assertEquals('1.1.0', c2Pom.parent.version.text())
+        assertEquals('1.1.1', c2Pom.parent.version.text())
         def c3Pom = new XmlParser().parse(new File(env.basedir, 'c3/pom.xml'))
-        assertEquals('1.1.0', c3Pom.parent.version.text())
+        assertEquals('1.1.1', c3Pom.parent.version.text())
     }
 
-    void testUpdateReleaseParent() {
+    void testUpdateFeatureParent() {
+
+        MavenFeature.purgeLocal(sandbox.context,
+                'test.repo-build:parent',
+                new Properties()
+        )
+
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
         // build parent
         cleanInstallParent()
 
+        updateInstallParent('1.1.0-SNAPSHOT')
+        updateInstallParent('1.1.1-SNAPSHOT')
+
+
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        GitFeature.featureMergeRelease(context, 'feature/1')
+
+        MavenFeature.updateFeatureParent(context, 'feature/1', 'parent', true, true, new HashMap<String, String>())
+
+        // check parent version
+        def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
+        assertEquals('1.1.1-SNAPSHOT', c1Pom.parent.version.text())
+        def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
+        assertEquals('1.1.1-SNAPSHOT', c2Pom.parent.version.text())
+        def c3Pom = new XmlParser().parse(new File(env.basedir, 'c3/pom.xml'))
+        assertEquals('1.1.1-SNAPSHOT', c3Pom.parent.version.text())
+    }
+
+    def updateInstallParent(String version) {
         // update parent version to 1.1.0-SNAPSHOT on master
         sandbox.component('parent',
                 { Sandbox sandbox, File dir ->
@@ -142,7 +139,7 @@ class MavenFeatureTest extends BaseTestCase {
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
                                 Properties properties = new Properties();
-                                properties.put("newVersion", '1.1.0-SNAPSHOT')
+                                properties.put("newVersion", version)
                                 properties.put('generateBackupPoms', 'false')
                                 req.setProperties(properties)
                             }
@@ -151,20 +148,9 @@ class MavenFeatureTest extends BaseTestCase {
                     Git.commit(sandbox.context, dir, 'vup')
                 })
 
-        GitFeature.sync(context)
-        GitFeature.switch(context, 'feature/1')
-        GitFeature.featureMergeRelease(context, 'feature/1')
-
-        MavenFeature.updateFeatureParent(context, 'feature/1', 'parent', false, true, new HashMap<String, String>())
-
-        // check parent version
-        def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
-        assertEquals('1.1.0-SNAPSHOT', c1Pom.parent.version.text())
-        def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
-        assertEquals('1.1.0-SNAPSHOT', c2Pom.parent.version.text())
-        def c3Pom = new XmlParser().parse(new File(env.basedir, 'c3/pom.xml'))
-        assertEquals('1.1.0-SNAPSHOT', c3Pom.parent.version.text())
+        cleanInstallParent()
     }
+
 
     void testUpdateVersions() {
         def url = new File(sandbox.env.basedir, 'manifest')
