@@ -101,7 +101,9 @@ class RepoBuild {
 
     void execute() {
         def commands = options.getArguments()
-        if (commands.size() > 0) {
+        if (options.hasVersion()) {
+            printVersion()
+        } else if (commands.size() > 0) {
             commands.each { String commandName ->
                 try {
                     executeCommand(commandName)
@@ -112,6 +114,15 @@ class RepoBuild {
             }
         } else {
             cli.usage()
+        }
+    }
+
+    void printVersion() {
+        def ins = getClass().getResourceAsStream('/META-INF/maven/jet.repo.build/repo-build/pom.properties')
+        ins.withCloseable {
+            Properties p = new Properties()
+            p.load(ins)
+            System.out.println(p.get('version'))
         }
     }
 

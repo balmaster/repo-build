@@ -19,7 +19,7 @@ class CliOptions {
     }
 
     public String getTaskBranch() {
-        if(options.I) {
+        if (options.I) {
             return options.I
         } else {
             return null
@@ -27,7 +27,7 @@ class CliOptions {
     }
 
     public String getRequiredTaskBranch() {
-        return getRequired(getTaskBranch(),"Task branch required.\nUse: 'repo-build -I <taskBranch> ...'")
+        return getRequired(getTaskBranch(), "Task branch required.\nUse: 'repo-build -I <taskBranch> ...'")
     }
 
     public String getParent() {
@@ -114,5 +114,9 @@ class CliOptions {
             systemProperties.put(name, p.getProperty(name))
         }
         return systemProperties
+    }
+
+    boolean hasVersion() {
+        return options.version ? true : false
     }
 }

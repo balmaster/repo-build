@@ -32,6 +32,7 @@ class CliBuilderFactory {
             T(args: 1, argName: 'tag', 'tag')
             W('pause before exit')
             X('enable debug mode')
+            _(longOpt: 'version', 'Show version')
 
             posix = false
             stopAtNonOption = false
