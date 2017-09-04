@@ -14,7 +14,10 @@ class ReleaseUpdateParentCommand extends AbstractCommand {
         context.withCloseable {
             def parentComponent = options.getParent()
             MavenFeature.updateReleaseParent(context,
-                    parentComponent, true, false)
+                    parentComponent,
+                    true,
+                    false,
+                    options.getSystemProperties())
         }
     }
 }
