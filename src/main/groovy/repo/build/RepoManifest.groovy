@@ -44,7 +44,7 @@ class RepoManifest {
     static void forEach(ActionContext parentContext, Closure filter, Closure action, Closure logHeader, Closure logFooter) {
         def context = parentContext.newChild(ACTION_FOR_EACH)
         context.withCloseable {
-            GParsPool.withPool(context.parallel, {
+            GParsPool.withPool(context.getParallel(), {
                 parentContext.env.manifest.project
                         .eachParallel { project ->
                     def actionContext = context.newChild(ACTION_FOR_EACH_ITERATION)

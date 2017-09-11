@@ -9,10 +9,10 @@ class Sandbox {
     ActionContext context
     Map<String, File> components;
 
-    Sandbox(RepoEnv env) {
+    Sandbox(RepoEnv env, CliOptions options) {
         this.components = new HashMap<>()
         this.env = env
-        this.context = new ActionContext(env, null, 1, new DefaultParallelActionHandler())
+        this.context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
 
     }
 

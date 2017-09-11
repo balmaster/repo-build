@@ -6,7 +6,7 @@ class GitFeatureTest extends BaseTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp()
-        sandbox = new Sandbox(new RepoEnv(createTempDir()))
+        sandbox = new Sandbox(new RepoEnv(createTempDir()), options)
                 .newGitComponent('c1')
                 .newGitComponent('c2')
                 .newGitComponent('manifest',
@@ -165,7 +165,7 @@ class GitFeatureTest extends BaseTestCase {
     }
 
     void testFeatureMergeRelease() {
-        def context = new ActionContext(env, null, 2, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
@@ -189,7 +189,7 @@ class GitFeatureTest extends BaseTestCase {
     }
 
     void testTaskMergeFeature() {
-        def context = new ActionContext(env, null, 2, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 

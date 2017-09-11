@@ -1,28 +1,31 @@
 package repo.build
 
+import groovy.transform.CompileStatic
+
 
 /**
  * @author Markelov Ruslan markelov@jet.msk.su
  */
+@CompileStatic
 class ActionContext implements Closeable {
     final ActionContext parent
     final RepoEnv env
     final String id
-    final int parallel
+    final CliOptions options
     final List<ByteArrayOutputStream> processOutList = new ArrayList<>()
     final List<ActionContext> childList = new ArrayList<>()
     final ActionHandler actionHandler
     boolean output = false
 
-    ActionContext(RepoEnv env, String id, int parallel, ActionHandler actionHandler1) {
+    ActionContext(RepoEnv env, String id, CliOptions options, ActionHandler actionHandler1) {
         this.env = env
         this.id = id
-        this.parallel = parallel
+        this.options = options
         this.actionHandler = actionHandler1
     }
 
     private ActionContext(ActionContext parent, String id) {
-        this(parent.env, id, parent.parallel, parent.actionHandler)
+        this(parent.env, id, parent.options, parent.actionHandler)
         this.parent = parent
     }
 
@@ -47,8 +50,7 @@ class ActionContext implements Closeable {
         }
     }
 
-    ActionContext newChild()
-    {
+    ActionContext newChild() {
         return newChild('')
     }
 
@@ -63,5 +65,9 @@ class ActionContext implements Closeable {
 
     void close() throws IOException {
         actionHandler.endAction(this)
+    }
+
+    int getParallel() {
+        return options.getParallel(env)
     }
 }

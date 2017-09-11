@@ -3,7 +3,6 @@ package repo.build
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 
-@CompileStatic
 class RepoEnv {
 
     static Logger logger = Logger.getLogger(RepoEnv.class)
@@ -17,10 +16,10 @@ class RepoEnv {
         openManifest()
         loadProperties()
     }
-    
+
     void openManifest() {
         def manifestFile = new File(basedir, 'manifest/default.xml')
-        if(manifestFile.exists()) {
+        if (manifestFile.exists()) {
             manifest = new XmlParser().parse(manifestFile)
         }
     }
@@ -33,5 +32,10 @@ class RepoEnv {
         } catch (IOException e) {
             logger.warn("Could not load properties")
         }
+    }
+
+    Integer getDefaultParallel() {
+        def value = manifest?.'default'.first()?.'sync-j'?.value
+        return value ? Integer.parseInt(value) : null
     }
 }

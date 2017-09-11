@@ -10,7 +10,7 @@ class BuildPomCommand extends AbstractCommand {
     }
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options.getParallel(), new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
         context.withCloseable {
             def pomFile = options.getPomFile()
             def dirName = pomFile.parentFile.name

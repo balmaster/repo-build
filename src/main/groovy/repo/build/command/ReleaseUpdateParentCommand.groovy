@@ -10,14 +10,13 @@ class ReleaseUpdateParentCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'releaseUpdateParentCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options.getParallel(), new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
         context.withCloseable {
             def parentComponent = options.getParent()
             MavenFeature.updateReleaseParent(context,
                     parentComponent,
                     true,
-                    false,
-                    options.getSystemProperties())
+                    false)
         }
     }
 }

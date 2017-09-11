@@ -10,7 +10,7 @@ class InitCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'initCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options.getParallel(), new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
         context.withCloseable {
             def manifestBranch = options.getManifestBranch()
             if (!env.manifest) {

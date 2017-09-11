@@ -4,7 +4,7 @@ import groovy.transform.CompileStatic
 
 class CliOptions {
 
-    final OptionAccessor options;
+    final OptionAccessor options
 
     CliOptions(OptionAccessor options) {
         this.options = options
@@ -103,8 +103,13 @@ class CliOptions {
         return getRequired(options.T, "Tag required.\nUse: 'repo-build -T tag ...'")
     }
 
-    int getParallel() {
-        return options.j ? Integer.parseInt(options.j) : 1
+    int getParallel(RepoEnv env) {
+        if (options.j) {
+            return Integer.parseInt(options.j)
+        } else {
+            def defaultParallel = env.getDefaultParallel()
+            return defaultParallel ? defaultParallel : 1
+        }
     }
 
     Map<String, String> getSystemProperties() {

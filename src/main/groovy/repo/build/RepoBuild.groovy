@@ -1,5 +1,6 @@
 package repo.build
 
+import com.google.common.base.Joiner
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import repo.build.command.AddTagToCurrentHeadsCommand
@@ -69,7 +70,15 @@ class RepoBuild {
         // combo
         commandRegistry.registerCommand(new FeatureSyncComboCommand())
         commandRegistry.registerCommand(new FeatureSyncStashComboCommand())
-        this.cli = CliBuilderFactory.build(commandRegistry)
+
+        def usage = "usage: repo-build -[<switch>]* \n\n" +
+                Joiner.on('\n').join(
+                        commandRegistry.getCommands().each {
+                            "\n${it.name}\n${it.description}\n"
+                        }
+                ).toString()
+
+        this.cli = CliBuilderFactory.build(usage)
         this.args = args
         this.options = new CliOptions(cli.parse(args))
         this.env = new RepoEnv(options.getRepoBasedir())

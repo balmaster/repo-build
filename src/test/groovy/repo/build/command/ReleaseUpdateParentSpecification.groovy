@@ -18,7 +18,7 @@ class ReleaseUpdateParentSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        thrown(RepoBuildException)
+        1 * MavenFeature.updateReleaseParent(_, 'parent', true, false)
     }
 
     def "without parent"() {
@@ -28,7 +28,7 @@ class ReleaseUpdateParentSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateParent(_, 'feature/1', 'parent', true, false)
+        1 * MavenFeature.updateReleaseParent(_, 'parent', true, false)
     }
 
     def "without featureBranch"() {
@@ -38,27 +38,27 @@ class ReleaseUpdateParentSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        thrown(RepoBuildException)
+        1 * MavenFeature.updateReleaseParent(_, 'parent1', true, false)
     }
 
-    def "with featureBranch with parent"() {
-        def repoBuild = new RepoBuild('release-update-parent', '-f', 'feature/1', '-P', 'parent1')
+    def "with parent"() {
+        def repoBuild = new RepoBuild('release-update-parent', '-P', 'parent1')
 
         when:
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateParent(_, 'feature/1', 'parent1', true, false)
+        1 * MavenFeature.updateReleaseParent(_, 'parent1', true, false)
     }
 
-    def "with parallel with featureBranch with parent"() {
-        def repoBuild = new RepoBuild('release-update-parent', '-j', '2', '-f', 'feature/1', '-P', 'parent1')
+    def "with parallel with parent"() {
+        def repoBuild = new RepoBuild('release-update-parent', '-j', '2', '-P', 'parent1')
 
         when:
         repoBuild.execute()
 
         then:
-        1 * MavenFeature.updateParent(_, 'feature/1', 'parent1', true, false)
+        1 * MavenFeature.updateReleaseParent(_, 'parent1', true, false)
     }
 
 

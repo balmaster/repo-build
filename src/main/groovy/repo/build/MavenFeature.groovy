@@ -11,8 +11,6 @@ import repo.build.maven.MavenComponent
  */
 class MavenFeature {
     static Logger logger = Logger.getLogger(MavenFeature.class)
-    static final String P_USER_SETTINGS_FILE = 'maven.user.settings.file'
-    static final String P_LOCAL_REPOSITORY_DIR = 'maven.local.repository.dir'
 
     static void forEachWithFeatureBranchAndPom(ActionContext parentContext, Closure action, String branch) {
         def remoteBranch = RepoManifest.getRemoteBranch(parentContext, branch)
@@ -44,8 +42,7 @@ class MavenFeature {
                                     String featureBranch,
                                     String parentComponent,
                                     boolean updateRelease,
-                                    boolean allowSnapshots,
-                                    Map<String, String> p) {
+                                    boolean allowSnapshots) {
         def context = parentContext.newChild(ACTION_UPDATE_PARENT)
         context.withCloseable {
             def parentBranch = Git.getBranch(context, new File(context.env.basedir, parentComponent))
@@ -62,13 +59,10 @@ class MavenFeature {
             // rebuild parent
             Maven.execute(context, parentPomFile,
                     { InvocationRequest req ->
-                        initInvocationRequest(req, p)
+                        initInvocationRequest(req, context.getOptions())
                         req.setGoals(Arrays.asList("clean", "install"))
                         req.setInteractive(false)
-                        Properties properties = new Properties();
-                        properties.put("skipTest", 'true')
-                        properties.putAll(p)
-                        req.setProperties(properties)
+                        req.getProperties().put("skipTest", 'true')
                     }
             )
 
@@ -92,15 +86,12 @@ class MavenFeature {
                                 // если группа, артефакт совпадают а версия нет - подменяем версию parent
                                 Maven.execute(actionContext, componentPomFile,
                                         { InvocationRequest req ->
-                                            initInvocationRequest(req, p)
+                                            initInvocationRequest(req, context.getOptions())
                                             req.setGoals(Arrays.asList("versions:update-parent"))
                                             req.setInteractive(false)
-                                            Properties properties = new Properties();
                                             //properties.put("parentVersion", version)
-                                            properties.put('generateBackupPoms', 'false')
-                                            properties.put('allowSnapshots', Boolean.toString(allowSnapshots))
-                                            properties.putAll(p)
-                                            req.setProperties(properties)
+                                            req.getProperties().put('generateBackupPoms', 'false')
+                                            req.getProperties().put('allowSnapshots', Boolean.toString(allowSnapshots))
                                         }
                                 )
                                 // check modify pom.xml
@@ -127,8 +118,7 @@ class MavenFeature {
     static void updateReleaseParent(ActionContext parentContext,
                                     String parentComponent,
                                     boolean updateRelease,
-                                    boolean allowSnapshots,
-                                    Map<String, String> p) {
+                                    boolean allowSnapshots) {
         def context = parentContext.newChild(ACTION_UPDATE_PARENT)
         context.withCloseable {
             def parentBranch = Git.getBranch(context, new File(context.env.basedir, parentComponent))
@@ -143,13 +133,10 @@ class MavenFeature {
             // rebuild parent
             Maven.execute(context, parentPomFile,
                     { InvocationRequest req ->
-                        initInvocationRequest(req, p)
+                        initInvocationRequest(req, context.getOptions())
                         req.setGoals(Arrays.asList("clean", "install"))
                         req.setInteractive(false)
-                        Properties properties = new Properties();
-                        properties.put("skipTest", 'true')
-                        properties.putAll(p)
-                        req.setProperties(properties)
+                        req.getProperties().put("skipTest", 'true')
                     }
             )
 
@@ -173,15 +160,12 @@ class MavenFeature {
                                 // если группа, артефакт совпадают а версия нет - подменяем версию parent
                                 Maven.execute(actionContext, componentPomFile,
                                         { InvocationRequest req ->
-                                            initInvocationRequest(req, p)
+                                            initInvocationRequest(req, context.getOptions())
                                             req.setGoals(Arrays.asList("versions:update-parent"))
                                             req.setInteractive(false)
-                                            Properties properties = new Properties();
                                             //properties.put("parentVersion", version)
-                                            properties.put('generateBackupPoms', 'false')
-                                            properties.put('allowSnapshots', Boolean.toString(allowSnapshots))
-                                            properties.putAll(p)
-                                            req.setProperties(properties)
+                                            req.getProperties().put('generateBackupPoms', 'false')
+                                            req.getProperties().put('allowSnapshots', Boolean.toString(allowSnapshots))
                                         }
                                 )
                                 // check modify pom.xml
@@ -197,33 +181,34 @@ class MavenFeature {
     }
 
     @CompileStatic
-    static void initInvocationRequest(InvocationRequest req, Map<String, String> properties) {
+    static void initInvocationRequest(InvocationRequest req, CliOptions options) {
+        /*
         if (properties.containsKey(P_LOCAL_REPOSITORY_DIR)) {
             req.setLocalRepositoryDirectory(new File(properties.get(P_LOCAL_REPOSITORY_DIR)))
         }
         if (properties.containsKey(P_USER_SETTINGS_FILE)) {
             req.setUserSettingsFile(new File(properties.get(P_USER_SETTINGS_FILE)))
         }
+        */
+        Properties properties = new Properties();
+        properties.putAll(options.getSystemProperties())
+        req.setProperties(properties)
     }
 
     @CompileStatic
     static void versionsUpdateProperties(ActionContext context,
                                          File pomFile,
                                          String includes,
-                                         boolean allowSnapshots,
-                                         Map<String, String> p) {
+                                         boolean allowSnapshots) {
         // call version plugin
         Maven.execute(context, pomFile,
                 { InvocationRequest req ->
-                    initInvocationRequest(req, p)
+                    initInvocationRequest(req, context.getOptions())
                     req.setGoals(Arrays.asList("versions:update-properties"))
                     req.setInteractive(false)
-                    Properties properties = new Properties();
-                    properties.put("allowSnapshots", Boolean.toString(allowSnapshots))
-                    properties.put("includes", includes)
-                    properties.put('generateBackupPoms', 'false')
-                    properties.putAll(p)
-                    req.setProperties(properties)
+                    req.getProperties().put("allowSnapshots", Boolean.toString(allowSnapshots))
+                    req.getProperties().put("includes", includes)
+                    req.getProperties().put('generateBackupPoms', 'false')
                 }
         )
     }
@@ -232,19 +217,15 @@ class MavenFeature {
     static void versionsUseLastVersions(ActionContext context,
                                         File pomFile,
                                         String includes,
-                                        boolean allowSnapshots,
-                                        Map<String, String> p) {
+                                        boolean allowSnapshots) {
         Maven.execute(context, pomFile,
                 { InvocationRequest req ->
-                    initInvocationRequest(req, p)
+                    initInvocationRequest(req, context.getOptions())
                     req.setGoals(Arrays.asList("versions:use-latest-versions"))
                     req.setInteractive(false)
-                    Properties properties = new Properties();
-                    properties.put("allowSnapshots", Boolean.toString(allowSnapshots))
-                    properties.put("includes", includes)
-                    properties.put('generateBackupPoms', 'false')
-                    properties.putAll(p)
-                    req.setProperties(properties)
+                    req.getProperties().put("allowSnapshots", Boolean.toString(allowSnapshots))
+                    req.getProperties().put("includes", includes)
+                    req.getProperties().put('generateBackupPoms', 'false')
                 }
         )
     }
@@ -256,12 +237,10 @@ class MavenFeature {
                       Map<String, String> p) {
         Maven.execute(context, pomFile,
                 { InvocationRequest req ->
-                    initInvocationRequest(req, p)
+                    initInvocationRequest(req, context.getOptions())
                     req.setGoals(goals)
                     req.setInteractive(false)
-                    Properties properties = new Properties();
-                    properties.putAll(p)
-                    req.setProperties(properties)
+                    req.getProperties().putAll(p)
                 }
         )
     }
@@ -273,8 +252,7 @@ class MavenFeature {
                                String featureBranch,
                                String includes,
                                String continueFromComponent,
-                               boolean allowSnapshots,
-                               Map<String, String> p) {
+                               boolean allowSnapshots) {
         def context = parentContext.newChild(ACTION_UPDATE_VERSIONS)
         Pom.generateXml(context, featureBranch, new File(context.env.basedir, 'pom.xml'))
 
@@ -297,7 +275,7 @@ class MavenFeature {
 
                 // commit only if component has featureBranch
                 if (Git.getBranch(context, it.basedir) == featureBranch) {
-                    versionsUpdateProperties(context, pomFile, includes, allowSnapshots, p)
+                    versionsUpdateProperties(context, pomFile, includes, allowSnapshots)
                     // maven build with skipTests
                     build(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
                     // check modify pom.xml
@@ -410,20 +388,16 @@ class MavenFeature {
     }
 
     static void purgeLocal(ActionContext parentContext,
-                           String manualInclude,
-                           Map<String, String> p) {
+                           String manualInclude) {
         def context = parentContext.newChild()
         context.withCloseable {
             // rebuild parent
             Maven.execute(context, null,
                     { InvocationRequest req ->
-                        initInvocationRequest(req, p)
+                        initInvocationRequest(req, context.getOptions())
                         req.setGoals(Arrays.asList("dependency:purge-local-repository"))
                         req.setInteractive(false)
-                        Properties properties = new Properties();
-                        properties.put("manualInclude", manualInclude)
-                        properties.putAll(p)
-                        req.setProperties(properties)
+                        req.getProperties().put("manualInclude", manualInclude)
                     }
             )
         }
