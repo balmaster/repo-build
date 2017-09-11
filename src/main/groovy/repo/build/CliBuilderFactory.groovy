@@ -4,13 +4,9 @@ import com.google.common.base.Joiner
 
 class CliBuilderFactory {
 
-    static CliBuilder build(CommandRegistry commandRegistry) {
-        def cli = new CliBuilder(usage: 'repo-build -[rpfmtsMbjd] ' +
-                Joiner.on('\n').join(
-                        commandRegistry.getCommands().each {
-                            "\n${it.name}\n${it.description}\n"
-                        }
-                ).toString())
+    static CliBuilder build(String usage) {
+        def cli = new CliBuilder()
+        cli.setUsage(usage)
         cli.with {
             a('execute merge --abort before merge')
             b(args: 1, argName: 'manifestBranchName', '')

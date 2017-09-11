@@ -8,7 +8,7 @@ class PomTest extends BaseTestCase {
     protected void setUp() throws Exception {
         super.setUp()
 
-        sandbox = new Sandbox(new RepoEnv(createTempDir()))
+        sandbox = new Sandbox(new RepoEnv(createTempDir()), options)
                 .newGitComponent('c1')
                 .newGitComponent('c2')
                 .newGitComponent('manifest',

@@ -10,7 +10,7 @@ class MavenFeatureTest extends BaseTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp()
-        sandbox = new Sandbox(new RepoEnv(createTempDir()))
+        sandbox = new Sandbox(new RepoEnv(createTempDir()), options)
                 .newGitComponent('parent',
                 { Sandbox sandbox, File dir ->
                     def ant = new AntBuilder()
@@ -71,8 +71,7 @@ class MavenFeatureTest extends BaseTestCase {
     void testUpdateReleaseParent() {
 
         MavenFeature.purgeLocal(sandbox.context,
-                'test.repo-build:parent',
-                new Properties()
+                'test.repo-build:parent'
         )
 
         def url = new File(sandbox.env.basedir, 'manifest')
@@ -87,7 +86,7 @@ class MavenFeatureTest extends BaseTestCase {
 
         GitFeature.sync(context)
 
-        MavenFeature.updateReleaseParent(context, 'parent', false, false, new HashMap<String, String>())
+        MavenFeature.updateReleaseParent(context, 'parent', false, false)
 
         // check parent version
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
@@ -101,8 +100,7 @@ class MavenFeatureTest extends BaseTestCase {
     void testUpdateFeatureParent() {
 
         MavenFeature.purgeLocal(sandbox.context,
-                'test.repo-build:parent',
-                new Properties()
+                'test.repo-build:parent'
         )
 
         def url = new File(sandbox.env.basedir, 'manifest')
@@ -119,7 +117,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateFeatureParent(context, 'feature/1', 'parent', true, true, new HashMap<String, String>())
+        MavenFeature.updateFeatureParent(context, 'feature/1', 'parent', true, true)
 
         // check parent version
         def c1Pom = new XmlParser().parse(new File(env.basedir, 'c1/pom.xml'))
@@ -195,7 +193,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true, new HashMap<String, String>())
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
@@ -245,7 +243,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true, new HashMap<String, String>())
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
 
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
@@ -257,7 +255,7 @@ class MavenFeatureTest extends BaseTestCase {
                     )
                 })
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', 'c2', true, new HashMap<String, String>())
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', 'c2', true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))

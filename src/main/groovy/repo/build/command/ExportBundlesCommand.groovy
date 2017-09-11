@@ -10,7 +10,7 @@ class ExportBundlesCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'exportBundlesCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options.getParallel(), new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
         def targetExportDir = options.getTargetExportDir()
         targetExportDir.mkdirs()
         context.withCloseable {
