@@ -294,6 +294,44 @@ class MavenFeature {
     }
 
     @CompileStatic
+    static void releaseUpdateVersions(ActionContext parentContext,
+                                      String includes,
+                                      String continueFromComponent) {
+        def context = parentContext.newChild(ACTION_UPDATE_VERSIONS)
+        Pom.generateXml(context, "release", new File(context.env.basedir, 'pom.xml'))
+
+        // получаем компоненты и зависимости
+        def componentsMap = getComponentsMap(context.env.basedir)
+        // формируем граф зависимостей
+        List<MavenComponent> sortedComponents = sortComponents(componentsMap)
+        context.writeOut("sort component by dependency tree\n")
+        sortedComponents.each {
+            context.writeOut(it.groupId + ':' + it.artifactId + '\n')
+        }
+
+        boolean found = continueFromComponent == null
+        sortedComponents.each {
+            if (continueFromComponent == it.path) {
+                found = true
+            }
+            if (found) {
+                def pomFile = new File(it.basedir, "pom.xml")
+                versionsUpdateProperties(context, pomFile, includes, false)
+                // maven build with skipTests
+                build(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
+                // check modify pom.xml
+                if (Git.isFileModified(context, it.basedir, "pom.xml")) {
+                    // if it modifies - commit vup
+                    Git.add(context, it.basedir, "pom.xml")
+                    // TODO, UGLY: _ fix bug on Linux with commit -m
+                    Git.commit(context, it.basedir, "update_dependencies_to_last_versions")
+                }
+            }
+        }
+    }
+
+
+    @CompileStatic
     static List<MavenComponent> sortComponents(Map<MavenArtifactRef, MavenComponent> componentsMap) {
         def graph = ComponentDependencyGraph.build(componentsMap)
         return graph.sort()
