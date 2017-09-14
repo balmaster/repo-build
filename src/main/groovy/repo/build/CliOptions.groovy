@@ -1,5 +1,6 @@
 package repo.build
 
+import com.google.common.base.Splitter
 import groovy.transform.CompileStatic
 
 class CliOptions {
@@ -133,31 +134,31 @@ class CliOptions {
         return options.mfae
     }
 
-    String getMgs() {
-        return options.mgs
+    File getMgs() {
+        return options.mgs ? new File(options.mgs) : null
     }
 
     boolean hasMo() {
         return options.mo
     }
 
-    String getMP() {
-        return options.mP
+    List<String> getMP() {
+        return options.mP ? Splitter.on(',').trimResults().splitToList(options.mP) : null
     }
 
-    String getMs() {
-        return options.ms
+    File getMs() {
+        return options.ms ? new File(options.ms) : null
     }
 
     String getMT() {
-        return options.mT
+        return options.mT ?: null
     }
 
     boolean hasMU() {
         return options.mU
     }
 
-    String getMlr() {
-        return options.mlr
+    File getMlr() {
+        return options.mlr ? new File(options.mlr) : null
     }
 }

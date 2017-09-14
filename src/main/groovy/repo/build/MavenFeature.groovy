@@ -190,19 +190,19 @@ class MavenFeature {
             req.setFailureBehavior(InvocationRequest.REACTOR_FAIL_AT_END)
         }
         if (options.getMgs()) {
-            req.setGlobalSettingsFile(new File(options.getMgs()))
+            req.setGlobalSettingsFile(options.getMgs())
         }
         if (options.getMlr()) {
-            req.setLocalRepositoryDirectory(new File(options.getMlr()))
+            req.setLocalRepositoryDirectory(options.getMlr())
         }
         if (options.hasMo()) {
             req.setOffline(true)
         }
         if (options.getMP()) {
-            req.setProfiles(Splitter.on(',').trimResults().splitToList(options.getMP()))
+            req.setProfiles(options.getMP())
         }
         if (options.getMs()) {
-            req.setUserSettingsFile(new File(options.getMs()))
+            req.setUserSettingsFile(options.getMs())
         }
         if (options.getMT()) {
             req.setThreads(options.getMT())
