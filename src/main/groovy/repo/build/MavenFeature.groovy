@@ -1,5 +1,6 @@
 package repo.build
 
+import com.google.common.base.Splitter
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.apache.maven.shared.invoker.InvocationRequest
@@ -182,14 +183,38 @@ class MavenFeature {
 
     @CompileStatic
     static void initInvocationRequest(InvocationRequest req, CliOptions options) {
-        /*
-        if (properties.containsKey(P_LOCAL_REPOSITORY_DIR)) {
-            req.setLocalRepositoryDirectory(new File(properties.get(P_LOCAL_REPOSITORY_DIR)))
+        if (options.hasMe()) {
+            req.setShowErrors(true)
         }
-        if (properties.containsKey(P_USER_SETTINGS_FILE)) {
-            req.setUserSettingsFile(new File(properties.get(P_USER_SETTINGS_FILE)))
+        if (options.hasMfae()) {
+            req.setFailureBehavior(InvocationRequest.REACTOR_FAIL_AT_END)
         }
-        */
+        if (options.getMgs()) {
+            req.setGlobalSettingsFile(options.getMgs())
+        }
+        if (options.getMlr()) {
+            req.setLocalRepositoryDirectory(options.getMlr())
+        }
+        if (options.hasMo()) {
+            req.setOffline(true)
+        }
+        if (options.getMP()) {
+            req.setProfiles(options.getMP())
+        }
+        if (options.getMs()) {
+            req.setUserSettingsFile(options.getMs())
+        }
+        if (options.getMT()) {
+            req.setThreads(options.getMT())
+        }
+        if (options.hasMU()) {
+            req.setUpdateSnapshots(true)
+        }
+
+        if (options.isDebugMode()) {
+            req.setDebug(true)
+        }
+
         Properties properties = new Properties();
         properties.putAll(options.getSystemProperties())
         req.setProperties(properties)
