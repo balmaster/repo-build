@@ -1,7 +1,5 @@
 package repo.build
 
-import com.google.common.base.Joiner
-
 class CliBuilderFactory {
 
     static CliBuilder build(String usage) {
@@ -29,6 +27,17 @@ class CliBuilderFactory {
             W('pause before exit')
             X('enable debug mode')
             _(longOpt: 'version', 'Show version')
+
+            // maven keys
+            me('Produce execution error messages')
+            mfae('Only fail the build afterwards;allow all non-impacted builds to continue')
+            mgs(args: 1, 'Alternate path for the global settings file')
+            mlr(args: 1, 'Maven local repository')
+            mo('Work offline')
+            mP(args: 1, 'Comma-delimited list of profiles to activate')
+            ms(args: 1, 'Alternate path for the user settings file')
+            mT(args: 1, 'Thread count, for instance 2.0C where C is core multiplied')
+            mU('Forces a check for missing releases and updated snapshots on remote repositories')
 
             posix = false
             stopAtNonOption = false

@@ -124,4 +124,40 @@ class CliOptions {
     boolean hasVersion() {
         return options.version ? true : false
     }
+
+    boolean hasMe() {
+        return options.me
+    }
+
+    boolean hasMfae() {
+        return options.mfae
+    }
+
+    String getMgs() {
+        return options.mgs
+    }
+
+    boolean hasMo() {
+        return options.mo
+    }
+
+    String getMP() {
+        return options.mP
+    }
+
+    String getMs() {
+        return options.ms
+    }
+
+    String getMT() {
+        return options.mT
+    }
+
+    boolean hasMU() {
+        return options.mU
+    }
+
+    String getMlr() {
+        return options.mlr
+    }
 }
