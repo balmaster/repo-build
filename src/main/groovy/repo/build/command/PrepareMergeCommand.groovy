@@ -15,7 +15,7 @@ class PrepareMergeCommand extends AbstractCommand {
         context.withCloseable {
             GitFeature.releaseMergeFeature(context,
                     options.getFeatureBranch(),
-                    options.getAllFlag())
+                    options.getMergeAbortFlag())
         }
     }
 }

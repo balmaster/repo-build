@@ -4,7 +4,7 @@ import repo.build.*
 
 class ReleaseUpdateVersionsCommand extends AbstractCommand {
     ReleaseUpdateVersionsCommand() {
-        super('release-update-versions', 'Update depeendencies for current release')
+        super('release-update-versions', 'Update dependencies for current release')
     }
 
     public static final String ACTION_EXECUTE = 'releaseUpdateVersionsCommandExecute'

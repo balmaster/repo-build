@@ -17,7 +17,7 @@ class StatusSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.status(_)
+        1 * GitFeature.status(_, _)
     }
 
     def "with args"() {
@@ -27,7 +27,7 @@ class StatusSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.status(_)
+        1 * GitFeature.status(_, _)
     }
 
 }

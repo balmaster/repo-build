@@ -1,10 +1,13 @@
 package repo.build
+
+import org.junit.Before
+import org.junit.Test
 /**
  */
 class RepoManifestTest extends BaseTestCase {
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    void setUp() throws Exception {
         super.setUp()
         sandbox = new Sandbox(new RepoEnv(createTempDir()), options)
                 .newGitComponent('c1')
@@ -18,6 +21,7 @@ class RepoManifestTest extends BaseTestCase {
                 })
     }
 
+    @Test
     void testPropogateComponentError() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')

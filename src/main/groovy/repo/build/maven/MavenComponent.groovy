@@ -60,12 +60,12 @@ class MavenComponent {
 
 
     @Override
-    public String toString() {
+    String toString() {
         return "MavenComponent{" +
                 "basedir=" + basedir +
                 ", groupId='" + groupId + '\'' +
                 ", artifactId='" + artifactId + '\'' +
                 ", version='" + version + '\'' +
-                '}';
+                '}'
     }
 }

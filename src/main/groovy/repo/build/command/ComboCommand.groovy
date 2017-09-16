@@ -9,7 +9,7 @@ import repo.build.RepoEnv
 class ComboCommand extends AbstractCommand {
     AbstractCommand[] commands
 
-    public ComboCommand(String name, String description, AbstractCommand... commands) {
+    ComboCommand(String name, String description, AbstractCommand... commands) {
         super(name, description)
         this.commands = commands
     }

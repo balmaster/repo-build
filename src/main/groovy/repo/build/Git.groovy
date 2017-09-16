@@ -141,7 +141,7 @@ class Git {
 
     public static final String ACTION_STATUS = 'gitStatus'
 
-    static String status(ActionContext parentContext, File dir) {
+    static String status(ActionContext parentContext, File dir, Boolean showAllStatus) {
         def context = parentContext.newChild(ACTION_STATUS)
         context.withCloseable {
             return ExecuteProcess.executeCmd0(context, dir, "git status -s", true)

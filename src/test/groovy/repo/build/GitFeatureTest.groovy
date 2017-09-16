@@ -1,10 +1,16 @@
 package repo.build
+
+import org.junit.Before
+import org.junit.Test
+import repo.build.filter.OutputFilter
+import repo.build.filter.UnpushedStatusFilter
+
 /**
  */
 class GitFeatureTest extends BaseTestCase {
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    void setUp() throws Exception {
         super.setUp()
         sandbox = new Sandbox(new RepoEnv(createTempDir()), options)
                 .newGitComponent('c1')
@@ -18,6 +24,7 @@ class GitFeatureTest extends BaseTestCase {
                 })
     }
 
+    @Test
     void testCloneManifest() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -26,6 +33,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'manifest')))
     }
 
+    @Test
     void testUpdateManifest() {
         def dir = new File(env.basedir, 'manifest')
         def url = new File(sandbox.env.basedir, 'manifest')
@@ -41,6 +49,7 @@ class GitFeatureTest extends BaseTestCase {
         assertTrue(new File(dir, 'test').exists())
     }
 
+    @Test
     void testSync() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -50,6 +59,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
+    @Test
     void testSwitchNone() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -60,6 +70,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
+    @Test
     void testSwitchC1() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -75,6 +86,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
+    @Test
     void testSwitchManifest() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -96,6 +108,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
+    @Test
     void testSwitchTask() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -116,6 +129,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('task/1', Git.getBranch(context, new File(env.basedir, 'c1')))
     }
 
+    @Test
     void testSwitchTaskFeatureDasntExists() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -141,7 +155,7 @@ class GitFeatureTest extends BaseTestCase {
         }
     }
 
-
+    @Test
     void testReleaseMergeFeature() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -164,6 +178,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
+    @Test
     void testFeatureMergeRelease() {
         def context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
         def url = new File(sandbox.env.basedir, 'manifest')
@@ -188,6 +203,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
+    @Test
     void testTaskMergeFeature() {
         def context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
         def url = new File(sandbox.env.basedir, 'manifest')
@@ -221,6 +237,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c2')))
     }
 
+    @Test
     void testStatus() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -236,12 +253,22 @@ class GitFeatureTest extends BaseTestCase {
         Git.add(context, c1Dir, 'unpushed')
         Git.commit(context, c1Dir, 'unpushed')
 
-        def result = GitFeature.status(context)
+        def result = GitFeature.status(context, true)
         assertTrue(result.get('c1').contains('?? new'))
         assertTrue(result.get('c1').contains('unpushed'))
         assertEquals('\n', result.get('c2'))
+
+        ArrayList<OutputFilter> predicates = new ArrayList<>()
+        predicates.add(new UnpushedStatusFilter())
+        context.outputFilter.put(GitFeature.ACTION_STATUS, predicates)
+        result = GitFeature.status(context, false)
+        assertTrue(result.get('c1').contains('?? new'))
+        assertTrue(result.get('c1').contains('unpushed'))
+        assertEquals(null, result.get('c2'))
+
     }
 
+    @Test
     void testStatusUnpushed() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -261,12 +288,21 @@ class GitFeatureTest extends BaseTestCase {
         Git.add(context, c1Dir, 'unpushed')
         Git.commit(context, c1Dir, 'unpushed')
 
-        def result = GitFeature.status(context)
+        def result = GitFeature.status(context, true)
         assertTrue(result.get('c1').contains('?? new'))
         assertTrue(result.get('c1').contains('Branch not pushed'))
         assertEquals('\n', result.get('c2'))
+
+        ArrayList<OutputFilter> predicates = new ArrayList<>()
+        predicates.add(new UnpushedStatusFilter())
+        context.outputFilter.put(GitFeature.ACTION_STATUS, predicates)
+        result = GitFeature.status(context, false)
+        assertTrue(result.get('c1').contains('?? new'))
+        assertTrue(result.get('c1').contains('Branch not pushed'))
+        assertEquals(null, result.get('c2'))
     }
 
+    @Test
     void testGrep() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -288,6 +324,7 @@ class GitFeatureTest extends BaseTestCase {
 
     }
 
+    @Test
     void testStash() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -313,7 +350,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('123TEST', file.text)
     }
 
-
+    @Test
     void testPushFeature() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -356,7 +393,7 @@ class GitFeatureTest extends BaseTestCase {
                 })
     }
 
-
+    @Test
     void testPushManifest() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -404,7 +441,7 @@ class GitFeatureTest extends BaseTestCase {
                 })
     }
 
-
+    @Test
     void testPushTag() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -426,6 +463,7 @@ class GitFeatureTest extends BaseTestCase {
 
     }
 
+    @Test
     void testCheckoutTag() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -449,7 +487,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('', new File(c1Dir, 'README.md').text)
     }
 
-
+    @Test
     void testCheckoutTagWithNewComponent() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')

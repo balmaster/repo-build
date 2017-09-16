@@ -13,7 +13,7 @@ import repo.build.maven.MavenComponent
  */
 @CompileStatic
 class ComponentDependencyGraph {
-    private final Map<MavenArtifactRef, MavenComponent> componentsMap;
+    private final Map<MavenArtifactRef, MavenComponent> componentsMap
     private final DirectedGraph<MavenComponent, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class)
     private final Map<MavenComponent, Set<MavenComponent>> cycleRefs = new HashMap<>()
 
@@ -21,18 +21,18 @@ class ComponentDependencyGraph {
         this.componentsMap = componentsMap
     }
 
-    public static ComponentDependencyGraph build(Map<MavenArtifactRef, MavenComponent> componentsMap) {
+    static ComponentDependencyGraph build(Map<MavenArtifactRef, MavenComponent> componentsMap) {
         ComponentDependencyGraph result = new ComponentDependencyGraph(componentsMap)
         for (MavenComponent c : componentsMap.values()) {
-            result.add(c);
+            result.add(c)
         }
-        return result;
+        return result
     }
 
     private void add(MavenComponent component) {
         if (graph.addVertex(component)) {
             // рекурсивно добавляем
-            addAllDependencies(component);
+            addAllDependencies(component)
         }
     }
 
@@ -47,7 +47,7 @@ class ComponentDependencyGraph {
                 add(refComponent)
                 DefaultEdge e = graph.addEdge(component, refComponent)
                 if (hasCycles()) {
-                    graph.removeEdge(e);
+                    graph.removeEdge(e)
                     if (!cycleRefs.containsKey(component)) {
                         cycleRefs.put(component, new HashSet<MavenComponent>())
                     }
@@ -57,23 +57,23 @@ class ComponentDependencyGraph {
         }
     }
 
-    public boolean hasCycles() {
+    boolean hasCycles() {
         CycleDetector<MavenComponent, DefaultEdge> cycleDetector = new CycleDetector<>(graph)
-        return cycleDetector.detectCycles();
+        return cycleDetector.detectCycles()
     }
 
-    public List<MavenComponent> sort() {
-        TopologicalOrderIterator<MavenComponent, DefaultEdge> i = new TopologicalOrderIterator<>(graph);
-        List<MavenComponent> items = new ArrayList<>();
+    List<MavenComponent> sort() {
+        TopologicalOrderIterator<MavenComponent, DefaultEdge> i = new TopologicalOrderIterator<>(graph)
+        List<MavenComponent> items = new ArrayList<>()
         while (i.hasNext()) {
-            items.add(i.next());
+            items.add(i.next())
         }
-        Collections.reverse(items);
-        return items;
+        Collections.reverse(items)
+        return items
     }
 
-    public Map<MavenComponent, Set<MavenComponent>> getCycleRefs() {
-        return cycleRefs;
+    Map<MavenComponent, Set<MavenComponent>> getCycleRefs() {
+        return cycleRefs
     }
 
 }

@@ -199,8 +199,7 @@ class GitFeature {
                         if (mergeAbort) {
                             try {
                                 Git.mergeAbort(context, dir)
-                            } catch (Exception e) {
-                                // skip
+                            } catch (Exception ignored) {
                             }
                         }
                         Git.mergeFeatureBranch(actionContext, branch, remoteBranch, startCommit, dir)
@@ -258,7 +257,7 @@ class GitFeature {
 
     public static final String ACTION_STATUS = 'gitFeatureStatus'
 
-    static Map<String, String> status(ActionContext parentContext) {
+    static Map<String, String> status(ActionContext parentContext, Boolean showAllStatus) {
         def context = parentContext.newChild(ACTION_STATUS)
         Map<String, String> result = new ConcurrentHashMap<>()
         context.withCloseable {
@@ -268,7 +267,7 @@ class GitFeature {
                         def branch = Git.getBranch(actionContext, dir)
                         def remoteName = RepoManifest.getRemoteName(actionContext)
                         def remoteBranch = "$remoteName/$branch"
-                        def status = Git.status(actionContext, dir)
+                        def status = Git.status(actionContext, dir, showAllStatus)
                         def unpushed
                         if (Git.branchPresent(actionContext, dir, remoteBranch)) {
                             unpushed = Git.logUnpushed(actionContext, dir, remoteBranch)
@@ -284,6 +283,12 @@ class GitFeature {
                         result.put(project.@path, status + '\n' + unpushed)
                     }
             )
+        }
+        //TODO this is some kind of crazy option to test the status,
+        //TODO I do not know what to do about it,
+        //TODO because we filter the output and here the collection is not clear what
+        if (!showAllStatus) {
+            result = result.findAll { it -> (it.value != '\n') }
         }
         return result
     }

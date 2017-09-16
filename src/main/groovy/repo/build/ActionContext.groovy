@@ -2,6 +2,7 @@ package repo.build
 
 import groovy.transform.CompileStatic
 
+import repo.build.filter.OutputFilter
 
 /**
  * @author Markelov Ruslan markelov@jet.msk.su
@@ -16,21 +17,24 @@ class ActionContext implements Closeable {
     final List<ActionContext> childList = new ArrayList<>()
     final ActionHandler actionHandler
     boolean output = false
+    final Map<String, List<OutputFilter>> outputFilter = new HashMap<>()
 
-    ActionContext(RepoEnv env, String id, CliOptions options, ActionHandler actionHandler1) {
+    ActionContext(RepoEnv env, String id, CliOptions options, ActionHandler actionHandler1,
+                  Map<String,List<OutputFilter>> outputFilter = new HashMap<>()) {
         this.env = env
         this.id = id
         this.options = options
         this.actionHandler = actionHandler1
+        this.outputFilter.putAll(outputFilter)
     }
 
     private ActionContext(ActionContext parent, String id) {
-        this(parent.env, id, parent.options, parent.actionHandler)
+        this(parent.env, id, parent.options, parent.actionHandler,parent.outputFilter)
         this.parent = parent
     }
 
     Closure newWriteOutHandler() {
-        def out = new ByteArrayOutputStream();
+        def out = new ByteArrayOutputStream()
         synchronized (processOutList) {
             processOutList.add(out)
         }
@@ -45,7 +49,7 @@ class ActionContext implements Closeable {
 
     void writeOut(String msg) {
         if (msg != null) {
-            def out = newWriteOutHandler();
+            def out = newWriteOutHandler()
             msg.getBytes("utf-8").each { out(it) }
         }
     }

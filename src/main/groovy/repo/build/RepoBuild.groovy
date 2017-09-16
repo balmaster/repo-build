@@ -97,7 +97,7 @@ class RepoBuild {
                 logger.error(e.message)
             }
             repoBuild.waitIfRequired()
-            System.exit(1);
+            System.exit(1)
         }
     }
 

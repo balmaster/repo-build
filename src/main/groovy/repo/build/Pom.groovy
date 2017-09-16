@@ -1,6 +1,6 @@
 package repo.build
 
-import groovy.xml.MarkupBuilder;
+import groovy.xml.MarkupBuilder
 
 class Pom {
 

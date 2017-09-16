@@ -18,6 +18,7 @@ class CliBuilderFactory {
             r(args: 1, argName: 'repoBasedir', 'base dir of repo projects')
             s(args: 1, argName: 'sourceImportDir', 'source  import dir for bundles')
             t(args: 1, argName: 'targetExportDir', 'target export dir for bundles')
+            all('show all output on status')
             D(args: 2, argName: 'property=value', 'system property', valueSeparator: '=', optionalArg: true)
             I(args: 1, argName: 'taskBranch', 'task branch', optionalArg: true)
             M(args: 1, argName: 'manifestGitUrl', '')

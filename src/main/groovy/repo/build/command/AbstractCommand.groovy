@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import repo.build.CliOptions
 import repo.build.RepoEnv
 
-public abstract class AbstractCommand {
+abstract class AbstractCommand {
     static Logger logger = LoggerFactory.getLogger(AbstractCommand)
 
     String name
@@ -17,11 +17,11 @@ public abstract class AbstractCommand {
     }
 
     @Override
-    public String toString() {
+    String toString() {
         return "$name - $description"
     }
 
-    public abstract void execute(RepoEnv env, CliOptions options)
+    abstract void execute(RepoEnv env, CliOptions options)
 
 
 }

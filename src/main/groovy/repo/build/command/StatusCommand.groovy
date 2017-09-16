@@ -1,19 +1,25 @@
 package repo.build.command
 
 import repo.build.*
+import repo.build.filter.OutputFilter
+import repo.build.filter.UnpushedStatusFilter
 
 class StatusCommand extends AbstractCommand {
     StatusCommand() {
         super('status', 'Get status of components')
     }
 
-    public stati
     final String ACTION_EXECUTE = 'statusCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
         def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
         context.withCloseable {
-            GitFeature.status(context)
+            if (!options.showAllStatus()) {
+                ArrayList<OutputFilter> predicates = new ArrayList<>()
+                predicates.add(new UnpushedStatusFilter())
+                context.outputFilter.put(ACTION_EXECUTE, predicates)
+            }
+            return GitFeature.status(context, options.showAllStatus())
         }
     }
 }

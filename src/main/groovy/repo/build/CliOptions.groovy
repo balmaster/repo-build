@@ -11,15 +11,15 @@ class CliOptions {
         this.options = options
     }
 
-    public File getRepoBasedir() {
+    File getRepoBasedir() {
         return options.r ? new File(options.r) : new File(".").getAbsoluteFile()
     }
 
-    public String getFeatureBranch() {
+    String getFeatureBranch() {
         return getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f <featureBranch> ...'")
     }
 
-    public String getTaskBranch() {
+    String getTaskBranch() {
         if (options.I) {
             return options.I
         } else {
@@ -27,11 +27,15 @@ class CliOptions {
         }
     }
 
-    public String getRequiredTaskBranch() {
+    Boolean showAllStatus() {
+        return options.all
+    }
+
+    String getRequiredTaskBranch() {
         return getRequired(getTaskBranch(), "Task branch required.\nUse: 'repo-build -I <taskBranch> ...'")
     }
 
-    public String getParent() {
+    String getParent() {
         if (options.P) {
             return options.P
         } else {
@@ -39,16 +43,16 @@ class CliOptions {
         }
     }
 
-    public String getContinueFromComponent() {
+    String getContinueFromComponent() {
         options.C ? options.C : null
     }
 
-    public String getIncludes() {
+    String getIncludes() {
         getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
     }
 
     @CompileStatic
-    def getRequired(value, String msg) {
+    static def getRequired(value, String msg) {
         if (value) {
             return value
         } else {
@@ -80,7 +84,7 @@ class CliOptions {
         return getRequired(options.M, "Use: repo-build -M <manifestUrl> ...")
     }
 
-    Boolean getAllFlag() {
+    Boolean getMergeAbortFlag() {
         return options.a
     }
 
@@ -114,7 +118,7 @@ class CliOptions {
     }
 
     Map<String, String> getSystemProperties() {
-        def systemProperties = new HashMap<String, String>();
+        def systemProperties = new HashMap<String, String>()
         def p = options.getInner().getOptionProperties('D')
         for (def name : p.propertyNames()) {
             systemProperties.put(name, p.getProperty(name))
