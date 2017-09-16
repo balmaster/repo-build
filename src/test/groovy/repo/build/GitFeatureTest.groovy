@@ -1,13 +1,18 @@
 package repo.build
 
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.springframework.boot.test.rule.OutputCapture
 import repo.build.filter.OutputFilter
 import repo.build.filter.UnpushedStatusFilter
 
 /**
  */
 class GitFeatureTest extends BaseTestCase {
+
+    @Rule
+    public OutputCapture outputCapture = new OutputCapture()
 
     @Before
     void setUp() throws Exception {
@@ -253,19 +258,45 @@ class GitFeatureTest extends BaseTestCase {
         Git.add(context, c1Dir, 'unpushed')
         Git.commit(context, c1Dir, 'unpushed')
 
-        def result = GitFeature.status(context, true)
-        assertTrue(result.get('c1').contains('?? new'))
-        assertTrue(result.get('c1').contains('unpushed'))
-        assertEquals('\n', result.get('c2'))
+        outputCapture.reset()
+
+        GitFeature.status(context, true)
+        def splitedOutput = outputCapture.toString().split('\n')
+        assertEquals(9, splitedOutput.size())
+        assertEquals("should contain 1 c1", 1,
+                getByValueFromOutput("c1", splitedOutput).size())
+        assertEquals("should contain 2 master branch", 2,
+                getByValueFromOutput("master", splitedOutput).size())
+        assertEquals("should contain 1 new file", 1,
+                getByValueFromOutput("?? new", splitedOutput).size())
+        assertEquals("should contain 1 c2 ", 1,
+                getByValueFromOutput("c2", splitedOutput).size())
+        assertEquals("should contain 1 empty string", 1,
+                getByValueFromOutput("", splitedOutput).size())
+        assertEquals("should contain 2 remote ref repository name", 2,
+                containsValueFromFromOutput("refs/remotes/origin/master", splitedOutput).length)
+        assertEquals("should contain 1 unpushed", 1,
+                containsValueFromFromOutput("unpushed", splitedOutput).size())
+
+        outputCapture.reset()
 
         ArrayList<OutputFilter> predicates = new ArrayList<>()
         predicates.add(new UnpushedStatusFilter())
         context.outputFilter.put(GitFeature.ACTION_STATUS, predicates)
-        result = GitFeature.status(context, false)
-        assertTrue(result.get('c1').contains('?? new'))
-        assertTrue(result.get('c1').contains('unpushed'))
-        assertEquals(null, result.get('c2'))
+        GitFeature.status(context, false)
+        splitedOutput = outputCapture.toString().split('\n')
 
+        assertEquals(5, splitedOutput.size())
+        assertEquals("should contain 1 c1", 1,
+                getByValueFromOutput("c1", splitedOutput).size())
+        assertEquals("should contain 1 master branch", 1,
+                getByValueFromOutput("master", splitedOutput).size())
+        assertEquals("should contain 1 new file", 1,
+                getByValueFromOutput("?? new", splitedOutput).size())
+        assertEquals("should contain 1 remote ref repository name", 1,
+                containsValueFromFromOutput("refs/remotes/origin/master", splitedOutput).length)
+        assertEquals("should contain 1 unpushed", 1,
+                containsValueFromFromOutput("unpushed", splitedOutput).size())
     }
 
     @Test
@@ -288,18 +319,44 @@ class GitFeatureTest extends BaseTestCase {
         Git.add(context, c1Dir, 'unpushed')
         Git.commit(context, c1Dir, 'unpushed')
 
-        def result = GitFeature.status(context, true)
-        assertTrue(result.get('c1').contains('?? new'))
-        assertTrue(result.get('c1').contains('Branch not pushed'))
-        assertEquals('\n', result.get('c2'))
+        outputCapture.reset()
+
+        GitFeature.status(context, true)
+        def splitedOutput = outputCapture.toString().split('\n')
+        assertEquals(8, splitedOutput.size())
+        assertEquals("should contain 1 c1", 1,
+                getByValueFromOutput("c1", splitedOutput).size())
+        assertEquals("should contain 1 master branch", 1,
+                getByValueFromOutput("master", splitedOutput).size())
+        assertEquals("should contain new file", 1,
+                getByValueFromOutput("?? new", splitedOutput).size())
+        assertEquals("should contain 1 c2 ", 1, getByValueFromOutput("c2", splitedOutput).size())
+        assertEquals("should contain 1 empty string", 1,
+                getByValueFromOutput("", splitedOutput).size())
+        assertEquals("should contain 1 remote ref repository name", 1,
+                containsValueFromFromOutput("refs/remotes/origin/master", splitedOutput).length)
+        assertEquals("should contain 1 Branch not pushed", 1,
+                containsValueFromFromOutput("Branch not pushed", splitedOutput).size())
+
+        outputCapture.reset()
 
         ArrayList<OutputFilter> predicates = new ArrayList<>()
         predicates.add(new UnpushedStatusFilter())
         context.outputFilter.put(GitFeature.ACTION_STATUS, predicates)
-        result = GitFeature.status(context, false)
-        assertTrue(result.get('c1').contains('?? new'))
-        assertTrue(result.get('c1').contains('Branch not pushed'))
-        assertEquals(null, result.get('c2'))
+        GitFeature.status(context, false)
+
+        splitedOutput = outputCapture.toString().split('\n')
+        assertEquals(5, splitedOutput.size())
+        assertEquals("should contain 1 c1", 1,
+                getByValueFromOutput("c1", splitedOutput).size())
+        assertEquals("should contain 1 newBranch", 1,
+                getByValueFromOutput("newBranch", splitedOutput).size())
+        assertEquals("should contain 1 new file", 1,
+                getByValueFromOutput("?? new", splitedOutput).size())
+        assertEquals("should contain 1 empty string", 1,
+                getByValueFromOutput("", splitedOutput).size())
+        assertEquals("should contain 1 Branch not pushed", 1,
+                containsValueFromFromOutput("Branch not pushed", splitedOutput).size())
     }
 
     @Test
@@ -520,4 +577,22 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('', new File(c1Dir, 'README.md').text)
     }
 
+    //TODO we can use hamcrest matchers
+    private static String[] getByValueFromOutput(String value, String[] output) {
+        if (output.size() == 0) return null
+        def list = Arrays.asList(output)
+        def found = list.findAll({
+            (it == value)
+        })
+        return found
+    }
+
+    private static String[] containsValueFromFromOutput(String value, String[] output) {
+        if (output.size() == 0) return null
+        def list = Arrays.asList(output)
+        def found = list.findAll({
+            (it.contains(value))
+        })
+        return found
+    }
 }

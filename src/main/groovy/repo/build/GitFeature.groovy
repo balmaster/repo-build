@@ -1,7 +1,5 @@
 package repo.build
 
-import java.util.concurrent.ConcurrentHashMap
-
 class GitFeature {
 
     static File getManifestDir(ActionContext context) {
@@ -257,9 +255,8 @@ class GitFeature {
 
     public static final String ACTION_STATUS = 'gitFeatureStatus'
 
-    static Map<String, String> status(ActionContext parentContext, Boolean showAllStatus) {
+    static void status(ActionContext parentContext, Boolean showAllStatus) {
         def context = parentContext.newChild(ACTION_STATUS)
-        Map<String, String> result = new ConcurrentHashMap<>()
         context.withCloseable {
             forEachWithProjectDirExists(context,
                     { ActionContext actionContext, Node project ->
@@ -267,30 +264,22 @@ class GitFeature {
                         def branch = Git.getBranch(actionContext, dir)
                         def remoteName = RepoManifest.getRemoteName(actionContext)
                         def remoteBranch = "$remoteName/$branch"
-                        def status = Git.status(actionContext, dir, showAllStatus)
+                        Git.status(actionContext, dir, showAllStatus)
                         def unpushed
                         if (Git.branchPresent(actionContext, dir, remoteBranch)) {
-                            unpushed = Git.logUnpushed(actionContext, dir, remoteBranch)
+                            Git.logUnpushed(actionContext, dir, remoteBranch)
                         } else {
                             Git.fetch(actionContext, remoteName, dir)
                             if (Git.branchPresent(actionContext, dir, remoteBranch)) {
-                                unpushed = Git.logUnpushed(actionContext, dir, remoteBranch)
+                                Git.logUnpushed(actionContext, dir, remoteBranch)
                             } else {
                                 unpushed = "Branch not pushed"
                                 actionContext.writeOut(unpushed + '\n')
                             }
                         }
-                        result.put(project.@path, status + '\n' + unpushed)
                     }
             )
         }
-        //TODO this is some kind of crazy option to test the status,
-        //TODO I do not know what to do about it,
-        //TODO because we filter the output and here the collection is not clear what
-        if (!showAllStatus) {
-            result = result.findAll { it -> (it.value != '\n') }
-        }
-        return result
     }
 
     public static final String ACTION_GREP = 'gitFeatureGrep'
