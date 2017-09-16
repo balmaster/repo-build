@@ -15,9 +15,9 @@ class StatusCommand extends AbstractCommand {
         def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
         context.withCloseable {
             if (!options.showAllStatus()) {
-                ArrayList<OutputFilter> predicates = new ArrayList<>()
-                predicates.add(new UnpushedStatusFilter())
-                context.outputFilter.put(ACTION_EXECUTE, predicates)
+                ArrayList<OutputFilter> filters = new ArrayList<>()
+                filters.add(new UnpushedStatusFilter())
+                context.outputFilter.put(ACTION_EXECUTE, filters)
             }
             return GitFeature.status(context, options.showAllStatus())
         }
