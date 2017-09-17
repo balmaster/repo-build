@@ -19,7 +19,7 @@ class StatusCommand extends AbstractCommand {
                 filters.add(new UnpushedStatusFilter())
                 context.outputFilter.put(ACTION_EXECUTE, filters)
             }
-            return GitFeature.status(context, options.showAllStatus())
+            return GitFeature.status(context)
         }
     }
 }
