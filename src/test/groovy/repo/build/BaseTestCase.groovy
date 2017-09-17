@@ -2,9 +2,11 @@ package repo.build
 
 import java.nio.file.FileSystems
 import java.nio.file.Files
+import groovy.test.GroovyAssert
+
 /**
  */
-abstract class BaseTestCase extends groovy.test.GroovyAssert {
+abstract class BaseTestCase extends GroovyAssert {
     protected Sandbox sandbox
     protected RepoEnv env
     protected ActionContext context
