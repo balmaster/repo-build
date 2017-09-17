@@ -57,10 +57,10 @@ class DefaultParallelActionHandler implements ActionHandler {
 
     private void applyPredicateAndPrint(ActionContext context, List<ByteArrayOutputStream> output) {
         def actionName = getCommandName(context)
-        def predicates = context.outputFilter.get(actionName)
-        if (predicates != null) {
-            for (OutputFilter predicate : predicates) {
-                if (predicate.apply(context, output)) return
+        def filters = context.outputFilter.get(actionName)
+        if (filters != null) {
+            for (OutputFilter filter : filters) {
+                if (!filter.apply(context, output)) return
             }
         }
         log(output)

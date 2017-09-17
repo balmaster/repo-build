@@ -13,7 +13,6 @@ class Maven {
     static void execute(ActionContext context, File pomFile, Closure handleRequest, Closure handleResult) {
         InvocationRequest request = new DefaultInvocationRequest()
         request.setPomFile(pomFile)
-        request.setBaseDirectory(pomFile)
         handleRequest(request)
 
         Invoker invoker = new DefaultInvoker()

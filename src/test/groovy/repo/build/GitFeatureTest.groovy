@@ -260,7 +260,7 @@ class GitFeatureTest extends BaseTestCase {
 
         outputCapture.reset()
 
-        GitFeature.status(context, true)
+        GitFeature.status(context)
         def splitedOutput = outputCapture.toString().split('\n')
         assertEquals(9, splitedOutput.size())
         assertEquals("should contain 1 c1", 1,
@@ -283,7 +283,7 @@ class GitFeatureTest extends BaseTestCase {
         ArrayList<OutputFilter> predicates = new ArrayList<>()
         predicates.add(new UnpushedStatusFilter())
         context.outputFilter.put(GitFeature.ACTION_STATUS, predicates)
-        GitFeature.status(context, false)
+        GitFeature.status(context)
         splitedOutput = outputCapture.toString().split('\n')
 
         assertEquals(5, splitedOutput.size())
@@ -321,7 +321,7 @@ class GitFeatureTest extends BaseTestCase {
 
         outputCapture.reset()
 
-        GitFeature.status(context, true)
+        GitFeature.status(context)
         def splitedOutput = outputCapture.toString().split('\n')
         assertEquals(8, splitedOutput.size())
         assertEquals("should contain 1 c1", 1,
@@ -343,7 +343,7 @@ class GitFeatureTest extends BaseTestCase {
         ArrayList<OutputFilter> predicates = new ArrayList<>()
         predicates.add(new UnpushedStatusFilter())
         context.outputFilter.put(GitFeature.ACTION_STATUS, predicates)
-        GitFeature.status(context, false)
+        GitFeature.status(context)
 
         splitedOutput = outputCapture.toString().split('\n')
         assertEquals(5, splitedOutput.size())

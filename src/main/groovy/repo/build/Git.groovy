@@ -116,7 +116,7 @@ class Git {
     static void checkoutUpdate(ActionContext parentContext, String branch, String remoteBranch, File dir) {
         def context = parentContext.newChild(ACTION_CHECKOUT_UPDATE)
         context.withCloseable {
-            if (Git.branchPresent(context, dir, branch)) {
+            if (branchPresent(context, dir, branch)) {
                 ExecuteProcess.executeCmd0(context, dir, "git checkout $branch", true)
                 if (branchPresent(context, dir, remoteBranch)) {
                     ExecuteProcess.executeCmd0(context, dir, "git merge $remoteBranch", true)
@@ -141,7 +141,7 @@ class Git {
 
     public static final String ACTION_STATUS = 'gitStatus'
 
-    static String status(ActionContext parentContext, File dir, Boolean showAllStatus) {
+    static String status(ActionContext parentContext, File dir) {
         def context = parentContext.newChild(ACTION_STATUS)
         context.withCloseable {
             return ExecuteProcess.executeCmd0(context, dir, "git status -s", true)

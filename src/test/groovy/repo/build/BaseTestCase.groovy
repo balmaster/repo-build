@@ -17,7 +17,7 @@ abstract class BaseTestCase extends groovy.test.GroovyAssert {
         context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
     }
 
-    static String getArgs() {
+    String getArgs() {
         return "-j 2"
     }
 

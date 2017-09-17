@@ -255,7 +255,7 @@ class GitFeature {
 
     public static final String ACTION_STATUS = 'gitFeatureStatus'
 
-    static void status(ActionContext parentContext, Boolean showAllStatus) {
+    static void status(ActionContext parentContext) {
         def context = parentContext.newChild(ACTION_STATUS)
         context.withCloseable {
             forEachWithProjectDirExists(context,
@@ -264,7 +264,7 @@ class GitFeature {
                         def branch = Git.getBranch(actionContext, dir)
                         def remoteName = RepoManifest.getRemoteName(actionContext)
                         def remoteBranch = "$remoteName/$branch"
-                        Git.status(actionContext, dir, showAllStatus)
+                        Git.status(actionContext, dir)
                         def unpushed
                         if (Git.branchPresent(actionContext, dir, remoteBranch)) {
                             Git.logUnpushed(actionContext, dir, remoteBranch)
