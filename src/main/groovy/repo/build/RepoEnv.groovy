@@ -1,6 +1,5 @@
 package repo.build
 
-import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 
 class RepoEnv {
@@ -29,7 +28,7 @@ class RepoEnv {
         File f = new File(basedir, "repo-build.properties")
         try {
             props.load(f.newDataInputStream())
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             logger.warn("Could not load properties")
         }
     }

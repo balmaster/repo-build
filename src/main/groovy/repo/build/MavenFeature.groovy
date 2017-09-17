@@ -1,13 +1,11 @@
 package repo.build
 
-import com.google.common.base.Splitter
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.apache.maven.shared.invoker.InvocationRequest
 import repo.build.maven.MavenArtifact
 import repo.build.maven.MavenArtifactRef
 import repo.build.maven.MavenComponent
-
 /**
  */
 class MavenFeature {
@@ -215,7 +213,7 @@ class MavenFeature {
             req.setDebug(true)
         }
 
-        Properties properties = new Properties();
+        Properties properties = new Properties()
         properties.putAll(options.getSystemProperties())
         req.setProperties(properties)
     }
@@ -318,7 +316,6 @@ class MavenFeature {
         }
     }
 
-    @CompileStatic
     static void releaseUpdateVersions(ActionContext parentContext,
                                       String includes,
                                       String continueFromComponent) {
@@ -365,7 +362,7 @@ class MavenFeature {
     @CompileStatic
     static Map<MavenArtifactRef, MavenComponent> getComponentsMap(File basedir) {
         List<MavenComponent> components = getComponents(basedir)
-        Map<MavenArtifactRef, MavenComponent> result = new HashMap<>();
+        Map<MavenArtifactRef, MavenComponent> result = new HashMap<>()
         for (MavenComponent c : components) {
             for (MavenArtifact m : c.getModules()) {
                 // map all component modules into host component
@@ -441,9 +438,9 @@ class MavenFeature {
     }
 
     static String eval(Object expr, Node project) {
-        if (expr.equals('${project.groupId}')) {
+        if (expr == '${project.groupId}') {
             return getProjectGroup(project)
-        } else if (expr.equals('${parent.groupId}')) {
+        } else if (expr == '${parent.groupId}') {
             return project.parent.groupId.text()
         } else {
             return expr

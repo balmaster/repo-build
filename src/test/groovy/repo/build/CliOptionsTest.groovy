@@ -1,9 +1,9 @@
-package repo.build;
+package repo.build
 
 /**
  * Markelov Ruslan markelov@jet.msk.su
  */
-public class CliOptionsTest extends GroovyTestCase {
+class CliOptionsTest extends GroovyTestCase {
     void testAllMvmSwitches() {
         def cli = CliBuilderFactory.build(null)
         def options = new CliOptions(cli.parse(['-me',

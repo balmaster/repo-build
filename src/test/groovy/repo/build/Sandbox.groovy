@@ -7,7 +7,7 @@ import groovy.xml.MarkupBuilder
 class Sandbox {
     RepoEnv env
     ActionContext context
-    Map<String, File> components;
+    Map<String, File> components
 
     Sandbox(RepoEnv env, CliOptions options) {
         this.components = new HashMap<>()

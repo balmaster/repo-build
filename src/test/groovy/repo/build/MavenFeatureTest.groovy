@@ -1,14 +1,15 @@
 package repo.build
 
 import org.apache.maven.shared.invoker.InvocationRequest
-
+import org.junit.Before
+import org.junit.Test
 /**
  */
 //@CompileStatic
 class MavenFeatureTest extends BaseTestCase {
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    void setUp() throws Exception {
         super.setUp()
         sandbox = new Sandbox(new RepoEnv(createTempDir()), options)
                 .newGitComponent('parent',
@@ -68,6 +69,7 @@ class MavenFeatureTest extends BaseTestCase {
                 })
     }
 
+    @Test
     void testUpdateReleaseParent() {
 
         MavenFeature.purgeLocal(sandbox.context,
@@ -97,6 +99,7 @@ class MavenFeatureTest extends BaseTestCase {
         assertEquals('1.1.1', c3Pom.parent.version.text())
     }
 
+    @Test
     void testUpdateFeatureParent() {
 
         MavenFeature.purgeLocal(sandbox.context,
@@ -136,7 +139,7 @@ class MavenFeatureTest extends BaseTestCase {
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
-                                Properties properties = new Properties();
+                                Properties properties = new Properties()
                                 properties.put("newVersion", version)
                                 properties.put('generateBackupPoms', 'false')
                                 req.setProperties(properties)
@@ -149,7 +152,7 @@ class MavenFeatureTest extends BaseTestCase {
         cleanInstallParent()
     }
 
-
+    @Test
     void testUpdateVersions() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -163,7 +166,7 @@ class MavenFeatureTest extends BaseTestCase {
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
-                                Properties properties = new Properties();
+                                Properties properties = new Properties()
                                 properties.put("newVersion", '1.1.0-SNAPSHOT')
                                 properties.put('generateBackupPoms', 'false')
                                 req.setProperties(properties)
@@ -179,7 +182,7 @@ class MavenFeatureTest extends BaseTestCase {
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
-                                Properties properties = new Properties();
+                                Properties properties = new Properties()
                                 properties.put("newVersion", '2.1.0-SNAPSHOT')
                                 properties.put('generateBackupPoms', 'false')
                                 req.setProperties(properties)
@@ -200,6 +203,7 @@ class MavenFeatureTest extends BaseTestCase {
         assertEquals('1.1.0-SNAPSHOT', c2Pom.properties."c1.version".text())
     }
 
+    @Test
     void testUpdateVersionsContinueFromComponent() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -213,7 +217,7 @@ class MavenFeatureTest extends BaseTestCase {
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
-                                Properties properties = new Properties();
+                                Properties properties = new Properties()
                                 properties.put("newVersion", '1.1.0-SNAPSHOT')
                                 properties.put('generateBackupPoms', 'false')
                                 req.setProperties(properties)
@@ -229,7 +233,7 @@ class MavenFeatureTest extends BaseTestCase {
                             { InvocationRequest req ->
                                 req.setGoals(Arrays.asList("versions:set"))
                                 req.setInteractive(false)
-                                Properties properties = new Properties();
+                                Properties properties = new Properties()
                                 properties.put("newVersion", '2.1.0-SNAPSHOT')
                                 properties.put('generateBackupPoms', 'false')
                                 req.setProperties(properties)
@@ -281,6 +285,7 @@ class MavenFeatureTest extends BaseTestCase {
                 })
     }
 
+    @Test
     void testGetComponentsMap() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -292,6 +297,7 @@ class MavenFeatureTest extends BaseTestCase {
         assertEquals(7, components.size())
     }
 
+    @Test
     void testSortComponents() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')

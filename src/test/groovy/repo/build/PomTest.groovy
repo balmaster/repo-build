@@ -1,13 +1,14 @@
 package repo.build
 
+import org.junit.Before
+import org.junit.Test
 /**
  */
 class PomTest extends BaseTestCase {
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    void setUp() throws Exception {
         super.setUp()
-
         sandbox = new Sandbox(new RepoEnv(createTempDir()), options)
                 .newGitComponent('c1')
                 .newGitComponent('c2')
@@ -20,6 +21,7 @@ class PomTest extends BaseTestCase {
                 })
     }
 
+    @Test
     void testBuildPomNoModules() {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -32,6 +34,7 @@ class PomTest extends BaseTestCase {
         assertEquals(0, pom.project.modules.module.findAll().size)
     }
 
+    @Test
     void testBuildPomHasModules() {
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->

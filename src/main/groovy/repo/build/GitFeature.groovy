@@ -1,7 +1,5 @@
 package repo.build
 
-import java.util.concurrent.ConcurrentHashMap
-
 class GitFeature {
 
     static File getManifestDir(ActionContext context) {
@@ -199,8 +197,7 @@ class GitFeature {
                         if (mergeAbort) {
                             try {
                                 Git.mergeAbort(context, dir)
-                            } catch (Exception e) {
-                                // skip
+                            } catch (Exception ignored) {
                             }
                         }
                         Git.mergeFeatureBranch(actionContext, branch, remoteBranch, startCommit, dir)
@@ -258,9 +255,8 @@ class GitFeature {
 
     public static final String ACTION_STATUS = 'gitFeatureStatus'
 
-    static Map<String, String> status(ActionContext parentContext) {
+    static void status(ActionContext parentContext) {
         def context = parentContext.newChild(ACTION_STATUS)
-        Map<String, String> result = new ConcurrentHashMap<>()
         context.withCloseable {
             forEachWithProjectDirExists(context,
                     { ActionContext actionContext, Node project ->
@@ -268,24 +264,22 @@ class GitFeature {
                         def branch = Git.getBranch(actionContext, dir)
                         def remoteName = RepoManifest.getRemoteName(actionContext)
                         def remoteBranch = "$remoteName/$branch"
-                        def status = Git.status(actionContext, dir)
+                        Git.status(actionContext, dir)
                         def unpushed
                         if (Git.branchPresent(actionContext, dir, remoteBranch)) {
-                            unpushed = Git.logUnpushed(actionContext, dir, remoteBranch)
+                            Git.logUnpushed(actionContext, dir, remoteBranch)
                         } else {
                             Git.fetch(actionContext, remoteName, dir)
                             if (Git.branchPresent(actionContext, dir, remoteBranch)) {
-                                unpushed = Git.logUnpushed(actionContext, dir, remoteBranch)
+                                Git.logUnpushed(actionContext, dir, remoteBranch)
                             } else {
                                 unpushed = "Branch not pushed"
                                 actionContext.writeOut(unpushed + '\n')
                             }
                         }
-                        result.put(project.@path, status + '\n' + unpushed)
                     }
             )
         }
-        return result
     }
 
     public static final String ACTION_GREP = 'gitFeatureGrep'

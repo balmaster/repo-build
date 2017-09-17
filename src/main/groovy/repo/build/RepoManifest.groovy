@@ -93,7 +93,7 @@ class RepoManifest {
     static String getBranch(ActionContext context, String projectPath) {
         return context.env.manifest.project
                 .findAll {
-            projectPath.equals(it.@path)
+            (projectPath == it.@path)
         }
         .first()
                 .@revision
