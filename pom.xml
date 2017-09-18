@@ -135,7 +135,7 @@
                 <configuration>
                     <includes>
                         <include>**/*Test.*</include>
-                        <include>**/*Specification.*</include>
+                        <include>**/*Spec*.*</include>
                     </includes>
                 </configuration>
             </plugin>
@@ -252,7 +252,7 @@
                             <argLine>${surefireArgLine}</argLine>
                             <includes>
                                 <include>**/*Test.*</include>
-                                <include>**/*Specification.*</include>
+                                <include>**/*Spec*.*</include>
                             </includes>
                         </configuration>
                         <dependencies>
