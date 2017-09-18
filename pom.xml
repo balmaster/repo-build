@@ -134,8 +134,8 @@
                 <version>2.19.1</version>
                 <configuration>
                     <includes>
-                        <include>**/*Test.java</include>
-                        <include>**/*Specification.java</include>
+                        <include>**/*Test.*</include>
+                        <include>**/*Specification.*</include>
                     </includes>
                 </configuration>
             </plugin>
@@ -251,8 +251,8 @@
                         <configuration>
                             <argLine>${surefireArgLine}</argLine>
                             <includes>
-                                <include>**/*Test.java</include>
-                                <include>**/*Specification.java</include>
+                                <include>**/*Test.*</include>
+                                <include>**/*Specification.*</include>
                             </includes>
                         </configuration>
                         <dependencies>
