@@ -61,7 +61,12 @@ class RepoManifest {
                             }
                         }
                         catch (Exception e) {
-                            throw new RepoBuildException("Project ${project.@path} error ${e.message}", e)
+                            def componentError = new RepoBuildException("Project ${project.@path} error ${e.message}", e)
+                            if (actionContext.options.hasFae()) {
+                                actionContext.addError(componentError)
+                            } else {
+                                throw componentError
+                            }
                         }
                     }
                 }

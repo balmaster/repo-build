@@ -12,7 +12,7 @@ class Sandbox {
     Sandbox(RepoEnv env, CliOptions options) {
         this.components = new HashMap<>()
         this.env = env
-        this.context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
+        this.context = new ActionContext(env, null, options, new DefaultActionHandler())
 
     }
 

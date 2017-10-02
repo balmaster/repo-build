@@ -165,4 +165,8 @@ class CliOptions {
     File getMlr() {
         return options.mlr ? new File(options.mlr) : null
     }
+
+    boolean hasFae() {
+        return options.fae
+    }
 }

@@ -12,7 +12,7 @@ class StatusCommand extends AbstractCommand {
     final String ACTION_EXECUTE = 'statusCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         context.withCloseable {
             if (!options.showAllStatus()) {
                 ArrayList<OutputFilter> filters = new ArrayList<>()
