@@ -6,8 +6,10 @@ import org.apache.maven.shared.invoker.InvocationRequest
 import repo.build.maven.MavenArtifact
 import repo.build.maven.MavenArtifactRef
 import repo.build.maven.MavenComponent
+
 /**
  */
+
 class MavenFeature {
     static Logger logger = Logger.getLogger(MavenFeature.class)
 
@@ -253,20 +255,6 @@ class MavenFeature {
         )
     }
 
-    @CompileStatic
-    static void build(ActionContext context,
-                      File pomFile,
-                      List<String> goals,
-                      Map<String, String> p) {
-        Maven.execute(context, pomFile,
-                { InvocationRequest req ->
-                    initInvocationRequest(req, context.getOptions())
-                    req.setGoals(goals)
-                    req.setInteractive(false)
-                    req.getProperties().putAll(p)
-                }
-        )
-    }
 
     public static final String ACTION_UPDATE_VERSIONS = 'mavenFeatureUpdateVersons'
 
@@ -280,7 +268,7 @@ class MavenFeature {
         Pom.generateXml(context, featureBranch, new File(context.env.basedir, 'pom.xml'))
 
         // получаем компоненты и зависимости
-        def componentsMap = getComponentsMap(context.env.basedir)
+        def componentsMap = getModuleToComponentMap(context.env.basedir)
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
         context.writeOut("sort component by dependency tree\n")
@@ -299,8 +287,8 @@ class MavenFeature {
                 // commit only if component has featureBranch
                 if (Git.getBranch(context, it.basedir) == featureBranch) {
                     versionsUpdateProperties(context, pomFile, includes, allowSnapshots)
-                    // maven build with skipTests
-                    build(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
+                    // maven execute with skipTests
+                    Maven.execute(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
                     // check modify pom.xml
                     if (Git.isFileModified(context, it.basedir, "pom.xml")) {
                         // if it modifies - commit vup
@@ -309,8 +297,8 @@ class MavenFeature {
                         Git.commit(context, it.basedir, "update_dependencies_to_last_versions")
                     }
                 } else {
-                    // maven build with skipTests
-                    build(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
+                    // maven execute with skipTests
+                    Maven.execute(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
                 }
             }
         }
@@ -323,7 +311,7 @@ class MavenFeature {
         Pom.generateXml(context, "release", new File(context.env.basedir, 'pom.xml'))
 
         // получаем компоненты и зависимости
-        def componentsMap = getComponentsMap(context.env.basedir)
+        def componentsMap = getModuleToComponentMap(context.env.basedir)
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
         context.writeOut("sort component by dependency tree\n")
@@ -339,8 +327,8 @@ class MavenFeature {
             if (found) {
                 def pomFile = new File(it.basedir, "pom.xml")
                 versionsUpdateProperties(context, pomFile, includes, false)
-                // maven build with skipTests
-                build(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
+                // maven execute with skipTests
+                Maven.execute(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
                 // check modify pom.xml
                 if (Git.isFileModified(context, it.basedir, "pom.xml")) {
                     // if it modifies - commit vup
@@ -354,14 +342,18 @@ class MavenFeature {
 
 
     @CompileStatic
-    static List<MavenComponent> sortComponents(Map<MavenArtifactRef, MavenComponent> componentsMap) {
-        def graph = ComponentDependencyGraph.build(componentsMap)
+    static List<MavenComponent> sortComponents(Map<MavenArtifactRef, MavenComponent> modulesMap) {
+        def graph = ComponentDependencyGraph.build(modulesMap)
         return graph.sort()
     }
 
     @CompileStatic
-    static Map<MavenArtifactRef, MavenComponent> getComponentsMap(File basedir) {
-        List<MavenComponent> components = getComponents(basedir)
+    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(File basedir) {
+        return getModuleToComponentMap(getComponents(basedir))
+    }
+
+    @CompileStatic
+    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(List<MavenComponent> components) {
         Map<MavenArtifactRef, MavenComponent> result = new HashMap<>()
         for (MavenComponent c : components) {
             for (MavenArtifact m : c.getModules()) {
@@ -376,6 +368,7 @@ class MavenFeature {
         List<MavenComponent> result = new ArrayList<>()
         def pomFile = new File(basedir, "pom.xml")
         // собираем компонентыs
+        // TODO use manifest here Luke
         Pom.getModules(pomFile).each {
             File componentBasedir = new File(basedir, it)
             def project = new XmlParser().parse(new File(componentBasedir, 'pom.xml'))
@@ -385,9 +378,27 @@ class MavenFeature {
             component.setModules(getComponentModules(componentBasedir))
             component.setGroupId(getProjectGroup(project))
             component.setArtifactId(project.artifactId.text())
+            def parentNode = project.'parent'
+            if (parentNode.size() > 0) {
+                component.setParent(new MavenArtifactRef(parentNode.groupId.text(), parentNode.artifactId.text()))
+            }
             result.add(component)
         }
         return result
+    }
+
+    @CompileStatic
+    static List<MavenComponent> getParentComponents(List<MavenComponent> components) {
+        Map<MavenArtifactRef, MavenComponent> map = components.collectEntries {
+            [new MavenArtifactRef(it), it]
+        }
+
+        return map.findAll {
+            it.value.parent && map.containsKey(it.value.parent)
+        }
+        .collect {
+            map.get(it.value.parent)
+        }
     }
 
     static String getProjectGroup(Node project) {
@@ -407,10 +418,8 @@ class MavenFeature {
         module.setArtifactId(project.artifactId.text())
         module.setDependencies(getProjectDependencies(project))
         if (project.parent) {
-            module.getDependencies().add(
-                    new MavenArtifactRef(
-                            project.parent.groupId.text(),
-                            project.parent.artifactId.text()))
+            def parentRef = new MavenArtifactRef(project.parent.groupId.text(), project.parent.artifactId.text())
+            module.getDependencies().add(parentRef)
         }
         result.add(module)
         Pom.getModules(new File(basedir, "pom.xml")).each {
@@ -463,4 +472,55 @@ class MavenFeature {
         }
 
     }
+
+    public static final String ACTION_BUILD_PARENTS_TREE = 'mavenFeatureBuildParentsTree'
+
+    @CompileStatic
+    static void buildParentsTree(ActionContext parentContext,
+                                 String featureBranch,
+                                 String includes,
+                                 String continueFromComponent,
+                                 boolean allowSnapshots) {
+        def context = parentContext.newChild(ACTION_BUILD_PARENTS_TREE)
+        Pom.generateXml(context, featureBranch, new File(context.env.basedir, 'pom.xml'))
+
+        // получаем компоненты и зависимости
+        def componentsMap = getModuleToComponentMap(context.env.basedir)
+        // формируем граф зависимостей
+        List<MavenComponent> sortedComponents = sortComponents(componentsMap)
+        context.writeOut("sort component by dependency tree\n")
+        sortedComponents.each {
+            context.writeOut(it.groupId + ':' + it.artifactId + '\n')
+        }
+
+        sortedComponents.each {
+            def pomFile = new File(it.basedir, "pom.xml")
+
+            // maven execute with skipTests
+            Maven.execute(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
+        }
+    }
+
+    static final String ACTION_BUILD_PARENTS = 'mavenFeatureBuildParents'
+
+    static void buildParents(ActionContext parentContext) {
+        def context = parentContext.newChild(ACTION_BUILD_PARENTS)
+
+        // получаем компоненты и зависимости
+        def componentsMap = getModuleToComponentMap(
+                getParentComponents(
+                        getComponents(context.env.basedir)))
+        // формируем граф зависимостей
+        List<MavenComponent> sortedComponents = sortComponents(componentsMap)
+        context.writeOut("sort component by dependency tree\n")
+        sortedComponents.each {
+            context.writeOut(it.groupId + ':' + it.artifactId + '\n')
+        }
+
+        sortedComponents.each {
+            def pomFile = new File(it.basedir, "pom.xml")
+            Maven.execute(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
+        }
+    }
+
 }

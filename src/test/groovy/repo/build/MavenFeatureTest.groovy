@@ -3,6 +3,7 @@ package repo.build
 import org.apache.maven.shared.invoker.InvocationRequest
 import org.junit.Before
 import org.junit.Test
+
 /**
  */
 //@CompileStatic
@@ -17,6 +18,18 @@ class MavenFeatureTest extends BaseTestCase {
                     def ant = new AntBuilder()
                     ant.copy(todir: dir) {
                         fileset(dir: 'src/test/resources/parent') {
+                            include(name: '**/**')
+                        }
+                    }
+                    Git.add(sandbox.context, dir, '*.*')
+                    Git.commit(sandbox.context, dir, 'add')
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
+                })
+                .newGitComponent('parent2',
+                { Sandbox sandbox, File dir ->
+                    def ant = new AntBuilder()
+                    ant.copy(todir: dir) {
+                        fileset(dir: 'src/test/resources/parent2') {
                             include(name: '**/**')
                         }
                     }
@@ -60,6 +73,18 @@ class MavenFeatureTest extends BaseTestCase {
                     Git.commit(sandbox.context, dir, 'add')
                     Git.createBranch(sandbox.context, dir, 'feature/1')
                 })
+                .newGitComponent('c4',
+                { Sandbox sandbox, File dir ->
+                    def ant = new AntBuilder()
+                    ant.copy(todir: dir) {
+                        fileset(dir: 'src/test/resources/c4') {
+                            include(name: '**/**')
+                        }
+                    }
+                    Git.add(sandbox.context, dir, '*.*')
+                    Git.commit(sandbox.context, dir, 'add')
+                    Git.createBranch(sandbox.context, dir, 'feature/1')
+                })
                 .newGitComponent('manifest',
                 { Sandbox sandbox, File dir ->
                     sandbox.gitInitialCommit(dir)
@@ -73,7 +98,7 @@ class MavenFeatureTest extends BaseTestCase {
     void testUpdateReleaseParent() {
 
         MavenFeature.purgeLocal(sandbox.context,
-                'test.repo-build:parent'
+                'test.repo-execute:parent'
         )
 
         def url = new File(sandbox.env.basedir, 'manifest')
@@ -103,13 +128,13 @@ class MavenFeatureTest extends BaseTestCase {
     void testUpdateFeatureParent() {
 
         MavenFeature.purgeLocal(sandbox.context,
-                'test.repo-build:parent'
+                'test.repo-execute:parent'
         )
 
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
-        // build parent
+        // execute parent
         cleanInstallParent()
 
         updateInstallParent('1.1.0-SNAPSHOT')
@@ -157,7 +182,7 @@ class MavenFeatureTest extends BaseTestCase {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
-        // build parent
+        // execute parent
         cleanInstallParent()
         // update c1 version to 1.1.0-SNAPSHOT on master
         sandbox.component('c1',
@@ -196,7 +221,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-execute:*', null, true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
@@ -208,7 +233,7 @@ class MavenFeatureTest extends BaseTestCase {
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
-        // build parent
+        // execute parent
         cleanInstallParent()
         // update c1 version to 1.1.0-SNAPSHOT on master
         sandbox.component('c1',
@@ -247,7 +272,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-execute:*', null, true)
 
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
@@ -259,7 +284,7 @@ class MavenFeatureTest extends BaseTestCase {
                     )
                 })
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', 'c2', true)
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-execute:*', 'c2', true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
@@ -293,8 +318,8 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getComponentsMap(env.basedir)
-        assertEquals(7, components.size())
+        def components = MavenFeature.getModuleToComponentMap(env.basedir)
+        assertEquals(10, components.size())
     }
 
     @Test
@@ -305,13 +330,46 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getComponentsMap(env.basedir)
+        def components = MavenFeature.getModuleToComponentMap(env.basedir)
         def sortedComponents = MavenFeature.sortComponents(components)
-        assertEquals(4, sortedComponents.size())
+        assertEquals(6, sortedComponents.size())
         assertEquals('parent', sortedComponents.get(0).getArtifactId())
         assertEquals('c1-parent', sortedComponents.get(1).getArtifactId())
         assertEquals('c2-parent', sortedComponents.get(2).getArtifactId())
-        assertEquals('c3-parent', sortedComponents.get(3).getArtifactId())
+        assertEquals('parent2', sortedComponents.get(3).getArtifactId())
+        assertEquals('c4-parent', sortedComponents.get(4).getArtifactId())
+        assertEquals('c3-parent', sortedComponents.get(5).getArtifactId())
+    }
+
+    @Test
+    void testSortParentComponents() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
+
+        def components = MavenFeature.getModuleToComponentMap(
+                MavenFeature.getParentComponents(
+                        MavenFeature.getComponents(env.basedir)))
+
+        def sortedComponents = MavenFeature.sortComponents(components)
+        assertEquals(2, sortedComponents.size())
+        assertEquals('parent', sortedComponents.get(0).getArtifactId())
+        assertEquals('parent2', sortedComponents.get(1).getArtifactId())
+    }
+
+
+    @Test
+    void testBuildParents() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+        Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
+
+        MavenFeature.buildParents(context)
+        Maven.execute(context, new File(env.basedir, 'pom.xml'), ['clean', 'install'], new Properties())
     }
 
 }

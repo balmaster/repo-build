@@ -25,7 +25,7 @@ class RepoEnv {
 
     void loadProperties() {
         props = new Properties()
-        File f = new File(basedir, "repo-build.properties")
+        File f = new File(basedir, "repo-execute.properties")
         try {
             props.load(f.newDataInputStream())
         } catch (IOException ignored) {

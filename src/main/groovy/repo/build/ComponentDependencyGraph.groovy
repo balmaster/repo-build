@@ -37,22 +37,30 @@ class ComponentDependencyGraph {
     }
 
     private void addAllDependencies(MavenComponent component) {
-        for(def m : component.getModules()) {
+        if (component.parent) {
+            // add parent ref
+            addComponentRef(component, component.parent)
+        }
+        // for all modules
+        for (def m : component.getModules()) {
+            // add dependencies refs
             for (def ref : m.getDependencies()) {
-                MavenComponent refComponent = componentsMap.get(ref)
-                if (refComponent == null) {
-                    // it is thirdparty component ref
-                    continue
+                addComponentRef(component, ref)
+            }
+        }
+    }
+
+    private void addComponentRef(MavenComponent component, MavenArtifactRef ref) {
+        MavenComponent refComponent = componentsMap.get(ref)
+        if (refComponent) {
+            add(refComponent)
+            DefaultEdge e = graph.addEdge(component, refComponent)
+            if (hasCycles()) {
+                graph.removeEdge(e)
+                if (!cycleRefs.containsKey(component)) {
+                    cycleRefs.put(component, new HashSet<MavenComponent>())
                 }
-                add(refComponent)
-                DefaultEdge e = graph.addEdge(component, refComponent)
-                if (hasCycles()) {
-                    graph.removeEdge(e)
-                    if (!cycleRefs.containsKey(component)) {
-                        cycleRefs.put(component, new HashSet<MavenComponent>())
-                    }
-                    cycleRefs.get(component).add(refComponent)
-                }
+                cycleRefs.get(component).add(refComponent)
             }
         }
     }
