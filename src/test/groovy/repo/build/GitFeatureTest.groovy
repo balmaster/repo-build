@@ -185,7 +185,7 @@ class GitFeatureTest extends BaseTestCase {
 
     @Test
     void testFeatureMergeRelease() {
-        def context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, null, options, new DefaultActionHandler())
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
@@ -210,7 +210,7 @@ class GitFeatureTest extends BaseTestCase {
 
     @Test
     void testTaskMergeFeature() {
-        def context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, null, options, new DefaultActionHandler())
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 

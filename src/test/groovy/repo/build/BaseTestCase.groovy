@@ -16,7 +16,7 @@ abstract class BaseTestCase extends GroovyAssert {
         env = new RepoEnv(createTempDir())
         def cli = CliBuilderFactory.build(null)
         options = new CliOptions(cli.parse(getArgs()))
-        context = new ActionContext(env, null, options, new DefaultParallelActionHandler())
+        context = new ActionContext(env, null, options, new DefaultActionHandler())
     }
 
     String getArgs() {

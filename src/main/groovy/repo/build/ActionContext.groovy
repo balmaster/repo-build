@@ -18,9 +18,11 @@ class ActionContext implements Closeable {
     final ActionHandler actionHandler
     boolean output = false
     final Map<String, List<OutputFilter>> outputFilter = new HashMap<>()
+    final List<RepoBuildException> errorList = new ArrayList<>()
+    boolean errorFlag = false
 
     ActionContext(RepoEnv env, String id, CliOptions options, ActionHandler actionHandler1,
-                  Map<String,List<OutputFilter>> outputFilter = new HashMap<>()) {
+                  Map<String, List<OutputFilter>> outputFilter = new HashMap<>()) {
         this.env = env
         this.id = id
         this.options = options
@@ -29,7 +31,7 @@ class ActionContext implements Closeable {
     }
 
     private ActionContext(ActionContext parent, String id) {
-        this(parent.env, id, parent.options, parent.actionHandler,parent.outputFilter)
+        this(parent.env, id, parent.options, parent.actionHandler, parent.outputFilter)
         this.parent = parent
     }
 
@@ -73,5 +75,17 @@ class ActionContext implements Closeable {
 
     int getParallel() {
         return options.getParallel(env)
+    }
+
+    def addError(RepoBuildException error) {
+        setErrorFlag()
+        errorList.add(error)
+    }
+
+    def setErrorFlag() {
+        errorFlag = true
+        if(parent) {
+            parent.setErrorFlag()
+        }
     }
 }

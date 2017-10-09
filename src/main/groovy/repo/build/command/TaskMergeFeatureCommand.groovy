@@ -10,7 +10,7 @@ class TaskMergeFeatureCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'taskMergeFeatureCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         context.withCloseable {
             GitFeature.taskMergeFeature(context,
                     options.getRequiredTaskBranch(),

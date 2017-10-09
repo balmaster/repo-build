@@ -7,13 +7,14 @@ import repo.build.filter.OutputFilter
  * @author Markelov Ruslan markelov@jet.msk.su
  */
 @CompileStatic
-class DefaultParallelActionHandler implements ActionHandler {
+class DefaultActionHandler implements ActionHandler {
     void beginAction(ActionContext context) {
 
     }
 
     void endAction(ActionContext context) {
         synchronized (this) {
+            // print output
             def output = new ArrayList<ByteArrayOutputStream>()
             if (!hasParallelParent(context)) {
                 buildOutput(context, output)
@@ -23,6 +24,29 @@ class DefaultParallelActionHandler implements ActionHandler {
                 return
             }
             applyPredicateAndPrint(context, output)
+            // print errors
+            if (context.parent == null) {
+                if (context.getErrorFlag()) {
+                    printErrors(context)
+                    throw new RepoBuildException("Has errors")
+                }
+            }
+        }
+    }
+
+    void printErrors(ActionContext context) {
+        if (context.childList.size() > 0) {
+            for (def child : context.childList) {
+                printErrors(child)
+            }
+            if (context.errorList.size() > 0) {
+                for (def error : context.errorList) {
+                    System.out.println(error.getMessage())
+                    if (context.options.isDebugMode()) {
+                        error.printStackTrace()
+                    }
+                }
+            }
         }
     }
 

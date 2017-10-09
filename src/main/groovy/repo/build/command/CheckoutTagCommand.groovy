@@ -10,7 +10,7 @@ class CheckoutTagCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'checkoutTagCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         def tag = options.getTag()
         context.withCloseable {
             GitFeature.checkoutTag(context, tag)

@@ -10,7 +10,7 @@ class AddTagToCurrentHeadsCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'addTagToCurrentHeadsExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         def tag = options.getTag()
         context.withCloseable {
             GitFeature.addTagToCurrentHeads(context, tag)

@@ -10,7 +10,7 @@ class ReleaseUpdateVersionsCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'releaseUpdateVersionsCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         context.withCloseable {
             def includes = options.getIncludes()
             def continueFromComponent = options.getContinueFromComponent()

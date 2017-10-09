@@ -10,7 +10,7 @@ class PushFeatureCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'pushFeatureCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         context.withCloseable {
             GitFeature.pushFeatureBranch(context,
                     options.getFeatureBranch(), true)

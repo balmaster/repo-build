@@ -10,7 +10,7 @@ class GrepCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'grepCommandExecute'
 
     void execute(RepoEnv env, CliOptions options) {
-        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultParallelActionHandler())
+        def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         context.withCloseable {
             GitFeature.grep(context, options.getExpression())
         }

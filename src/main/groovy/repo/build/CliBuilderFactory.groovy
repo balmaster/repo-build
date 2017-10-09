@@ -11,6 +11,7 @@ class CliBuilderFactory {
             d('detach from branches')
             e(args: 1, argName: 'expr', 'regexp for search')
             f(args: 1, argName: 'featureBranch', 'feature branch name')
+            fae('Only fail the foreach afterwards;allow all iteration to continue')
             i(args: 1, argName: 'includes', 'maven artifact includes list')
             j(args: 1, argName: 'parallel', '')
             m('use manifest branches')
