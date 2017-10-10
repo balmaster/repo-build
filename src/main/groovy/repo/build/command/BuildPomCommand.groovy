@@ -6,7 +6,7 @@ class BuildPomCommand extends AbstractCommand {
     public static final String ACTION_EXECUTE = 'buildPomCommandExecute'
 
     BuildPomCommand() {
-        super('execute-pom', 'Generate main pom.xml for all components')
+        super('build-pom', 'Generate main pom.xml for all components')
     }
 
     void execute(RepoEnv env, CliOptions options) {

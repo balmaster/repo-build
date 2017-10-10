@@ -4,7 +4,7 @@ import repo.build.*
 
 class MvnBuildCommand extends AbstractCommand {
     MvnBuildCommand() {
-        super('mvn-execute', 'Execute mvn clean install for parent component, then execute mvn clean install for whole project ')
+        super('mvn-build', 'Execute mvn clean install for parent component, then execute mvn clean install for whole project ')
     }
 
     public static final String ACTION_EXECUTE = 'mvnBuildExecute'
