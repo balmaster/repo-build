@@ -8,7 +8,7 @@ import spock.lang.Specification
 class ReleaseUpdateVersionsSpecification extends Specification {
 
     def setup() {
-        GroovySpy(MavenFeature, global: true)
+        GroovyMock(MavenFeature, global: true)
     }
 
     def "without args"() {
@@ -22,7 +22,7 @@ class ReleaseUpdateVersionsSpecification extends Specification {
     }
 
     def "without includes"() {
-        def repoBuild = new RepoBuild('release-update-versions', '-f', 'feature/1')
+        def repoBuild = new RepoBuild('release-update-versions')
 
         when:
         repoBuild.execute()
@@ -31,17 +31,7 @@ class ReleaseUpdateVersionsSpecification extends Specification {
         thrown(RepoBuildException)
     }
 
-    def "without featureBranch"() {
-        def repoBuild = new RepoBuild('release-update-versions', '-i', 'group')
-
-        when:
-        repoBuild.execute()
-
-        then:
-        thrown(RepoBuildException)
-    }
-
-    def "with featureBranch with includes"() {
+    def "with includes"() {
         GroovyMock(MavenFeature, global: true)
         def repoBuild = new RepoBuild('release-update-versions', '-i', 'group')
 
@@ -52,7 +42,7 @@ class ReleaseUpdateVersionsSpecification extends Specification {
         1 * MavenFeature.releaseUpdateVersions(_, 'group', null)
     }
 
-    def "with featureBranch with includes continue"() {
+    def "with includes continue"() {
         GroovyMock(MavenFeature, global: true)
         def repoBuild = new RepoBuild('release-update-versions', '-i', 'group', '-C', 'component')
 
