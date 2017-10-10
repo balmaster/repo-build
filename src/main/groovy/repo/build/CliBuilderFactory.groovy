@@ -32,7 +32,7 @@ class CliBuilderFactory {
 
             // maven keys
             me('Produce execution error messages')
-            mfae('Only fail the build afterwards;allow all non-impacted builds to continue')
+            mfae('Only fail the execute afterwards;allow all non-impacted builds to continue')
             mgs(args: 1, 'Alternate path for the global settings file')
             mlr(args: 1, 'Maven local repository')
             mo('Work offline')

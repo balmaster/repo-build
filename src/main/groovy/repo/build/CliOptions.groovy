@@ -16,7 +16,7 @@ class CliOptions {
     }
 
     String getFeatureBranch() {
-        return getRequired(options.f, "Feature branch required.\nUse: 'repo-build -f <featureBranch> ...'")
+        return getRequired(options.f, "Feature branch required.\nUse: 'repo-execute -f <featureBranch> ...'")
     }
 
     String getTaskBranch() {
@@ -32,7 +32,7 @@ class CliOptions {
     }
 
     String getRequiredTaskBranch() {
-        return getRequired(getTaskBranch(), "Task branch required.\nUse: 'repo-build -I <taskBranch> ...'")
+        return getRequired(getTaskBranch(), "Task branch required.\nUse: 'repo-execute -I <taskBranch> ...'")
     }
 
     String getParent() {
@@ -48,7 +48,7 @@ class CliOptions {
     }
 
     String getIncludes() {
-        getRequired(options.i, "Includes required.\nUse: 'repo-build -i groupId:* ...'")
+        getRequired(options.i, "Includes required.\nUse: 'repo-execute -i groupId:* ...'")
     }
 
     @CompileStatic
@@ -73,15 +73,15 @@ class CliOptions {
     }
 
     String getExpression() {
-        return getRequired(options.e, "Expression required.\nUse: 'repo-build -e <expr> grep'")
+        return getRequired(options.e, "Expression required.\nUse: 'repo-execute -e <expr> grep'")
     }
 
     String getManifestBranch() {
-        return getRequired(options.b, "Use: repo-build -b <manifestBranch> ...")
+        return getRequired(options.b, "Use: repo-execute -b <manifestBranch> ...")
     }
 
     String getManifestUrl() {
-        return getRequired(options.M, "Use: repo-build -M <manifestUrl> ...")
+        return getRequired(options.M, "Use: repo-execute -M <manifestUrl> ...")
     }
 
     Boolean getMergeAbortFlag() {
@@ -105,7 +105,7 @@ class CliOptions {
     }
 
     String getTag() {
-        return getRequired(options.T, "Tag required.\nUse: 'repo-build -T tag ...'")
+        return getRequired(options.T, "Tag required.\nUse: 'repo-execute -T tag ...'")
     }
 
     int getParallel(RepoEnv env) {

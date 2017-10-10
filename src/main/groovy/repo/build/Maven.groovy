@@ -1,5 +1,6 @@
 package repo.build
 
+import groovy.transform.CompileStatic
 import org.apache.maven.shared.invoker.DefaultInvocationRequest
 import org.apache.maven.shared.invoker.DefaultInvoker
 import org.apache.maven.shared.invoker.InvocationRequest
@@ -30,6 +31,21 @@ class Maven {
 
     static void execute(ActionContext context, File pomFile, Closure handleRequest) {
         execute(context, pomFile, handleRequest, {})
+    }
+
+    @CompileStatic
+    static void execute(ActionContext context,
+                        File pomFile,
+                        List<String> goals,
+                        Map<String, String> p) {
+        execute(context, pomFile,
+                { InvocationRequest req ->
+                    MavenFeature.initInvocationRequest(req, context.getOptions())
+                    req.setGoals(goals)
+                    req.setInteractive(false)
+                    req.getProperties().putAll(p)
+                }
+        )
     }
 }
 

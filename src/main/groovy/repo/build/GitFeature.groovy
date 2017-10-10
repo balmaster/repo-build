@@ -38,7 +38,7 @@ class GitFeature {
             if (manifestDir.exists()) {
                 def manifestBranch = Git.getBranch(context, manifestDir)
                 if ("HEAD" == manifestBranch) {
-                    throw new RepoBuildException("manifest branch must be local, use: repo-build -b <manifestBranch> init")
+                    throw new RepoBuildException("manifest branch must be local, use: repo-execute -b <manifestBranch> init")
                 }
                 updateManifest(context, manifestBranch)
                 context.env.openManifest()

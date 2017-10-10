@@ -20,7 +20,7 @@ abstract class BaseTestCase extends GroovyAssert {
     }
 
     String getArgs() {
-        return "-j 2"
+        return "-j 4"
     }
 
     static File createTempDir() {

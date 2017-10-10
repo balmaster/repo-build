@@ -71,7 +71,7 @@ class RepoBuild {
         commandRegistry.registerCommand(new FeatureSyncComboCommand())
         commandRegistry.registerCommand(new FeatureSyncStashComboCommand())
 
-        def usage = "usage: repo-build -[<switch>]* \n\n" +
+        def usage = "usage: repo-execute -[<switch>]* \n\n" +
                 Joiner.on('\n').join(
                         commandRegistry.getCommands().each {
                             "\n${it.name}\n${it.description}\n"
@@ -127,7 +127,7 @@ class RepoBuild {
     }
 
     void printVersion() {
-        def ins = getClass().getResourceAsStream('/META-INF/maven/jet.repo.build/repo-build/pom.properties')
+        def ins = getClass().getResourceAsStream('/META-INF/maven/jet.repo.execute/repo-execute/pom.properties')
         ins.withCloseable {
             Properties p = new Properties()
             p.load(ins)

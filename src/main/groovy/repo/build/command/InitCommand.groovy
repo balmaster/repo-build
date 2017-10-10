@@ -16,7 +16,7 @@ class InitCommand extends AbstractCommand {
             if (!env.manifest) {
                 def manifestUrl = options.getManifestUrl()
                 if (!manifestUrl || !manifestBranch) {
-                    throw new RepoBuildException("Use: 'repo-build -M <manifestUrl> -b <manifestBranch>'")
+                    throw new RepoBuildException("Use: 'repo-execute -M <manifestUrl> -b <manifestBranch>'")
                 }
                 GitFeature.cloneManifest(context, manifestUrl, manifestBranch)
             } else {
