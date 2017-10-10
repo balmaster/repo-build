@@ -268,7 +268,7 @@ class MavenFeature {
         Pom.generateXml(context, featureBranch, new File(context.env.basedir, 'pom.xml'))
 
         // получаем компоненты и зависимости
-        def componentsMap = getModuleToComponentMap(context.env.basedir)
+        def componentsMap = getModuleToComponentMap(context)
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
         context.writeOut("sort component by dependency tree\n")
@@ -311,7 +311,7 @@ class MavenFeature {
         Pom.generateXml(context, "release", new File(context.env.basedir, 'pom.xml'))
 
         // получаем компоненты и зависимости
-        def componentsMap = getModuleToComponentMap(context.env.basedir)
+        def componentsMap = getModuleToComponentMap(context)
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
         context.writeOut("sort component by dependency tree\n")
@@ -348,8 +348,8 @@ class MavenFeature {
     }
 
     @CompileStatic
-    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(File basedir) {
-        return getModuleToComponentMap(getComponents(basedir))
+    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(ActionContext context) {
+        return getModuleToComponentMap(getComponents(context))
     }
 
     @CompileStatic
@@ -364,26 +364,25 @@ class MavenFeature {
         return result
     }
 
-    static List<MavenComponent> getComponents(File basedir) {
+    static List<MavenComponent> getComponents(ActionContext context) {
         List<MavenComponent> result = new ArrayList<>()
-        def pomFile = new File(basedir, "pom.xml")
-        // собираем компонентыs
-        // TODO use manifest here Luke
-        Pom.getModules(pomFile).each {
-            File componentBasedir = new File(basedir, it)
-            def project = new XmlParser().parse(new File(componentBasedir, 'pom.xml'))
+        forEachWithPom(context, { ActionContext actionContext, project ->
+            def dir = new File(actionContext.env.basedir, project.@path)
+            def pom = new XmlParser().parse(new File(dir, 'pom.xml'))
             MavenComponent component = new MavenComponent()
-            component.setPath(it)
-            component.setBasedir(componentBasedir)
-            component.setModules(getComponentModules(componentBasedir))
-            component.setGroupId(getProjectGroup(project))
-            component.setArtifactId(project.artifactId.text())
-            def parentNode = project.'parent'
+            component.setPath(project.@path)
+            component.setBasedir(dir)
+            component.setModules(getComponentModules(dir))
+            component.setGroupId(getProjectGroup(pom))
+            component.setArtifactId(pom.artifactId.text())
+            def parentNode = pom.'parent'
             if (parentNode.size() > 0) {
                 component.setParent(new MavenArtifactRef(parentNode.groupId.text(), parentNode.artifactId.text()))
             }
-            result.add(component)
-        }
+            synchronized (result) {
+                result.add(component)
+            }
+        })
         return result
     }
 
@@ -475,32 +474,6 @@ class MavenFeature {
 
     public static final String ACTION_BUILD_PARENTS_TREE = 'mavenFeatureBuildParentsTree'
 
-    @CompileStatic
-    static void buildParentsTree(ActionContext parentContext,
-                                 String featureBranch,
-                                 String includes,
-                                 String continueFromComponent,
-                                 boolean allowSnapshots) {
-        def context = parentContext.newChild(ACTION_BUILD_PARENTS_TREE)
-        Pom.generateXml(context, featureBranch, new File(context.env.basedir, 'pom.xml'))
-
-        // получаем компоненты и зависимости
-        def componentsMap = getModuleToComponentMap(context.env.basedir)
-        // формируем граф зависимостей
-        List<MavenComponent> sortedComponents = sortComponents(componentsMap)
-        context.writeOut("sort component by dependency tree\n")
-        sortedComponents.each {
-            context.writeOut(it.groupId + ':' + it.artifactId + '\n')
-        }
-
-        sortedComponents.each {
-            def pomFile = new File(it.basedir, "pom.xml")
-
-            // maven execute with skipTests
-            Maven.execute(context, pomFile, ['clean', 'install'], ['skipTests': 'true'])
-        }
-    }
-
     static final String ACTION_BUILD_PARENTS = 'mavenFeatureBuildParents'
 
     static void buildParents(ActionContext parentContext) {
@@ -508,8 +481,7 @@ class MavenFeature {
 
         // получаем компоненты и зависимости
         def componentsMap = getModuleToComponentMap(
-                getParentComponents(
-                        getComponents(context.env.basedir)))
+                getParentComponents(getComponents(context)))
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
         context.writeOut("sort component by dependency tree\n")

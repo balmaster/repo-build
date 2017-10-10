@@ -92,14 +92,15 @@ class MavenFeatureTest extends BaseTestCase {
                     Git.add(sandbox.context, dir, 'default.xml')
                     Git.commit(sandbox.context, dir, 'manifest')
                 })
+
+        MavenFeature.purgeLocal(sandbox.context,
+                'test.repo-build'
+        )
+
     }
 
     @Test
     void testUpdateReleaseParent() {
-
-        MavenFeature.purgeLocal(sandbox.context,
-                'test.repo-execute:parent'
-        )
 
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -126,11 +127,6 @@ class MavenFeatureTest extends BaseTestCase {
 
     @Test
     void testUpdateFeatureParent() {
-
-        MavenFeature.purgeLocal(sandbox.context,
-                'test.repo-execute:parent'
-        )
-
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
 
@@ -221,7 +217,9 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-execute:*', null, true)
+        MavenFeature.buildParents(context)
+
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
 
         // check parent version
         def c2Pom = new XmlParser().parse(new File(env.basedir, 'c2/pom.xml'))
@@ -272,7 +270,9 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         GitFeature.featureMergeRelease(context, 'feature/1')
 
-        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-execute:*', null, true)
+        MavenFeature.buildParents(context)
+
+        MavenFeature.updateVersions(context, 'feature/1', 'test.repo-build:*', null, true)
 
         sandbox.component('c1',
                 { Sandbox sandbox, File dir ->
@@ -318,7 +318,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getModuleToComponentMap(env.basedir)
+        def components = MavenFeature.getModuleToComponentMap(context)
         assertEquals(10, components.size())
     }
 
@@ -330,7 +330,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getModuleToComponentMap(env.basedir)
+        def components = MavenFeature.getModuleToComponentMap(context)
         def sortedComponents = MavenFeature.sortComponents(components)
         assertEquals(6, sortedComponents.size())
         assertEquals('parent', sortedComponents.get(0).getArtifactId())
@@ -351,7 +351,7 @@ class MavenFeatureTest extends BaseTestCase {
 
         def components = MavenFeature.getModuleToComponentMap(
                 MavenFeature.getParentComponents(
-                        MavenFeature.getComponents(env.basedir)))
+                        MavenFeature.getComponents(context)))
 
         def sortedComponents = MavenFeature.sortComponents(components)
         assertEquals(2, sortedComponents.size())
