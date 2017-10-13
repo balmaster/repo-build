@@ -3,9 +3,14 @@ package repo.build
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.apache.maven.shared.invoker.InvocationRequest
+import repo.build.maven.Build
+import repo.build.maven.BuildState
 import repo.build.maven.MavenArtifact
 import repo.build.maven.MavenArtifactRef
 import repo.build.maven.MavenComponent
+
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.RecursiveTask
 
 /**
  */
@@ -484,7 +489,7 @@ class MavenFeature {
                 getParentComponents(getComponents(context)))
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
-        context.writeOut("sort component by dependency tree\n")
+        context.writeOut("sort parents by dependency tree\n")
         sortedComponents.each {
             context.writeOut(it.groupId + ':' + it.artifactId + '\n')
         }
@@ -495,4 +500,16 @@ class MavenFeature {
         }
     }
 
+    static final String ACTION_BUILD_PARALLEL = 'mavenFeatureBuildParallel'
+
+    static void buildParallel(ActionContext parentContext) {
+        def context = parentContext.newChild(ACTION_BUILD_PARALLEL)
+        context.withCloseable {
+            def build = new Build(getComponents(context))
+            def result = build.execute(context.getParallel())
+            if (result != BuildState.SUCCESS) {
+                throw new RepoBuildException("Build result: $result")
+            }
+        }
+    }
 }

@@ -2,6 +2,7 @@ package repo.build
 
 import groovy.transform.CompileStatic
 import org.jgrapht.DirectedGraph
+import org.jgrapht.alg.ConnectivityInspector
 import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
@@ -82,6 +83,16 @@ class ComponentDependencyGraph {
 
     Map<MavenComponent, Set<MavenComponent>> getCycleRefs() {
         return cycleRefs
+    }
+
+    Set<MavenComponent> getIncoming(MavenComponent component) {
+        return graph.incomingEdgesOf(component)
+                .collect { graph.getEdgeSource(it) }
+    }
+
+    Set<MavenComponent> getOutgoing(MavenComponent component) {
+        return graph.outgoingEdgesOf(component)
+                .collect { graph.getEdgeSource(it) }
     }
 
 }
