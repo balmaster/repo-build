@@ -1,6 +1,7 @@
 package repo.build
 
 import org.apache.maven.shared.invoker.InvocationRequest
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
@@ -370,6 +371,30 @@ class MavenFeatureTest extends BaseTestCase {
 
         MavenFeature.buildParents(context)
         Maven.execute(context, new File(env.basedir, 'pom.xml'), ['clean', 'install'], new Properties())
+    }
+
+
+    @Test
+    void testBuildParallel() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+
+        assertTrue(MavenFeature.buildParallel(context))
+    }
+
+    @Test
+    void testBuildParallelFail() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+
+        // create class with syntax error
+        new File(context.env.basedir, 'c2/api/src/main/java/Test.java').text = 'blablabla class'
+
+        assertFalse(MavenFeature.buildParallel(context))
     }
 
 }

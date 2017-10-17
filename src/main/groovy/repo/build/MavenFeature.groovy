@@ -4,13 +4,9 @@ import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.apache.maven.shared.invoker.InvocationRequest
 import repo.build.maven.Build
-import repo.build.maven.BuildState
 import repo.build.maven.MavenArtifact
 import repo.build.maven.MavenArtifactRef
 import repo.build.maven.MavenComponent
-
-import java.util.concurrent.ForkJoinPool
-import java.util.concurrent.RecursiveTask
 
 /**
  */
@@ -272,10 +268,8 @@ class MavenFeature {
         def context = parentContext.newChild(ACTION_UPDATE_VERSIONS)
         Pom.generateXml(context, featureBranch, new File(context.env.basedir, 'pom.xml'))
 
-        // получаем компоненты и зависимости
-        def componentsMap = getModuleToComponentMap(context)
         // формируем граф зависимостей
-        List<MavenComponent> sortedComponents = sortComponents(componentsMap)
+        List<MavenComponent> sortedComponents = sortComponents(getComponents(context))
         context.writeOut("sort component by dependency tree\n")
         sortedComponents.each {
             context.writeOut(it.groupId + ':' + it.artifactId + '\n')
@@ -347,26 +341,9 @@ class MavenFeature {
 
 
     @CompileStatic
-    static List<MavenComponent> sortComponents(Map<MavenArtifactRef, MavenComponent> modulesMap) {
-        def graph = ComponentDependencyGraph.build(modulesMap)
+    static List<MavenComponent> sortComponents(List<MavenComponent> components) {
+        def graph = ComponentDependencyGraph.build(components)
         return graph.sort()
-    }
-
-    @CompileStatic
-    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(ActionContext context) {
-        return getModuleToComponentMap(getComponents(context))
-    }
-
-    @CompileStatic
-    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(List<MavenComponent> components) {
-        Map<MavenArtifactRef, MavenComponent> result = new HashMap<>()
-        for (MavenComponent c : components) {
-            for (MavenArtifact m : c.getModules()) {
-                // map all component modules into host component
-                result.put(new MavenArtifactRef(m.getGroupId(), m.getArtifactId()), c)
-            }
-        }
-        return result
     }
 
     static List<MavenComponent> getComponents(ActionContext context) {
@@ -502,14 +479,12 @@ class MavenFeature {
 
     static final String ACTION_BUILD_PARALLEL = 'mavenFeatureBuildParallel'
 
-    static void buildParallel(ActionContext parentContext) {
+    @CompileStatic
+    static boolean buildParallel(ActionContext parentContext) {
         def context = parentContext.newChild(ACTION_BUILD_PARALLEL)
         context.withCloseable {
-            def build = new Build(getComponents(context))
-            def result = build.execute(context.getParallel())
-            if (result != BuildState.SUCCESS) {
-                throw new RepoBuildException("Build result: $result")
-            }
+            def build = new Build(context, getComponents(context))
+            return build.execute(context.getParallel())
         }
     }
 }

@@ -7,6 +7,7 @@ import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.traverse.TopologicalOrderIterator
+import repo.build.maven.MavenArtifact
 import repo.build.maven.MavenArtifactRef
 import repo.build.maven.MavenComponent
 
@@ -22,7 +23,8 @@ class ComponentDependencyGraph {
         this.componentsMap = componentsMap
     }
 
-    static ComponentDependencyGraph build(Map<MavenArtifactRef, MavenComponent> componentsMap) {
+    static ComponentDependencyGraph build(List<MavenComponent> components) {
+        def componentsMap = getModuleToComponentMap(components)
         ComponentDependencyGraph result = new ComponentDependencyGraph(componentsMap)
         for (MavenComponent c : componentsMap.values()) {
             result.add(c)
@@ -85,14 +87,25 @@ class ComponentDependencyGraph {
         return cycleRefs
     }
 
-    Set<MavenComponent> getIncoming(MavenComponent component) {
+    List<MavenComponent> getIncoming(MavenComponent component) {
         return graph.incomingEdgesOf(component)
                 .collect { graph.getEdgeSource(it) }
     }
 
-    Set<MavenComponent> getOutgoing(MavenComponent component) {
+    List<MavenComponent> getOutgoing(MavenComponent component) {
         return graph.outgoingEdgesOf(component)
                 .collect { graph.getEdgeSource(it) }
     }
 
+    @CompileStatic
+    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(List<MavenComponent> components) {
+        Map<MavenArtifactRef, MavenComponent> result = new HashMap<>()
+        for (MavenComponent c : components) {
+            for (MavenArtifact m : c.getModules()) {
+                // map all component modules into host component
+                result.put(new MavenArtifactRef(m.getGroupId(), m.getArtifactId()), c)
+            }
+        }
+        return result
+    }
 }
