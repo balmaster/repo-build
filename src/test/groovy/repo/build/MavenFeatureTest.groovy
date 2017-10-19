@@ -319,7 +319,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getModuleToComponentMap(context)
+        def components = ComponentDependencyGraph.getModuleToComponentMap(context)
         assertEquals(10, components.size())
     }
 
@@ -331,7 +331,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getModuleToComponentMap(context)
+        def components = ComponentDependencyGraph.getModuleToComponentMap(context)
         def sortedComponents = MavenFeature.sortComponents(components)
         assertEquals(6, sortedComponents.size())
         assertEquals('parent', sortedComponents.get(0).getArtifactId())
@@ -350,7 +350,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getModuleToComponentMap(
+        def components = ComponentDependencyGraph.getModuleToComponentMap(
                 MavenFeature.getParentComponents(
                         MavenFeature.getComponents(context)))
 

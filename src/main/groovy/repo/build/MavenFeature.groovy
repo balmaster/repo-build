@@ -462,7 +462,7 @@ class MavenFeature {
         def context = parentContext.newChild(ACTION_BUILD_PARENTS)
 
         // получаем компоненты и зависимости
-        def componentsMap = getModuleToComponentMap(
+        def componentsMap = ComponentDependencyGraph.getModuleToComponentMap(
                 getParentComponents(getComponents(context)))
         // формируем граф зависимостей
         List<MavenComponent> sortedComponents = sortComponents(componentsMap)
