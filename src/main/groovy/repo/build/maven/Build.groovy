@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import repo.build.ActionContext
 import repo.build.ComponentDependencyGraph
 import repo.build.Maven
+import repo.build.MavenFeature
 import repo.build.RepoBuildException
 
 import java.util.concurrent.ForkJoinPool
@@ -32,12 +33,25 @@ class Build {
         } as Map<MavenArtifactRef, BuildTask>
     }
 
-    boolean execute(int parallelism) {
-        def pool = new ForkJoinPool(parallelism)
+    boolean execute(ActionContext context) {
+        // check circular dependencies
+        def graph = ComponentDependencyGraph.build(componentMap.values())
+        if (graph.hasCycles()) {
+            for (def entry : graph.cycleRefs) {
+                def component = entry.getKey()
+                def error = new RepoBuildException("Project ${component.@path} has circular ref to ${entry.getValue()}")
+                context.addError(error)
+            }
+            throw new RepoBuildException("project has circular dependencies")
+        }
+        // do parallel build
+        def pool = new ForkJoinPool(context.getParallel())
         return pool.invoke(new RecursiveTask<Boolean>() {
             @Override
             protected Boolean compute() {
+                // execute all build tasks
                 buildTaskMap.each { pool.execute(it.value) }
+                // wait build for all components
                 return !componentMap
                         .collect { buildTaskMap.get(it.key).join() }
                         .any { it != BuildState.SUCCESS }
@@ -55,6 +69,7 @@ class Build {
         }
 
         protected BuildState compute() {
+            println("build component $component.path")
             // wait build deps
             def isFail = component
                     .getModules()
@@ -64,7 +79,7 @@ class Build {
                     .collect { new MavenArtifactRef(moduleToComponentMap.get(it)) }
                     .collect { buildTaskMap.get(it) }
                     .findAll { it != this }
-                    .collect { it.join() }
+                    .collect { println("wait build $it.component.path"); it.join() }
                     .any { it != BuildState.SUCCESS }
             if (isFail) {
                 state = BuildState.DEPS_ERROR

@@ -23,7 +23,7 @@ class ComponentDependencyGraph {
         this.componentsMap = componentsMap
     }
 
-    static ComponentDependencyGraph build(List<MavenComponent> components) {
+    static ComponentDependencyGraph build(Collection<MavenComponent> components) {
         def componentsMap = getModuleToComponentMap(components)
         ComponentDependencyGraph result = new ComponentDependencyGraph(componentsMap)
         for (MavenComponent c : componentsMap.values()) {
@@ -98,7 +98,7 @@ class ComponentDependencyGraph {
     }
 
     @CompileStatic
-    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(List<MavenComponent> components) {
+    static Map<MavenArtifactRef, MavenComponent> getModuleToComponentMap(Collection<MavenComponent> components) {
         Map<MavenArtifactRef, MavenComponent> result = new HashMap<>()
         for (MavenComponent c : components) {
             for (MavenArtifact m : c.getModules()) {

@@ -155,7 +155,7 @@ class GitFeatureTest extends BaseTestCase {
             fail()
         }
         catch (Exception e) {
-            assertEquals('Project c1 error task task/1 exists but feature/1 not exists', e.message)
+            assertEquals('Component c1 error task task/1 exists but feature/1 not exists', e.message)
             assertEquals('master', Git.getBranch(context, new File(env.basedir, 'c1')))
         }
     }

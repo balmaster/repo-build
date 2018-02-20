@@ -341,7 +341,7 @@ class MavenFeature {
 
 
     @CompileStatic
-    static List<MavenComponent> sortComponents(List<MavenComponent> components) {
+    static List<MavenComponent> sortComponents(Collection<MavenComponent> components) {
         def graph = ComponentDependencyGraph.build(components)
         return graph.sort()
     }
@@ -462,10 +462,9 @@ class MavenFeature {
         def context = parentContext.newChild(ACTION_BUILD_PARENTS)
 
         // получаем компоненты и зависимости
-        def componentsMap = ComponentDependencyGraph.getModuleToComponentMap(
-                getParentComponents(getComponents(context)))
+        def components = getParentComponents(getComponents(context))
         // формируем граф зависимостей
-        List<MavenComponent> sortedComponents = sortComponents(componentsMap)
+        List<MavenComponent> sortedComponents = sortComponents(components)
         context.writeOut("sort parents by dependency tree\n")
         sortedComponents.each {
             context.writeOut(it.groupId + ':' + it.artifactId + '\n')
@@ -484,7 +483,7 @@ class MavenFeature {
         def context = parentContext.newChild(ACTION_BUILD_PARALLEL)
         context.withCloseable {
             def build = new Build(context, getComponents(context))
-            return build.execute(context.getParallel())
+            return build.execute(context)
         }
     }
 }

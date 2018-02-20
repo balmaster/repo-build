@@ -3,6 +3,7 @@ package repo.build
 import org.apache.maven.shared.invoker.InvocationRequest
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -319,8 +320,8 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = ComponentDependencyGraph.getModuleToComponentMap(context)
-        assertEquals(10, components.size())
+        def componentsMap = ComponentDependencyGraph.getModuleToComponentMap(MavenFeature.getComponents(context))
+        assertEquals(10, componentsMap.size())
     }
 
     @Test
@@ -331,7 +332,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = ComponentDependencyGraph.getModuleToComponentMap(context)
+        def components = MavenFeature.getComponents(context)
         def sortedComponents = MavenFeature.sortComponents(components)
         assertEquals(6, sortedComponents.size())
         assertEquals('parent', sortedComponents.get(0).getArtifactId())
@@ -350,9 +351,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = ComponentDependencyGraph.getModuleToComponentMap(
-                MavenFeature.getParentComponents(
-                        MavenFeature.getComponents(context)))
+        def components = MavenFeature.getParentComponents(MavenFeature.getComponents(context))
 
         def sortedComponents = MavenFeature.sortComponents(components)
         assertEquals(2, sortedComponents.size())
@@ -395,6 +394,34 @@ class MavenFeatureTest extends BaseTestCase {
         new File(context.env.basedir, 'c2/api/src/main/java/Test.java').text = 'blablabla class'
 
         assertFalse(MavenFeature.buildParallel(context))
+    }
+
+    @Test
+    @Ignore
+    void testBuildParallelCircularDepsFail() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+
+        sandbox.component('parent',
+                { Sandbox sandbox, File dir ->
+                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
+                            { InvocationRequest req ->
+                                req.setGoals(Arrays.asList("versions:set"))
+                                req.setInteractive(false)
+                                Properties properties = new Properties()
+                                properties.put("newVersion", version)
+                                properties.put('generateBackupPoms', 'false')
+                                req.setProperties(properties)
+                            }
+                    )
+                    Git.add(sandbox.context, dir, 'pom.xml')
+                    Git.commit(sandbox.context, dir, 'vup')
+                })
+
+
+        assertTrue(MavenFeature.buildParallel(context))
     }
 
 }
