@@ -17,7 +17,7 @@ import repo.build.maven.MavenComponent
 class ComponentDependencyGraph {
     private final Map<MavenArtifactRef, MavenComponent> componentsMap
     private final DirectedGraph<MavenComponent, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class)
-    private final Map<MavenComponent, Set<MavenComponent>> cycleRefs = new HashMap<>()
+    private final CycleDetector<MavenComponent, DefaultEdge> cycleDetector = new CycleDetector<>(graph)
 
     ComponentDependencyGraph(Map<MavenArtifactRef, MavenComponent> componentsMap) {
         this.componentsMap = componentsMap
@@ -55,22 +55,22 @@ class ComponentDependencyGraph {
 
     private void addComponentRef(MavenComponent component, MavenArtifactRef ref) {
         MavenComponent refComponent = componentsMap.get(ref)
-        if (refComponent) {
+        if (refComponent && !component.equals(refComponent)) {
             add(refComponent)
-            DefaultEdge e = graph.addEdge(component, refComponent)
-            if (hasCycles()) {
-                graph.removeEdge(e)
-                if (!cycleRefs.containsKey(component)) {
-                    cycleRefs.put(component, new HashSet<MavenComponent>())
-                }
-                cycleRefs.get(component).add(refComponent)
-            }
+            graph.addEdge(component, refComponent)
         }
     }
 
     boolean hasCycles() {
-        CycleDetector<MavenComponent, DefaultEdge> cycleDetector = new CycleDetector<>(graph)
         return cycleDetector.detectCycles()
+    }
+
+    Set<MavenComponent> findCycles() {
+        return cycleDetector.findCycles()
+    }
+
+    Set<MavenComponent> findCycles(MavenComponent v) {
+        return cycleDetector.findCyclesContainingVertex(v)
     }
 
     List<MavenComponent> sort() {
@@ -81,10 +81,6 @@ class ComponentDependencyGraph {
         }
         Collections.reverse(items)
         return items
-    }
-
-    Map<MavenComponent, Set<MavenComponent>> getCycleRefs() {
-        return cycleRefs
     }
 
     List<MavenComponent> getIncoming(MavenComponent component) {

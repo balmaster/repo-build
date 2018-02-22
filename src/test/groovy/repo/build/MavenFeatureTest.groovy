@@ -397,31 +397,32 @@ class MavenFeatureTest extends BaseTestCase {
     }
 
     @Test
-    @Ignore
     void testBuildParallelCircularDepsFail() {
         def url = new File(sandbox.env.basedir, 'manifest')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.checkout(sandbox.context,dir, "feature/1")
+                    def ant = new AntBuilder()
+                    ant.copy(todir: dir, overwrite: true) {
+                        fileset(dir: 'src/test/resources/circular/c1') {
+                            include(name: '**/**')
+                        }
+                    }
+                    Git.add(sandbox.context, dir, '*.*')
+                    Git.commit(sandbox.context, dir, 'add')
+                })
+
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
         GitFeature.sync(context)
         GitFeature.switch(context, 'feature/1')
 
-        sandbox.component('parent',
-                { Sandbox sandbox, File dir ->
-                    Maven.execute(sandbox.context, new File(dir, 'pom.xml'),
-                            { InvocationRequest req ->
-                                req.setGoals(Arrays.asList("versions:set"))
-                                req.setInteractive(false)
-                                Properties properties = new Properties()
-                                properties.put("newVersion", version)
-                                properties.put('generateBackupPoms', 'false')
-                                req.setProperties(properties)
-                            }
-                    )
-                    Git.add(sandbox.context, dir, 'pom.xml')
-                    Git.commit(sandbox.context, dir, 'vup')
-                })
+        try {
+            MavenFeature.buildParallel(context)
+            fail()
+        } catch (RepoBuildException e) {
 
-
-        assertTrue(MavenFeature.buildParallel(context))
+        }
     }
 
 }

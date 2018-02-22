@@ -27,9 +27,9 @@ class Build {
         // check circular dependencies
         def graph = ComponentDependencyGraph.build(components)
         if (graph.hasCycles()) {
-            for (def entry : graph.cycleRefs) {
-                def component = entry.getKey()
-                def error = new RepoBuildException("Project ${component.@path} has circular ref to ${entry.getValue()}")
+            for (def component : graph.findCycles()) {
+                def componentCycle = graph.findCycles(component).collect { it.path }
+                def error = new RepoBuildException("Component ${component.@path} has circular refs in cycle ${componentCycle}")
                 context.addError(error)
             }
             throw new RepoBuildException("project has circular dependencies")
