@@ -4,38 +4,28 @@ import groovy.transform.CompileStatic
 import repo.build.ActionContext
 import repo.build.ComponentDependencyGraph
 import repo.build.Maven
-import repo.build.MavenFeature
 import repo.build.RepoBuildException
 
-import java.util.concurrent.ForkJoinPool
-import java.util.concurrent.RecursiveTask
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.Executors
 
 /**
  * @author Markelov Ruslan markelov@jet.msk.su
  */
 //@CompileStatic
 class Build {
-    Map<MavenArtifactRef, MavenComponent> componentMap
-    Map<MavenArtifactRef, BuildTask> buildTaskMap
+    Collection<MavenComponent> components
     ActionContext context
-    Map<MavenArtifactRef, MavenComponent> moduleToComponentMap
 
-    Build(ActionContext context, List<MavenComponent> components) {
+    Build(ActionContext context, Collection<MavenComponent> components) {
         this.context = context
-        this.componentMap = components.collectEntries {
-            [new MavenArtifactRef(it), it]
-        }
-        this.moduleToComponentMap = ComponentDependencyGraph
-                .getModuleToComponentMap(components)
-
-        this.buildTaskMap = componentMap.collectEntries {
-            [it.key, new BuildTask(it.value)]
-        } as Map<MavenArtifactRef, BuildTask>
+        this.components = components
     }
 
     boolean execute(ActionContext context) {
         // check circular dependencies
-        def graph = ComponentDependencyGraph.build(componentMap.values())
+        def graph = ComponentDependencyGraph.build(components)
         if (graph.hasCycles()) {
             for (def entry : graph.cycleRefs) {
                 def component = entry.getKey()
@@ -44,62 +34,66 @@ class Build {
             }
             throw new RepoBuildException("project has circular dependencies")
         }
-        // do parallel build
-        def pool = new ForkJoinPool(context.getParallel())
-        return pool.invoke(new RecursiveTask<Boolean>() {
-            @Override
-            protected Boolean compute() {
-                // execute all build tasks
-                buildTaskMap.each { pool.execute(it.value) }
-                // wait build for all components
-                return !componentMap
-                        .collect { buildTaskMap.get(it.key).join() }
-                        .any { it != BuildState.SUCCESS }
-            }
-        })
-    }
 
-    //@CompileStatic
-    private class BuildTask extends RecursiveTask<BuildState> {
-        MavenComponent component
-        BuildState state
-
-        BuildTask(MavenComponent component) {
-            this.component = component
+        Map<MavenArtifactRef, MavenComponent> componentMap = components.collectEntries {
+            [new MavenArtifactRef(it), it]
         }
 
-        protected BuildState compute() {
-            println("build component $component.path")
-            // wait build deps
-            def isFail = component
-                    .getModules()
+        Map<MavenArtifactRef, BuildState> buildStates = componentMap.collectEntries {
+            [it.key, BuildState.NEW]
+        } as Map<MavenArtifactRef, BuildState>
+
+        Map<MavenArtifactRef, MavenComponent> moduleToComponentMap =
+                ComponentDependencyGraph.getModuleToComponentMap(components)
+
+        ConcurrentMap<MavenArtifactRef, List<MavenArtifactRef>> buildDeps = new ConcurrentHashMap<>()
+        buildStates.keySet().forEach { MavenArtifactRef key ->
+            def depsTasks = componentMap.get(key).modules
                     .collectMany { it.dependencies }
                     .findAll { moduleToComponentMap.containsKey(it) }
                     .unique()
                     .collect { new MavenArtifactRef(moduleToComponentMap.get(it)) }
-                    .collect { buildTaskMap.get(it) }
-                    .findAll { it != this }
-                    .collect { println("wait build $it.component.path"); it.join() }
-                    .any { it != BuildState.SUCCESS }
-            if (isFail) {
-                state = BuildState.DEPS_ERROR
-                context.setErrorFlag()
-                context.addError(new RepoBuildException(" component ${component.path} build $state"))
-            } else {
-                // build component
-                try {
-                    def pomFile = new File(component.basedir, 'pom.xml')
-                    def p = new Properties()
-                    Maven.execute(context, pomFile, ['clean', 'install'])
-                    state = BuildState.SUCCESS
-                } catch (Exception e) {
-                    state = BuildState.ERROR
+                    .findAll { !key.equals(it) }
+            buildDeps.put(key, depsTasks)
+            return
+        }
+
+        Set<MavenArtifactRef> tasks = new HashSet<>(buildStates.keySet())
+
+        def pool = Executors.newFixedThreadPool(context.getParallel())
+        while (!tasks.isEmpty()) {
+            def iter = tasks.iterator()
+            while (iter.hasNext()) {
+                def key = iter.next()
+                def component = componentMap.get(key)
+                def deps = buildDeps.get(key)
+                if (!deps.any { buildStates.get(it) != BuildState.SUCCESS }) {
+                    pool.execute {
+                        // build component
+                        try {
+                            def pomFile = new File(component.basedir, 'pom.xml')
+                            Maven.execute(context, pomFile, ['clean', 'install'])
+                            buildStates.put(key, BuildState.SUCCESS)
+                        } catch (Exception e) {
+                            buildStates.put(key, BuildState.ERROR)
+                            context.setErrorFlag()
+                            context.addError(new RepoBuildException(" component ${component.path} build ERROR", e))
+                        }
+                    }
+                    iter.remove()
+                } else if (deps.any {
+                    buildStates.get(it) == BuildState.DEPS_ERROR ||
+                            buildStates.get(it) == BuildState.ERROR
+                }) {
+                    buildStates.put(key, BuildState.DEPS_ERROR)
                     context.setErrorFlag()
-                    context.addError(new RepoBuildException(" component ${component.path} build $state", e))
+                    context.addError(new RepoBuildException(" component ${component.path} build DEPS_ERROR"))
+                    iter.remove()
                 }
             }
-            return state
+            // throttle cpu
+            Thread.sleep(500L)
         }
+        return !context.getErrorFlag()
     }
-
 }

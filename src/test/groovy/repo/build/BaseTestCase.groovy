@@ -21,8 +21,8 @@ abstract class BaseTestCase extends GroovyAssert {
         context = new ActionContext(env, null, options, new DefaultActionHandler())
     }
 
-    String getArgs() {
-        return "-j 4"
+    String[] getArgs() {
+        return ["-j", "4"]
     }
 
     static File createTempDir() {
