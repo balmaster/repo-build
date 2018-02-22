@@ -9,6 +9,9 @@ import repo.build.RepoBuildException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 /**
  * @author Markelov Ruslan markelov@jet.msk.su
@@ -60,39 +63,50 @@ class Build {
 
         Set<MavenArtifactRef> tasks = new HashSet<>(buildStates.keySet())
 
-        def pool = Executors.newFixedThreadPool(context.getParallel())
-        while (!tasks.isEmpty()) {
-            def iter = tasks.iterator()
-            while (iter.hasNext()) {
-                def key = iter.next()
-                def component = componentMap.get(key)
-                def deps = buildDeps.get(key)
-                if (!deps.any { buildStates.get(it) != BuildState.SUCCESS }) {
-                    pool.execute {
-                        // build component
-                        try {
-                            def pomFile = new File(component.basedir, 'pom.xml')
-                            Maven.execute(context, pomFile, ['clean', 'install'])
-                            buildStates.put(key, BuildState.SUCCESS)
-                        } catch (Exception e) {
-                            buildStates.put(key, BuildState.ERROR)
-                            context.setErrorFlag()
-                            context.addError(new RepoBuildException(" component ${component.path} build ERROR", e))
+        def executionQueue = new LinkedBlockingQueue<Runnable>()
+        def pool = new ThreadPoolExecutor(context.getParallel(), context.getParallel(),
+                0L, TimeUnit.MILLISECONDS,
+                executionQueue)
+        try {
+            while (!tasks.isEmpty()) {
+                def iter = tasks.iterator()
+                while (iter.hasNext()) {
+                    def key = iter.next()
+                    def component = componentMap.get(key)
+                    def deps = buildDeps.get(key)
+                    if (!deps.any { buildStates.get(it) != BuildState.SUCCESS }) {
+                        pool.execute {
+                            // build component
+                            try {
+                                def pomFile = new File(component.basedir, 'pom.xml')
+                                try {
+                                    Maven.execute(context, pomFile, ['clean'])
+                                } catch (RepoBuildException ignore) {
+                                }
+                                Maven.execute(context, pomFile, ['install'])
+                                buildStates.put(key, BuildState.SUCCESS)
+                            } catch (Exception e) {
+                                buildStates.put(key, BuildState.ERROR)
+                                context.setErrorFlag()
+                                context.addError(new RepoBuildException(" component ${component.path} build ERROR", e))
+                            }
                         }
+                        iter.remove()
+                    } else if (deps.any {
+                        buildStates.get(it) == BuildState.DEPS_ERROR ||
+                                buildStates.get(it) == BuildState.ERROR
+                    }) {
+                        buildStates.put(key, BuildState.DEPS_ERROR)
+                        context.setErrorFlag()
+                        context.addError(new RepoBuildException(" component ${component.path} build DEPS_ERROR"))
+                        iter.remove()
                     }
-                    iter.remove()
-                } else if (deps.any {
-                    buildStates.get(it) == BuildState.DEPS_ERROR ||
-                            buildStates.get(it) == BuildState.ERROR
-                }) {
-                    buildStates.put(key, BuildState.DEPS_ERROR)
-                    context.setErrorFlag()
-                    context.addError(new RepoBuildException(" component ${component.path} build DEPS_ERROR"))
-                    iter.remove()
                 }
+                // throttle cpu
+                Thread.sleep(500L)
             }
-            // throttle cpu
-            Thread.sleep(500L)
+        } finally {
+            pool.shutdown()
         }
         return !context.getErrorFlag()
     }
