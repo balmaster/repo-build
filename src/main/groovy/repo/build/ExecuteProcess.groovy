@@ -42,7 +42,7 @@ class ExecuteProcess {
 
         def exitValue = process.waitFor()
         // for read process output
-        Thread.sleep(100)
+        Thread.sleep(100L)
 
         def outStream = new AnsiOutputStream(System.out)
         if (bufferStream.size() > 0) {
@@ -83,7 +83,7 @@ class ExecuteProcess {
 
             def exitValue = process.waitFor()
             // for read process output
-            Thread.sleep(100)
+            Thread.sleep(100L)
 
             if (checkErrorCode && exitValue != 0) {
                 throw new RepoBuildException("name '$cmd' has exit code $exitValue");

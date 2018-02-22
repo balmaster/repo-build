@@ -14,6 +14,7 @@ import repo.build.command.GrepCommand
 import repo.build.command.InitCommand
 import repo.build.command.MergeAbortCommand
 import repo.build.command.MvnBuildCommand
+import repo.build.command.MvnBuildParallelCommand
 import repo.build.command.PrepareMergeCommand
 import repo.build.command.PushFeatureCommand
 import repo.build.command.PushManifestCommand
@@ -54,6 +55,7 @@ class RepoBuild {
         commandRegistry.registerCommand(new InitCommand())
         commandRegistry.registerCommand(new MergeAbortCommand())
         commandRegistry.registerCommand(new MvnBuildCommand())
+        commandRegistry.registerCommand(new MvnBuildParallelCommand())
         commandRegistry.registerCommand(new PrepareMergeCommand())
         commandRegistry.registerCommand(new PushFeatureCommand())
         commandRegistry.registerCommand(new PushManifestCommand())

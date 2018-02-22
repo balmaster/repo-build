@@ -47,6 +47,12 @@ class Maven {
                 }
         )
     }
+
+    @CompileStatic
+    static void execute(ActionContext context,
+                        File pomFile,
+                        List<String> goals) {
+        execute(context, pomFile, goals, [:])
+    }
+
 }
-
-

@@ -13,7 +13,7 @@ class MvnBuildSpecification extends Specification {
     }
 
     def "without args"() {
-        def repoBuild = new RepoBuild('mvn-execute')
+        def repoBuild = new RepoBuild('mvn-build')
         def basedir = new File('.').getAbsoluteFile()
 
         when:
@@ -25,7 +25,7 @@ class MvnBuildSpecification extends Specification {
     }
 
     def "with args"() {
-        def repoBuild = new RepoBuild('mvn-execute', '-j', '2', '-DskipTests', '-Dopt1=value1')
+        def repoBuild = new RepoBuild('mvn-build', '-j', '2', '-DskipTests', '-Dopt1=value1')
         def basedir = new File('.').getAbsoluteFile()
 
         when:

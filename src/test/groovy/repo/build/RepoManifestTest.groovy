@@ -36,7 +36,7 @@ class RepoManifestTest extends BaseTestCase {
             fail()
         }
         catch (RepoBuildException e) {
-            assertEquals('Project c1 error test', e.message)
+            assertEquals('Component c1 error test', e.message)
         }
     }
 

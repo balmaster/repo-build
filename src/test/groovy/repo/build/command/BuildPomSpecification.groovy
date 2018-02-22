@@ -14,7 +14,7 @@ class BuildPomSpecification extends Specification {
     }
 
     def "without args"() {
-        def repoBuild = new RepoBuild('execute-pom')
+        def repoBuild = new RepoBuild('build-pom')
 
         setup:
         1 * Git.getBranch(_, new File(dir, 'manifest')) >> '1.0'
@@ -27,7 +27,7 @@ class BuildPomSpecification extends Specification {
     }
 
     def "with featureBranch"() {
-        def repoBuild = new RepoBuild('execute-pom', '-f', 'feature/1')
+        def repoBuild = new RepoBuild('build-pom', '-f', 'feature/1')
 
         when:
         repoBuild.execute()

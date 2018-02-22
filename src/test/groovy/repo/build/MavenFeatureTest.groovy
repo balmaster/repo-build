@@ -1,7 +1,9 @@
 package repo.build
 
 import org.apache.maven.shared.invoker.InvocationRequest
+import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -318,8 +320,8 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getModuleToComponentMap(context)
-        assertEquals(10, components.size())
+        def componentsMap = ComponentDependencyGraph.getModuleToComponentMap(MavenFeature.getComponents(context))
+        assertEquals(10, componentsMap.size())
     }
 
     @Test
@@ -330,7 +332,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getModuleToComponentMap(context)
+        def components = MavenFeature.getComponents(context)
         def sortedComponents = MavenFeature.sortComponents(components)
         assertEquals(6, sortedComponents.size())
         assertEquals('parent', sortedComponents.get(0).getArtifactId())
@@ -349,9 +351,7 @@ class MavenFeatureTest extends BaseTestCase {
         GitFeature.switch(context, 'feature/1')
         Pom.generateXml(context, 'feature/1', new File(env.basedir, 'pom.xml'))
 
-        def components = MavenFeature.getModuleToComponentMap(
-                MavenFeature.getParentComponents(
-                        MavenFeature.getComponents(context)))
+        def components = MavenFeature.getParentComponents(MavenFeature.getComponents(context))
 
         def sortedComponents = MavenFeature.sortComponents(components)
         assertEquals(2, sortedComponents.size())
@@ -370,6 +370,59 @@ class MavenFeatureTest extends BaseTestCase {
 
         MavenFeature.buildParents(context)
         Maven.execute(context, new File(env.basedir, 'pom.xml'), ['clean', 'install'], new Properties())
+    }
+
+
+    @Test
+    void testBuildParallel() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+
+        assertTrue(MavenFeature.buildParallel(context))
+    }
+
+    @Test
+    void testBuildParallelFail() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+
+        // create class with syntax error
+        new File(context.env.basedir, 'c2/api/src/main/java/Test.java').text = 'blablabla class'
+
+        assertFalse(MavenFeature.buildParallel(context))
+    }
+
+    @Test
+    void testBuildParallelCircularDepsFail() {
+        def url = new File(sandbox.env.basedir, 'manifest')
+
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.checkout(sandbox.context,dir, "feature/1")
+                    def ant = new AntBuilder()
+                    ant.copy(todir: dir, overwrite: true) {
+                        fileset(dir: 'src/test/resources/circular/c1') {
+                            include(name: '**/**')
+                        }
+                    }
+                    Git.add(sandbox.context, dir, '*.*')
+                    Git.commit(sandbox.context, dir, 'add')
+                })
+
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+        GitFeature.sync(context)
+        GitFeature.switch(context, 'feature/1')
+
+        try {
+            MavenFeature.buildParallel(context)
+            fail()
+        } catch (RepoBuildException e) {
+
+        }
     }
 
 }
