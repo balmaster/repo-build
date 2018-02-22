@@ -323,7 +323,7 @@ class GitFeatureTest extends BaseTestCase {
 
         GitFeature.status(context)
         def splitedOutput = outputCapture.toString().split('\n')
-        assertEquals(8, splitedOutput.size())
+        assertEquals(9, splitedOutput.size())
         assertEquals("should contain 1 c1", 1,
                 getByValueFromOutput("c1", splitedOutput).size())
         assertEquals("should contain 1 master branch", 1,
@@ -331,7 +331,7 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals("should contain new file", 1,
                 getByValueFromOutput("?? new", splitedOutput).size())
         assertEquals("should contain 1 c2 ", 1, getByValueFromOutput("c2", splitedOutput).size())
-        assertEquals("should contain 1 empty string", 1,
+        assertEquals("should contain 1 empty string", 2,
                 getByValueFromOutput("", splitedOutput).size())
         assertEquals("should contain 1 remote ref repository name", 1,
                 containsValueFromFromOutput("refs/remotes/origin/master", splitedOutput).length)
