@@ -80,6 +80,25 @@ class GitFeature {
         }
     }
 
+    static void releaseMergeRelease(ActionContext context, String oneManifestBranch, String twoManifestBranch) {
+        updateManifest(context, oneManifestBranch)
+        sync(context)
+
+        Map<String, String> map = new HashMap<>()
+        RepoManifest.forEach(context, { ActionContext actionContext, Node project ->
+            map.put(project.attribute("name").toString(),
+                    project.attribute("revision").toString().replace("refs/heads/", ""))
+        })
+
+        updateManifest(context, twoManifestBranch)
+        sync(context)
+
+        RepoManifest.forEach(context, { ActionContext actionContext, Node project ->
+            def dir = new File(context.env.basedir, project.@path)
+            Git.merge(context, map.get(project.attribute("name")), dir)
+        })
+    }
+
     static void taskMergeFeature(ActionContext parentContext, String taskBranch, String featureBranch) {
         def context = parentContext.newChild()
         context.withCloseable {

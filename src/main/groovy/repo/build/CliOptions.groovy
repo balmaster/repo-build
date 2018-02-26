@@ -169,4 +169,13 @@ class CliOptions {
     boolean hasFae() {
         return options.fae
     }
+
+    String getOneManifestBranch() {
+        return getRequired(options.ro, "Use: release-merge-release -ro release-one -rt release-two-branch-manifest")
+    }
+
+    String getTwoManifestBranch() {
+        getRequired(options.rt,"Use: release-merge-release -ro release-one -rt release-two-branch-manifest")
+    }
+
 }

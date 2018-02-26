@@ -17,6 +17,8 @@ class CliBuilderFactory {
             m('use manifest branches')
             p(args: 1, argName: 'buildPomFile', '')
             r(args: 1, argName: 'repoBasedir', 'base dir of repo projects')
+            ro(args: 1, argName: 'release-one', 'one manifest branch release')
+            rt(args: 1, argName: 'release-two', 'two manifest branch release')
             s(args: 1, argName: 'sourceImportDir', 'source  import dir for bundles')
             t(args: 1, argName: 'targetExportDir', 'target export dir for bundles')
             all('show all output on status')

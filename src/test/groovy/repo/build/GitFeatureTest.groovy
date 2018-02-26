@@ -577,6 +577,52 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('', new File(c1Dir, 'README.md').text)
     }
 
+    /**
+     * {@link repo.build.GitFeature#releaseMergeRelease(ActionContext context, String oneManifestBranch, String twoManifestBranch) }
+     */
+    @Test
+    void testReleaseMergeRelease() {
+        println("this ${this.context} -> ${this.context.env.basedir}")
+        println("sandbox ${sandbox.context} -> ${sandbox.context.env.basedir}")
+        //init
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        //component
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    //new branch 1.0
+                    Git.createBranch(context, dir, '1.0')
+
+                    //some changes
+                    Git.checkout(context, dir, 'master')
+                    def newFile = new File(dir, 'test')
+                    newFile.createNewFile()
+                    newFile.text = 'TEST123'
+                    Git.add(context, dir, 'test')
+                    Git.commit(context, dir, 'test')
+                })
+
+        //manifest
+        sandbox.component('manifest',
+                { Sandbox sandbox, File dir ->
+                    //new branch
+                    Git.createBranch(context, dir, 'master2')
+                    Git.checkout(context, dir, 'master2')
+
+                    //change default branch component c2 on manifest
+                    sandbox.changeDefaultBranchComponentOnManifest(url, 'c2', '1.0')
+                    Git.add(context, dir, 'default.xml')
+                    Git.commit(context, dir, 'vup')
+                })
+
+        //expected call function
+        GitFeature.releaseMergeRelease(context, 'master', 'master2')
+
+        Git.checkout(context, new File(context.env.basedir, 'c2'), '1.0')
+        assertEquals('TEST123', new File(context.env.basedir, 'c2/test').text)
+    }
+
     //TODO we can use hamcrest matchers
     private static String[] getByValueFromOutput(String value, String[] output) {
         if (output.size() == 0) return null
