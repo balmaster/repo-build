@@ -582,8 +582,6 @@ class GitFeatureTest extends BaseTestCase {
      */
     @Test
     void testReleaseMergeRelease() {
-        println("this ${this.context} -> ${this.context.env.basedir}")
-        println("sandbox ${sandbox.context} -> ${sandbox.context.env.basedir}")
         //init
         def url = new File(sandbox.env.basedir, 'manifest')
         GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
@@ -591,11 +589,11 @@ class GitFeatureTest extends BaseTestCase {
         //component
         sandbox.component('c2',
                 { Sandbox sandbox, File dir ->
-                    //new branch 1.0
                     Git.createBranch(context, dir, '1.0')
+                    Git.createBranch(context, dir, '2.0')
 
                     //some changes
-                    Git.checkout(context, dir, 'master')
+                    Git.checkout(context, dir, '1.0')
                     def newFile = new File(dir, 'test')
                     newFile.createNewFile()
                     newFile.text = 'TEST123'
@@ -606,20 +604,25 @@ class GitFeatureTest extends BaseTestCase {
         //manifest
         sandbox.component('manifest',
                 { Sandbox sandbox, File dir ->
-                    //new branch
-                    Git.createBranch(context, dir, 'master2')
-                    Git.checkout(context, dir, 'master2')
+                    //change default branch to 1.0 on c2 component in manifest
+                    Git.createBranch(context, dir, '1.0')
+                    Git.checkout(context, dir, '1.0')
+                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', '1.0')
+                    Git.add(context, dir, 'default.xml')
+                    Git.commit(context, dir, 'vup')
 
-                    //change default branch component c2 on manifest
-                    sandbox.changeDefaultBranchComponentOnManifest(url, 'c2', '1.0')
+                    //change default branch to 2.0 on c2 component in manifest
+                    Git.createBranch(context, dir, '2.0')
+                    Git.checkout(context, dir, '2.0')
+                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', '2.0')
                     Git.add(context, dir, 'default.xml')
                     Git.commit(context, dir, 'vup')
                 })
 
         //expected call function
-        GitFeature.releaseMergeRelease(context, 'master', 'master2')
+        GitFeature.releaseMergeRelease(context, '1.0', '2.0')
 
-        Git.checkout(context, new File(context.env.basedir, 'c2'), '1.0')
+        Git.checkout(context, new File(context.env.basedir, 'c2'), '2.0')
         assertEquals('TEST123', new File(context.env.basedir, 'c2/test').text)
     }
 

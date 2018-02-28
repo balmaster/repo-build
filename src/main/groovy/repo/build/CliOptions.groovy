@@ -170,12 +170,12 @@ class CliOptions {
         return options.fae
     }
 
-    String getOneManifestBranch() {
-        return getRequired(options.ro, "Use: release-merge-release -ro release-one -rt release-two-branch-manifest")
+    String getSourceReleaseManifestBranch() {
+        return getRequired(options.rs, "Use: release-merge-release -rs release-source -rd release-destination")
     }
 
-    String getTwoManifestBranch() {
-        getRequired(options.rt,"Use: release-merge-release -ro release-one -rt release-two-branch-manifest")
+    String getDestinationReleaseManifestBranch() {
+        getRequired(options.rd,"Use: release-merge-release -rs release-source -rd release-destination")
     }
 
 }

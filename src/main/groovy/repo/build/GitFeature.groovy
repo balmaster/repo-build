@@ -80,9 +80,9 @@ class GitFeature {
         }
     }
 
-    static void releaseMergeRelease(ActionContext context, String oneManifestBranch, String twoManifestBranch) {
-        updateManifest(context, oneManifestBranch)
-        sync(context)
+    static void releaseMergeRelease(ActionContext context, String sourceRelease, String destinationRelease) {
+        updateManifest(context, sourceRelease)
+        context.env.openManifest()
 
         Map<String, String> map = new HashMap<>()
         RepoManifest.forEach(context, { ActionContext actionContext, Node project ->
@@ -90,12 +90,21 @@ class GitFeature {
                     project.attribute("revision").toString().replace("refs/heads/", ""))
         })
 
-        updateManifest(context, twoManifestBranch)
+        updateManifest(context, destinationRelease)
         sync(context)
 
         RepoManifest.forEach(context, { ActionContext actionContext, Node project ->
+            def component = project.attribute("name")
+            def currentBranch = project.attribute("revision").toString().replace("refs/heads/", "")
+            def mergeBranch = map.get(component)
             def dir = new File(context.env.basedir, project.@path)
-            Git.merge(context, map.get(project.attribute("name")), dir)
+            if (mergeBranch != null) {
+                if (currentBranch < mergeBranch) {
+                    println("Сomponent $component wasn't automatic merge because the current version $currentBranch is younger $mergeBranch")
+                } else {
+                    Git.merge(context, mergeBranch, dir)
+                }
+            }
         })
     }
 

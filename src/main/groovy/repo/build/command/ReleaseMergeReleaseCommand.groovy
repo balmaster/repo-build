@@ -17,7 +17,7 @@ class ReleaseMergeReleaseCommand extends AbstractCommand {
     void execute(RepoEnv env, CliOptions options) {
         def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         context.withCloseable {
-            GitFeature.releaseMergeRelease(context, options.getOneManifestBranch(), options.getTwoManifestBranch())
+            GitFeature.releaseMergeRelease(context, options.getSourceReleaseManifestBranch(), options.getDestinationReleaseManifestBranch())
         }
     }
 }

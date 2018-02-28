@@ -66,9 +66,8 @@ class Sandbox {
         File file = new File(dirManifest,'default.xml')
 
         def text = file.text
-        file.write(text.replaceAll('<project name=\''+component+'\' remote=\'origin\' path=\''+component+'\' revision=\'refs/heads/[\\w\\s]+\' />',
+        file.write(text.replaceAll('<project name=\''+component+'\' remote=\'origin\' path=\''+component+'\' revision=\'refs/heads/[\\w\\s.]+\' />',
                 '<project name=\''+component+'\' remote=\'origin\' path=\''+component+'\' revision=\'refs/heads/'+defaultBranch+'\' />'))
-
     }
 
 }
