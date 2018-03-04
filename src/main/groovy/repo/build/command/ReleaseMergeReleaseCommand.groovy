@@ -13,11 +13,21 @@ class ReleaseMergeReleaseCommand extends AbstractCommand {
     }
 
     private static final String ACTION_EXECUTE = 'releaseMergeReleaseCommandExecute'
+    private static final String DEFAULT_REGEXP = /(\d+\.\d+)/
 
     void execute(RepoEnv env, CliOptions options) {
         def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         context.withCloseable {
-            GitFeature.releaseMergeRelease(context, options.getSourceReleaseManifestBranch(), options.getDestinationReleaseManifestBranch())
+
+            if (options.getVersionRegexp() == null) {
+                GitFeature.releaseMergeRelease(context, options.getSourceReleaseManifestBranch(),
+                        options.getDestinationReleaseManifestBranch(),
+                        DEFAULT_REGEXP, { List list -> return list[0]+".0" })
+            } else {
+                GitFeature.releaseMergeRelease(context, options.getSourceReleaseManifestBranch(),
+                        options.getDestinationReleaseManifestBranch(),
+                        options.getVersionRegexp(), {})
+            }
         }
     }
 }

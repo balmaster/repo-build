@@ -589,11 +589,11 @@ class GitFeatureTest extends BaseTestCase {
         //component
         sandbox.component('c2',
                 { Sandbox sandbox, File dir ->
-                    Git.createBranch(context, dir, '1.0')
-                    Git.createBranch(context, dir, '2.0')
+                    Git.createBranch(context, dir, 'develop/1.0')
+                    Git.createBranch(context, dir, 'develop/2.0')
 
                     //some changes
-                    Git.checkout(context, dir, '1.0')
+                    Git.checkout(context, dir, 'develop/1.0')
                     def newFile = new File(dir, 'test')
                     newFile.createNewFile()
                     newFile.text = 'TEST123'
@@ -604,25 +604,28 @@ class GitFeatureTest extends BaseTestCase {
         //manifest
         sandbox.component('manifest',
                 { Sandbox sandbox, File dir ->
-                    //change default branch to 1.0 on c2 component in manifest
+                    //change default branch to develop/1.0 on c2 component in manifest
                     Git.createBranch(context, dir, '1.0')
                     Git.checkout(context, dir, '1.0')
-                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', '1.0')
+                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', 'develop/1.0')
                     Git.add(context, dir, 'default.xml')
                     Git.commit(context, dir, 'vup')
 
-                    //change default branch to 2.0 on c2 component in manifest
+                    //change default branch to develop/2.0 on c2 component in manifest
                     Git.createBranch(context, dir, '2.0')
                     Git.checkout(context, dir, '2.0')
-                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', '2.0')
+                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', 'develop/2.0')
                     Git.add(context, dir, 'default.xml')
                     Git.commit(context, dir, 'vup')
                 })
 
         //expected call function
-        GitFeature.releaseMergeRelease(context, '1.0', '2.0')
+        GitFeature.releaseMergeRelease(context, '1.0', '2.0', /(\d+\.\d+)/,
+                {
+                    List list -> return list[0]+".0"
+                })
 
-        Git.checkout(context, new File(context.env.basedir, 'c2'), '2.0')
+        Git.checkout(context, new File(context.env.basedir, 'c2'), 'develop/2.0')
         assertEquals('TEST123', new File(context.env.basedir, 'c2/test').text)
     }
 

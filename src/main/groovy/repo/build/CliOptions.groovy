@@ -178,4 +178,8 @@ class CliOptions {
         getRequired(options.rd,"Use: release-merge-release -rs release-source -rd release-destination")
     }
 
+    String getVersionRegexp() {
+        return options.rr
+    }
+
 }
