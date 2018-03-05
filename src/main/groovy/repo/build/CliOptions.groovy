@@ -169,4 +169,17 @@ class CliOptions {
     boolean hasFae() {
         return options.fae
     }
+
+    String getSourceReleaseManifestBranch() {
+        return getRequired(options.rs, "Use: release-merge-release -rs release-source -rd release-destination")
+    }
+
+    String getDestinationReleaseManifestBranch() {
+        getRequired(options.rd,"Use: release-merge-release -rs release-source -rd release-destination")
+    }
+
+    String getVersionRegexp() {
+        return options.rr
+    }
+
 }

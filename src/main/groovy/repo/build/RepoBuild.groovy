@@ -20,6 +20,7 @@ import repo.build.command.PushFeatureCommand
 import repo.build.command.PushManifestCommand
 import repo.build.command.PushTagCommand
 import repo.build.command.ReleaseMergeFeatureCommand
+import repo.build.command.ReleaseMergeReleaseCommand
 import repo.build.command.ReleaseUpdateParentCommand
 import repo.build.command.ReleaseUpdateVersionsCommand
 import repo.build.command.StashCommand
@@ -60,6 +61,7 @@ class RepoBuild {
         commandRegistry.registerCommand(new PushFeatureCommand())
         commandRegistry.registerCommand(new PushManifestCommand())
         commandRegistry.registerCommand(new PushTagCommand())
+        commandRegistry.registerCommand(new ReleaseMergeReleaseCommand())
         commandRegistry.registerCommand(new ReleaseMergeFeatureCommand())
         commandRegistry.registerCommand(new ReleaseUpdateParentCommand())
         commandRegistry.registerCommand(new ReleaseUpdateVersionsCommand())

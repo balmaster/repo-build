@@ -577,6 +577,58 @@ class GitFeatureTest extends BaseTestCase {
         assertEquals('', new File(c1Dir, 'README.md').text)
     }
 
+    /**
+     * {@link repo.build.GitFeature#releaseMergeRelease(ActionContext context, String oneManifestBranch, String twoManifestBranch) }
+     */
+    @Test
+    void testReleaseMergeRelease() {
+        //init
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        //component
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(context, dir, 'develop/1.0')
+                    Git.createBranch(context, dir, 'develop/2.0')
+
+                    //some changes
+                    Git.checkout(context, dir, 'develop/1.0')
+                    def newFile = new File(dir, 'test')
+                    newFile.createNewFile()
+                    newFile.text = 'TEST123'
+                    Git.add(context, dir, 'test')
+                    Git.commit(context, dir, 'test')
+                })
+
+        //manifest
+        sandbox.component('manifest',
+                { Sandbox sandbox, File dir ->
+                    //change default branch to develop/1.0 on c2 component in manifest
+                    Git.createBranch(context, dir, '1.0')
+                    Git.checkout(context, dir, '1.0')
+                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', 'develop/1.0')
+                    Git.add(context, dir, 'default.xml')
+                    Git.commit(context, dir, 'vup')
+
+                    //change default branch to develop/2.0 on c2 component in manifest
+                    Git.createBranch(context, dir, '2.0')
+                    Git.checkout(context, dir, '2.0')
+                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', 'develop/2.0')
+                    Git.add(context, dir, 'default.xml')
+                    Git.commit(context, dir, 'vup')
+                })
+
+        //expected call function
+        GitFeature.releaseMergeRelease(context, '1.0', '2.0', /(\d+\.\d+)/,
+                {
+                    List list -> return list[0]+".0"
+                })
+
+        Git.checkout(context, new File(context.env.basedir, 'c2'), 'develop/2.0')
+        assertEquals('TEST123', new File(context.env.basedir, 'c2/test').text)
+    }
+
     //TODO we can use hamcrest matchers
     private static String[] getByValueFromOutput(String value, String[] output) {
         if (output.size() == 0) return null

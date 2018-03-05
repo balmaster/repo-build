@@ -1,5 +1,8 @@
 package repo.build
 
+import com.github.zafarkhaja.semver.UnexpectedCharacterException
+import com.github.zafarkhaja.semver.Version
+
 class GitFeature {
 
     static File getManifestDir(ActionContext context) {
@@ -78,6 +81,42 @@ class GitFeature {
                         Git.merge(actionContext, featureBranch, dir)
                     }, featureBranch)
         }
+    }
+
+    static void releaseMergeRelease(ActionContext context, String sourceRelease, String destinationRelease, String regexp, Closure versionClosure) {
+        updateManifest(context, sourceRelease)
+        context.env.openManifest()
+
+        Map<String, String> map = new HashMap<>()
+        RepoManifest.forEach(context, { ActionContext actionContext, Node project ->
+            map.put(project.attribute("name").toString(),
+                    project.attribute("revision").toString().replace("refs/heads/", ""))
+        })
+
+        updateManifest(context, destinationRelease)
+        sync(context)
+
+        RepoManifest.forEach(context, { ActionContext actionContext, Node project ->
+            def component = project.attribute("name")
+            def dir = new File(context.env.basedir, project.@path)
+            def currentBranch = project.attribute("revision").toString().replace("refs/heads/", "")
+            def mergeBranch = map.get(component)
+
+            if (mergeBranch != null) {
+                try {
+                    Version currentVersion = Version.valueOf(currentBranch.find(regexp, versionClosure).toString())
+                    Version mergeVersion = Version.valueOf(mergeBranch.find(regexp, versionClosure).toString())
+
+                    if (currentVersion.greaterThan(mergeVersion)) {
+                        Git.merge(context, mergeBranch, dir)
+                    } else {
+                        actionContext.addError(new RepoBuildException("Сomponent $component wasn't automatic merge because the current version $currentBranch is younger $mergeBranch"))
+                    }
+                } catch (UnexpectedCharacterException | IllegalArgumentException | NullPointerException e) {
+                    actionContext.addError(new RepoBuildException("Cannot be automatic merge component $component with version $currentBranch to $mergeBranch"))
+                }
+            }
+        })
     }
 
     static void taskMergeFeature(ActionContext parentContext, String taskBranch, String featureBranch) {
