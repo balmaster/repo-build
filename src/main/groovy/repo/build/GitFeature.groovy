@@ -107,13 +107,13 @@ class GitFeature {
                     Version currentVersion = Version.valueOf(currentBranch.find(regexp, versionClosure).toString())
                     Version mergeVersion = Version.valueOf(mergeBranch.find(regexp, versionClosure).toString())
 
-                    if (currentVersion.greaterThan(mergeVersion)) {
+                    if (currentVersion.greaterThanOrEqualTo(mergeVersion)) {
                         Git.merge(context, mergeBranch, dir)
                     } else {
                         actionContext.addError(new RepoBuildException("Сomponent $component wasn't automatic merge because the current version $currentBranch is younger $mergeBranch"))
                     }
                 } catch (UnexpectedCharacterException | IllegalArgumentException | NullPointerException e) {
-                    actionContext.addError(new RepoBuildException("Cannot be automatic merge component $component with version $currentBranch to $mergeBranch"))
+                    actionContext.addError(new RepoBuildException("Cannot be automatic merge component $component version $mergeBranch to $currentBranch", e))
                 }
             }
         })
