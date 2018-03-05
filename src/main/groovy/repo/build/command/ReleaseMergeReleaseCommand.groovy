@@ -19,14 +19,14 @@ class ReleaseMergeReleaseCommand extends AbstractCommand {
         def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
         context.withCloseable {
 
-            if (options.getVersionRegexp() == null) {
-                GitFeature.releaseMergeRelease(context, options.getSourceReleaseManifestBranch(),
-                        options.getDestinationReleaseManifestBranch(),
-                        DEFAULT_REGEXP, { List list -> return list[0]+".0" })
-            } else {
+            if (options.hasVersionRegexp()) {
                 GitFeature.releaseMergeRelease(context, options.getSourceReleaseManifestBranch(),
                         options.getDestinationReleaseManifestBranch(),
                         options.getVersionRegexp(), {})
+            } else {
+                GitFeature.releaseMergeRelease(context, options.getSourceReleaseManifestBranch(),
+                        options.getDestinationReleaseManifestBranch(),
+                        DEFAULT_REGEXP, { List list -> return list[0]+".0" })
             }
         }
     }

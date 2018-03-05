@@ -578,7 +578,7 @@ class GitFeatureTest extends BaseTestCase {
     }
 
     /**
-     * {@link repo.build.GitFeature#releaseMergeRelease(ActionContext context, String oneManifestBranch, String twoManifestBranch) }
+     * {@link repo.build.GitFeature#releaseMergeRelease(ActionContext context, String oneManifestBranch, String twoManifestBranch, String regexp, Closure versionClosure) }
      */
     @Test
     void testReleaseMergeRelease() {

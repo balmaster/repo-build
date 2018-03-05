@@ -182,4 +182,8 @@ class CliOptions {
         return options.rr
     }
 
+    boolean hasVersionRegexp() {
+        return options.rr ? true : false
+    }
+
 }
