@@ -87,9 +87,9 @@ class GitFeature {
         updateManifest(context, sourceRelease)
         context.env.openManifest()
 
-        Map<String, String> map = new HashMap<>()
+        Map<String, String> sourceBranches = new HashMap<>()
         RepoManifest.forEach(context, { ActionContext actionContext, Node project ->
-            map.put(project.attribute("name").toString(),
+            sourceBranches.put(project.attribute("name").toString(),
                     project.attribute("revision").toString().replace("refs/heads/", ""))
         })
 
@@ -99,21 +99,20 @@ class GitFeature {
         RepoManifest.forEach(context, { ActionContext actionContext, Node project ->
             def component = project.attribute("name")
             def dir = new File(context.env.basedir, project.@path)
-            def currentBranch = project.attribute("revision").toString().replace("refs/heads/", "")
-            def mergeBranch = map.get(component)
-
-            if (mergeBranch != null) {
+            def targetBranch = project.attribute("revision").toString().replace("refs/heads/", "")
+            def sourceBranch = sourceBranches.get(component)
+            if (sourceBranch != null) {
                 try {
-                    Version currentVersion = Version.valueOf(currentBranch.find(regexp, versionClosure).toString())
-                    Version mergeVersion = Version.valueOf(mergeBranch.find(regexp, versionClosure).toString())
+                    Version targetVersion = Version.valueOf(targetBranch.find(regexp, versionClosure).toString())
+                    Version sourceVersion = Version.valueOf(sourceBranch.find(regexp, versionClosure).toString())
 
-                    if (currentVersion.greaterThanOrEqualTo(mergeVersion)) {
-                        Git.merge(context, mergeBranch, dir)
+                    if (targetVersion.greaterThanOrEqualTo(sourceVersion)) {
+                        Git.merge(context, RepoManifest.getRemoteBranch(context, sourceBranch), dir)
                     } else {
-                        actionContext.addError(new RepoBuildException("Сomponent $component wasn't automatic merge because the current version $currentBranch is younger $mergeBranch"))
+                        actionContext.addError(new RepoBuildException("Сomponent $component wasn't automatic merge because the current version $targetBranch is younger $sourceBranch"))
                     }
                 } catch (UnexpectedCharacterException | IllegalArgumentException | NullPointerException e) {
-                    actionContext.addError(new RepoBuildException("Cannot be automatic merge component $component version $mergeBranch to $currentBranch", e))
+                    actionContext.addError(new RepoBuildException("Cannot be automatic merge component $component version $sourceBranch to $targetBranch", e))
                 }
             }
         })
