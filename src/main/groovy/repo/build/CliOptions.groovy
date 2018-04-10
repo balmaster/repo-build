@@ -72,6 +72,32 @@ class CliOptions {
                 : new File(getRepoBasedir(), 'bundles')
     }
 
+    //source dir or zip for import bundles (dir / zip  with bundles)
+    File getSourceImportDir() {
+        return options.s ?
+                new File(options.s)
+                : new File(getRepoBasedir(), 'bundles')
+    }
+
+    //manifest for import / export bundles
+    File getManifestFile() {
+        return options.mf ?
+                new File(options.mf)
+                : null
+    }
+
+    //create zip archive with bundle
+    boolean getZipFlag(){
+        return options.z
+    }
+
+    //create file with current branch commits for creating delta export bundles
+    File getCurCommitsFile(){
+        return options.ccf ?
+                new File(options.ccf)
+                : null
+    }
+
     String getExpression() {
         return getRequired(options.e, "Expression required.\nUse: 'repo-execute -e <expr> grep'")
     }

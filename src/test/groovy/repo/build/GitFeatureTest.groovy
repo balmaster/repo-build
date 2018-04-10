@@ -1,5 +1,7 @@
 package repo.build
 
+import com.google.common.io.Files
+import groovy.xml.XmlUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -627,6 +629,233 @@ class GitFeatureTest extends BaseTestCase {
 
         Git.checkout(context, new File(context.env.basedir, 'c2'), 'develop/2.0')
         assertEquals('TEST123', new File(context.env.basedir, 'c2/test').text)
+    }
+
+    @Test
+    void testCreateManifestBundles(){
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, 'origin/master')
+                })
+
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, 'origin/master')
+                })
+
+        File bundleDir = Files.createTempDir()
+        sandbox.context.env.openManifest()
+        GitFeature.createManifestBundles(sandbox.context, bundleDir)
+
+        def c1bundle = new File(bundleDir, 'c1.bundle')
+        def c2bundle = new File(bundleDir, 'c1.bundle')
+
+        assertTrue(c1bundle.canRead())
+        assertTrue(c2bundle.canRead())
+    }
+
+    @Test
+    void testCloneFromBundle() {
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, '1.0')
+                    def newFile = new File(dir, "test")
+                    newFile.createNewFile()
+                    newFile.text = 'TEST123'
+                    Git.add(context, dir, 'test')
+                    Git.commit(context, dir, 'test_1.0')
+                })
+
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, '1.5')
+                    def newFile = new File(dir, "test")
+                    newFile.createNewFile()
+                    newFile.text = 'Launch2'
+                    Git.add(context, dir, 'test')
+                    Git.commit(context, dir, 'test_1.5')
+                })
+
+        //manifest
+        sandbox.component('manifest',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(context, dir, '1.0')
+                    Git.checkout(context, dir, '1.0')
+                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c1', '1.0')
+                    Git.add(context, dir, 'default.xml')
+                    Git.commit(context, dir, 'vup')
+
+                    Git.createBranch(context, dir, '1.5')
+                    Git.checkout(context, dir, '1.5')
+                    sandbox.changeDefaultBranchComponentOnManifest(dir, 'c2', '1.5')
+                    Git.add(context, dir, 'default.xml')
+                    Git.commit(context, dir, 'vup')
+                })
+
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), '1.5')
+
+        GitFeature.sync(context)
+
+        //export bundles
+        File bundleDir = Files.createTempDir()
+        context.env.openManifest()
+        GitFeature.createManifestBundles(context, bundleDir)
+
+        //convert manifest
+        sandbox.component('manifest',
+                {
+                    Sandbox sandbox, File dir ->
+                        File manifestFile = new File(dir, 'default.xml')
+                        String xml = XmlUtils.transformManifestForBundle(manifestFile, bundleDir)
+                        File targetManifestFile = new File(bundleDir, 'default.xml')
+                        targetManifestFile.withWriter { outWriter ->
+                            XmlUtil.serialize( xml, outWriter )
+                        }
+
+        })
+
+        //new sandbox
+        super.setUp()
+
+        //import bundles
+        def targetManifest = new File(context.env.basedir, 'manifest' + File.separator + 'default.xml')
+        Files.createParentDirs(targetManifest)
+        Files.copy(
+                new File(bundleDir, 'default.xml'),
+                targetManifest
+        )
+
+        context.env.openManifest()
+        GitFeature.cloneOrUpdateFromBundle(context, bundleDir)
+    }
+
+    @Test
+    void testInitManifestRepository() {
+        def manifestDir = new File(context.env.basedir, 'manifest')
+        manifestDir.mkdirs()
+        sandbox.buildManifest(manifestDir)
+
+        GitFeature.initManifestRepository(context, manifestDir, 'extracted_from_bundle')
+
+        def branch = Git.getBranch(context, manifestDir)
+        assertEquals('master', branch)
+    }
+
+    @Test
+    void testLastCommitByManifest() {
+        List<String> commits = new ArrayList<>()
+        sandbox.env.openManifest()
+        RepoManifest.forEach(sandbox.context, { ActionContext actionContext, Node project ->
+            commits.add(Git.getLastCommit(actionContext, new File(sandbox.env.basedir, project.@path)))
+        })
+        assertEquals(2, commits.size())
+    }
+
+    @Test
+    void testCreateDeltaBundle() {
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    Git.createBranch(sandbox.context, dir, '1.0')
+                    Git.checkout(sandbox.context, dir, '1.0')
+                    def newFile = new File(dir, "test")
+                    newFile.createNewFile()
+                    newFile.text = 'TEST123'
+                    Git.add(sandbox.context, dir, 'test')
+                    Git.commit(sandbox.context, dir, 'test_1.0')
+                    def firstCommit = Git.getLastCommit(sandbox.context, dir)
+                    def newFile2 = new File(dir, "test2")
+                    newFile2.createNewFile()
+                    newFile2.text = 'AAAAA'
+                    Git.add(sandbox.context, dir, 'test2')
+                    Git.commit(sandbox.context, dir, 'test_2.0')
+                    def bundleFile = File.createTempFile("repo-build-test", ".bundle")
+                    Git.createFeatureBundle(sandbox.context, '1.0', dir, bundleFile, firstCommit)
+
+                    try {
+                        Git.clone(sandbox.context, bundleFile.absolutePath, 'origin', new File(sandbox.env.basedir, 'clone'))
+                    } catch (RepoBuildException e){
+                        assertTrue(true)
+                        return
+                    }
+
+                    assertTrue(false)
+                })
+    }
+
+    @Test
+    void testUpdateFromBundle(){
+        //clone project
+        def url = new File(sandbox.env.basedir, 'manifest')
+        GitFeature.cloneManifest(context, url.getAbsolutePath(), 'master')
+
+        GitFeature.sync(context)
+
+        //export bundles
+        File bundleDir1 = Files.createTempDir()
+        context.env.openManifest()
+        GitFeature.createManifestBundles(context, bundleDir1)
+
+        Files.copy(
+                new File(url, 'default.xml'),
+                new File(bundleDir1, 'default.xml')
+        )
+
+        //add some commits
+        sandbox.component('c1',
+                { Sandbox sandbox, File dir ->
+                    def newFile = new File(dir, "test")
+                    newFile.createNewFile()
+                    newFile.text = 'TEST123'
+                    Git.add(context, dir, 'test')
+                    Git.commit(context, dir, 'test_1.0')
+                })
+
+        sandbox.component('c2',
+                { Sandbox sandbox, File dir ->
+                    def newFile = new File(dir, "test")
+                    newFile.createNewFile()
+                    newFile.text = 'Launch2'
+                    Git.add(context, dir, 'test')
+                    Git.commit(context, dir, 'test_1.5')
+                })
+
+        GitFeature.sync(context)
+
+        //export bundles
+        File bundleDir2 = Files.createTempDir()
+        GitFeature.createManifestBundles(context, bundleDir2)
+
+        //convert manifest
+        File manifestFile = new File(bundleDir1, 'default.xml')
+        String xml = XmlUtils.transformManifestForBundle(manifestFile, bundleDir1)
+        File targetManifestFile = new File(bundleDir1, 'default.xml')
+        targetManifestFile.withWriter { outWriter ->
+            XmlUtil.serialize( xml, outWriter )
+        }
+
+        //new sandbox
+        super.setUp()
+
+        //import bundles
+        def targetManifest = new File(context.env.basedir, 'manifest' + File.separator + 'default.xml')
+        Files.createParentDirs(targetManifest)
+        Files.copy(
+                new File(bundleDir1, 'default.xml'),
+                targetManifest
+        )
+
+        context.env.openManifest()
+        GitFeature.cloneOrUpdateFromBundle(context, bundleDir1)
+
+        def res = ExecuteProcess.executeCmd0(context, new File(context.env.basedir, 'c1'), "git log --oneline -n 1", true)
+        def (commit, log) = res.split(' ').collect { it.trim() }
+        assertEquals('"init"', log)
+
+        GitFeature.cloneOrUpdateFromBundle(context, bundleDir2)
+        res = ExecuteProcess.executeCmd0(context, new File(context.env.basedir, 'c1'), "git log --oneline -n 1", true)
+        (commit, log) = res.split(' ').collect { it.trim() }
+        assertEquals('"test_1.0"', log)
     }
 
     //TODO we can use hamcrest matchers

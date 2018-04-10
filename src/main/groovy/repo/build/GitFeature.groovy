@@ -2,6 +2,7 @@ package repo.build
 
 import com.github.zafarkhaja.semver.UnexpectedCharacterException
 import com.github.zafarkhaja.semver.Version
+import groovy.xml.XmlUtil
 
 class GitFeature {
 
@@ -247,10 +248,13 @@ class GitFeature {
 
     public static final String ACTION_CREATE_FEATURE_BUNDLES = 'gitFeatureCreateFeatureBundles'
 
-    static void createFeatureBundles(ActionContext parentContext, File targetDir, String branch) {
+    static void createFeatureBundles(ActionContext parentContext, File targetDir, String branch, Map<String, String> commits = null) {
         def context = parentContext.newChild(ACTION_CREATE_FEATURE_BUNDLES)
         context.withCloseable {
             def remoteBranch = RepoManifest.getRemoteBranch(context, branch)
+            if (commits == null){
+                commits = [:]
+            }
 
             RepoManifest.forEachWithBranch(context,
                     { ActionContext actionContext, Node project ->
@@ -258,7 +262,7 @@ class GitFeature {
                         def gitName = new File(project.@name).getName().split("\\.").first()
                         //println gitName
                         def bundleFile = new File(targetDir, "${gitName}.bundle")
-                        Git.createFeatureBundle(actionContext, remoteBranch, dir, bundleFile)
+                        Git.createFeatureBundle(actionContext, remoteBranch, dir, bundleFile, commits.get(project.@name))
                     },
                     branch
             )
@@ -267,9 +271,12 @@ class GitFeature {
 
     public static final String ACTION_CREATE_MANIFEST_BUNDLES = 'gitFeatureCreateManifestBundles'
 
-    static void createManifestBundles(ActionContext parentContext, File targetDir) {
+    static void createManifestBundles(ActionContext parentContext, File targetDir, Map<String, String> commits = null) {
         def context = parentContext.newChild(ACTION_CREATE_MANIFEST_BUNDLES)
         context.withCloseable {
+            if (commits == null){
+                commits = [:]
+            }
             RepoManifest.forEach(context,
                     { ActionContext actionContext, Node project ->
                         def remoteBranch = RepoManifest.getRemoteBranch(actionContext,
@@ -278,7 +285,7 @@ class GitFeature {
                         def gitName = new File(project.@name).getName().split("\\.").first()
                         //println gitName
                         def bundleFile = new File(targetDir, "${gitName}.bundle")
-                        Git.createFeatureBundle(actionContext, remoteBranch, dir, bundleFile)
+                        Git.createFeatureBundle(actionContext, remoteBranch, dir, bundleFile, commits.get(project.@name))
                     }
             )
         }
@@ -459,6 +466,104 @@ class GitFeature {
                         Git.checkoutTag(actionContext, dir, tag)
                     }
             )
+        }
+    }
+
+    public static final String ACTION_CLONE_FROM_BUNDLE = 'gitCloneFromBundle'
+
+    /**
+     * Clone every .bundle file in specified directory, fetch branch specified in manifest
+     * @param parentContext context
+     * @param sourceImportDir bundle source directory
+     */
+    static void cloneOrUpdateFromBundle(ActionContext parentContext, File sourceImportDir) {
+        def context = parentContext.newChild(ACTION_CLONE_FROM_BUNDLE)
+        context.withCloseable {
+            //rewrite manifest remote base url if necessary
+            context.env.openManifest()
+            if (RepoManifest.getRemoteBaseUrl(context) != sourceImportDir){
+                //change manifest remote base url
+                def manifestFile = new File(context.env.basedir, 'manifest/default.xml')
+                def xml = XmlUtils.changeManifestBaseRemoteUrl(manifestFile,
+                        sourceImportDir.absolutePath)
+
+                manifestFile.withWriter { outWriter ->
+                    XmlUtil.serialize( xml, outWriter )
+                }
+
+                context.env.openManifest()
+            }
+            RepoManifest.forEach(context,
+                    { ActionContext actionContext, Node project ->
+                        def bundleFileName = new File(sourceImportDir, project.@name).getAbsolutePath()
+                        def branch = RepoManifest.getBranch(actionContext, project.@path)
+
+                        def dir = new File(actionContext.env.basedir, project.@path)
+
+                        if (dir.exists()){
+                            //change git remote if necessary
+                            def remotes = Git.getRemote(context, dir)
+                            def needChangeRemote = true
+                            remotes.each { line ->
+                                def (name, url, type) = line.split(' ').collect { it.trim() }
+                                if (url == sourceImportDir){
+                                    needChangeRemote = false
+                                }
+                            }
+                            if (needChangeRemote){
+                                Git.setRemote(context, dir, 'origin', bundleFileName)
+                            }
+
+                        } else {
+                            //clone from bundle
+
+                            Git.clone(context, bundleFileName, 'origin', dir)
+                        }
+
+                        if (Git.branchPresent(context, dir, branch)){
+                            Git.checkout(context, dir, branch)
+                            Git.fetch(context, 'origin', dir, "origin/$branch")
+                            Git.merge(context, 'FETCH_HEAD', dir)
+
+                        } else {
+                            try {
+                                Git.fetch(context, 'origin', dir, "origin/$branch:$branch")
+                            } catch (RepoBuildException e) {
+                                Git.fetch(context, 'origin', dir, "origin/$branch")
+                                Git.merge(context, 'FETCH_HEAD', dir)
+                            }
+                            Git.checkout(context, dir, branch)
+                        }
+
+                    }
+            )
+        }
+
+    }
+
+    public static final String ACTION_INIT_MANIFEST_REPOSITORY = 'gitInitManifestRepository'
+
+    static void initManifestRepository(ActionContext parentContext, File manifestFolder, String initMessage = 'auto_init') {
+        def context = parentContext.newChild(ACTION_INIT_MANIFEST_REPOSITORY)
+        context.withCloseable {
+            Git.init(context, manifestFolder)
+            Git.add(context, manifestFolder, 'default.xml')
+            Git.commit(context, manifestFolder, initMessage)
+        }
+    }
+
+    public static final String ACTION_LAST_COMMIT_BY_MANIFEST = 'gitLastCommitByManifest'
+
+    static lastCommitByManifest(ActionContext parentContext){
+        def context = parentContext.newChild(ACTION_CLONE_FROM_BUNDLE)
+        context.withCloseable {
+            def lastCommits = [:]
+            RepoManifest.forEach(context,
+                { ActionContext actionContext, Node project ->
+                    lastCommits[project.@name] = Git.getLastCommit(context, new File(actionContext.env.getBasedir(), project.@path))
+                }
+            )
+            return lastCommits
         }
     }
 

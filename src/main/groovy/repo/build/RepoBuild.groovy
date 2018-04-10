@@ -11,6 +11,7 @@ import repo.build.command.FeatureMergeReleaseCommand
 import repo.build.command.FeatureUpdateParentCommand
 import repo.build.command.FeatureUpdateVersionsCommand
 import repo.build.command.GrepCommand
+import repo.build.command.ImportBundlesCommand
 import repo.build.command.InitCommand
 import repo.build.command.MergeAbortCommand
 import repo.build.command.MvnBuildCommand
@@ -71,6 +72,7 @@ class RepoBuild {
         commandRegistry.registerCommand(new SwitchCommand())
         commandRegistry.registerCommand(new SyncCommand())
         commandRegistry.registerCommand(new TaskMergeFeatureCommand())
+        commandRegistry.registerCommand(new ImportBundlesCommand())
         // combo
         commandRegistry.registerCommand(new FeatureSyncComboCommand())
         commandRegistry.registerCommand(new FeatureSyncStashComboCommand())
