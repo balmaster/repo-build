@@ -40,7 +40,7 @@ class ExportBundlesSpecification extends Specification {
 
         then:
         1 * GitFeature.createManifestBundles(_, dir, null)
-        java.nio.file.Paths.get(dir.getAbsolutePath(), 'default.xml').toFile().exists()
+        1 * GitFeature.createBundleForManifest(_, dir, 'manifest.bundle')
 
     }
 
@@ -52,7 +52,7 @@ class ExportBundlesSpecification extends Specification {
 
         then:
         1 * GitFeature.createFeatureBundles(_, dir, 'feature/1', null)
-        java.nio.file.Paths.get(dir.getAbsolutePath(), 'default.xml').toFile().exists()
+        1 * GitFeature.createBundleForManifest(_, dir, 'manifest.bundle')
     }
 
     def "with parallel with featureBranch"() {
@@ -63,19 +63,23 @@ class ExportBundlesSpecification extends Specification {
 
         then:
         1 * GitFeature.createFeatureBundles(_, dir, 'feature/1', null)
-        java.nio.file.Paths.get(dir.getAbsolutePath(),  'default.xml').toFile().exists()
+        1 * GitFeature.createBundleForManifest(_, dir, 'manifest.bundle')
     }
 
     def "with zip flag"() {
         def repoBuild = new RepoBuild('export-bundles', '-t', dir.absolutePath, '-j', '2', '-z', '-f', 'feature/1')
+        def ant = GroovyMock(AntBuilder, global: true)
+
+        setup:
+        new AntBuilder() >> ant
 
         when:
         repoBuild.execute()
 
         then:
         1 * GitFeature.createFeatureBundles(_, dir, 'feature/1', null)
-        java.nio.file.Paths.get(dir.getAbsolutePath(), 'default.xml').toFile().exists()
-        java.nio.file.Paths.get(dir.getAbsolutePath(), 'bundles.zip').toFile().exists()
+        1 * GitFeature.createBundleForManifest(_, dir, 'manifest.bundle')
+        1 * ant.zip(['baseDir': dir, 'destFile': new File(dir, 'bundles.zip')])
     }
 
     def "with ccf file"() {
@@ -93,7 +97,7 @@ class ExportBundlesSpecification extends Specification {
         then:
         1 * GitFeature.createFeatureBundles(_, dir, 'feature/1',
                 [c1 : 'ae2b5a9df60786b7208d0e0488f2dd3b78902cc9', c2: '80a6dea7bd9cf3dfbc3d26055a02fe9f3f941f44'])
-        java.nio.file.Paths.get(dir.getAbsolutePath(), 'default.xml').toFile().exists()
+        1 * GitFeature.createBundleForManifest(_, dir, 'manifest.bundle')
 
     }
 

@@ -12,7 +12,11 @@ class RepoManifest {
     }
 
     static String getRemoteBaseUrl(ActionContext context) {
-        return context.env.manifest.remote[0].@fetch
+        if (context.options.getManifestRemote()){
+            return context.options.getManifestRemote()
+        } else {
+            return context.env.manifest.remote[0].@fetch
+        }
     }
 
     static boolean projectDirExists(ActionContext context, project) {

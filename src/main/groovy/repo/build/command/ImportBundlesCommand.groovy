@@ -39,29 +39,15 @@ class ImportBundlesCommand extends AbstractCommand{
                 sourceImportDir = tmpDir.toFile()
             }
 
-            def manifestFile = options.getManifestFile()
-            if (manifestFile == null){
-                //manifest file not specified. expect to be found in source folder
-                manifestFile = sourceImportDir.listFiles({ fileDir, fileName -> fileName.equals("default.xml") } as FilenameFilter)[0]
-            }
+            def manifestBranch = options.getManifestBranch()
 
-            def xml = XmlUtils.transformManifestForBundle(manifestFile, sourceImportDir)
-
-            //save rewritten manifest in the base dir
-            def manifestFolder = new File(context.env.getBasedir(), 'manifest')
-            manifestFolder.mkdirs()
-            def convertedManifestFile = new File(manifestFolder, 'default.xml')
-
-            convertedManifestFile.withWriter { outWriter ->
-                XmlUtil.serialize( xml, outWriter )
-            }
-
-            //init git repository for manifest
-            GitFeature.initManifestRepository(context, manifestFolder, 'extracted_from_bundle')
+            //clone manifest bundle
+            GitFeature.cloneOrUpdateFromBundle(context, sourceImportDir, 'manifest',
+                    'manifest.bundle', manifestBranch)
 
             context.env.openManifest()
 
-            GitFeature.cloneOrUpdateFromBundle(context, sourceImportDir)
+            GitFeature.cloneOrUpdateFromBundles(context, sourceImportDir)
         }
     }
 }

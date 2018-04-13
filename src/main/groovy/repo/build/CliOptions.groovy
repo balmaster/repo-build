@@ -79,13 +79,6 @@ class CliOptions {
                 : new File(getRepoBasedir(), 'bundles')
     }
 
-    //manifest for import / export bundles
-    File getManifestFile() {
-        return options.mf ?
-                new File(options.mf)
-                : null
-    }
-
     //create zip archive with bundle
     boolean getZipFlag(){
         return options.z
@@ -210,6 +203,10 @@ class CliOptions {
 
     boolean hasVersionRegexp() {
         return options.rr ? true : false
+    }
+
+    String getManifestRemote(){
+        return options.mr ? options.mr : null
     }
 
 }

@@ -42,29 +42,4 @@ class XmlUtils {
 
         return sw.toString();
     }
-
-    static String transformManifestForBundle(File manifest, File sourceImportDir){
-
-        modifyWithPreserveFormatting(manifest.text, { xml ->
-            xml.remote[0].setAttribute('fetch', sourceImportDir.getAbsolutePath())
-            //rewrite name for project element from <name>.git to <name>.bundle
-            xml.'*'.findAll { node -> node.name() == 'project' }.each {
-                project ->
-                    def newName = project.getAttribute('name')
-                    if (newName.endsWith('.git')){
-                        newName = newName[0..-5] + '.bundle'
-                    } else {
-                        newName = newName + '.bundle'
-                    }
-
-                    project.setAttribute('name', newName)
-            }
-        })
-    }
-
-    static String changeManifestBaseRemoteUrl(File manifest, String newRemoteUrl){
-        modifyWithPreserveFormatting(manifest.text, { xml ->
-            xml.remote[0].setAttribute('fetch', newRemoteUrl)
-        })
-    }
 }

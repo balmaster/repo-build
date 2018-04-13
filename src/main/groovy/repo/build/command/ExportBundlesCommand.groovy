@@ -34,10 +34,7 @@ class ExportBundlesCommand extends AbstractCommand {
             }
         }
 
-        //copy manifest file
-        def basedir = context.env.getBasedir()
-        Files.copy(Paths.get(basedir.getAbsolutePath(), 'manifest', 'default.xml'),
-            Paths.get(targetExportDir.getAbsolutePath(), 'default.xml'))
+        GitFeature.createBundleForManifest(context, targetExportDir, 'manifest.bundle')
 
         //make zip archive of bundles
         if (options.getZipFlag()){
