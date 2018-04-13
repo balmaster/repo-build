@@ -82,19 +82,23 @@ class Git {
 
     public static final String ACTION_CREATE_FEATURE_BUNDLE = 'gitCreateFeatureBundle'
 
-    static void createFeatureBundle(ActionContext parentContext, String branch, File dir, File bundleFile) {
+    static void createFeatureBundle(ActionContext parentContext, String branch, File dir, File bundleFile, String commit) {
         def context = parentContext.newChild(ACTION_CREATE_FEATURE_BUNDLE)
         context.withCloseable {
-            ExecuteProcess.executeCmd0(context, dir, "git bundle create $bundleFile $branch", true)
+            if (commit == null) {
+                ExecuteProcess.executeCmd0(context, dir, "git bundle create $bundleFile $branch", true)
+            } else {
+                ExecuteProcess.executeCmd0(context, dir, "git bundle create $bundleFile $branch $commit..$branch", true)
+            }
         }
     }
 
     public static final String ACTION_FETCH = 'gitFetch'
 
-    static void fetch(ActionContext parentContext, String remoteName, File dir) {
+    static void fetch(ActionContext parentContext, String remoteName, File dir, String refs = "") {
         def context = parentContext.newChild(ACTION_FETCH)
         context.withCloseable {
-            ExecuteProcess.executeCmd0(context, dir, "git fetch $remoteName", true)
+            ExecuteProcess.executeCmd0(context, dir, "git fetch $remoteName $refs", true)
         }
     }
 
@@ -280,6 +284,33 @@ class Git {
         def context = parentContext.newChild(ACTION_TAG_PRESENT)
         context.withCloseable {
             return !ExecuteProcess.executeCmd0(context, dir, "git tag -l $tag", true).empty
+        }
+    }
+
+    public static final String ACTION_LAST_COMMIT = 'gitLastCommitByManifest'
+
+    static String getLastCommit(ActionContext parentContext, File dir){
+        def context = parentContext.newChild(ACTION_LAST_COMMIT)
+        context.withCloseable {
+            return ExecuteProcess.executeCmd0(context, dir, "git rev-list HEAD -n 1", true).trim()
+        }
+    }
+
+    public static final String ACTION_GET_REMOTE = 'gitGetRemote'
+
+    static String getRemote(ActionContext parentContext, File dir){
+        def context = parentContext.newChild(ACTION_GET_REMOTE)
+        context.withCloseable {
+            return ExecuteProcess.executeCmd0(context, dir, "git remote -v", true)
+        }
+    }
+
+    public static final String ACTION_SET_REMOTE = 'gitSetRemote'
+
+    static String setRemote(ActionContext parentContext, File dir, String name, String url){
+        def context = parentContext.newChild(ACTION_SET_REMOTE)
+        context.withCloseable {
+            return ExecuteProcess.executeCmd0(context, dir, "git remote set-url $name $url", true)
         }
     }
 

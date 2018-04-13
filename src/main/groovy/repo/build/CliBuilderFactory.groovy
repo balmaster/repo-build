@@ -20,7 +20,9 @@ class CliBuilderFactory {
             rd(args: 1, argName: 'release-dst', 'release destination branch manifest')
             rs(args: 1, argName: 'release-src', 'release source branch manifest')
             rr(args: 1, argName: 'release-regexp', 'regular expression for version parsing')
-            s(args: 1, argName: 'sourceImportDir', 'source  import dir for bundles')
+            s(args: 1, argName: 'source-import-dir', 'source  import dir for bundles')
+            z('create zip archive of bundles')
+            ccf(args: 1, argName: 'current-commits-file', 'current commits file for export delta bundles')
             t(args: 1, argName: 'targetExportDir', 'target export dir for bundles')
             all('show all output on status')
             D(args: 2, argName: 'property=value', 'system property', valueSeparator: '=', optionalArg: true)
@@ -32,6 +34,7 @@ class CliBuilderFactory {
             W('pause before exit')
             X('enable debug mode')
             _(longOpt: 'version', 'Show version')
+            mr(args:1, argName: 'manifest-remote', 'rewirite manifest remote url')
 
             // maven keys
             me('Produce execution error messages')
