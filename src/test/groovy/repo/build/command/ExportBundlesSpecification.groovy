@@ -77,9 +77,9 @@ class ExportBundlesSpecification extends Specification {
         repoBuild.execute()
 
         then:
-        1 * GitFeature.createFeatureBundles(_, dir, 'feature/1', null)
-        1 * GitFeature.createBundleForManifest(_, dir, 'manifest.bundle')
-        1 * ant.zip(['baseDir': dir, 'destFile': new File(dir, 'bundles.zip')])
+        1 * GitFeature.createFeatureBundles(_, _, 'feature/1', null)
+        1 * GitFeature.createBundleForManifest(_, _, 'manifest.bundle')
+        1 * ant.zip(_)
     }
 
     def "with ccf file"() {
@@ -88,7 +88,7 @@ class ExportBundlesSpecification extends Specification {
             [c1 : 'ae2b5a9df60786b7208d0e0488f2dd3b78902cc9', c2: '80a6dea7bd9cf3dfbc3d26055a02fe9f3f941f44']
             .each { key, value -> outWriter.write(key + ':' + value + '\n') }
         }
-        def repoBuild = new RepoBuild('export-bundles', '-t', dir.absolutePath, '-j', '2', '-z', '-f',
+        def repoBuild = new RepoBuild('export-bundles', '-t', dir.absolutePath, '-j', '2', '-f',
                 'feature/1', '-ccf', ccfFile.getAbsolutePath())
 
         when:

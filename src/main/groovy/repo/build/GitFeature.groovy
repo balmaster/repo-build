@@ -251,7 +251,6 @@ class GitFeature {
     static void createFeatureBundles(ActionContext parentContext, File targetDir, String branch, Map<String, String> commits = null) {
         def context = parentContext.newChild(ACTION_CREATE_FEATURE_BUNDLES)
         context.withCloseable {
-            def remoteBranch = RepoManifest.getRemoteBranch(context, branch)
             if (commits == null){
                 commits = [:]
             }
@@ -259,10 +258,9 @@ class GitFeature {
             RepoManifest.forEachWithBranch(context,
                     { ActionContext actionContext, Node project ->
                         def dir = new File(actionContext.env.basedir, project.@path)
-                        def gitName = new File(project.@name).getName().split("\\.").first()
                         //println gitName
-                        def bundleFile = new File(targetDir, "${gitName}")
-                        Git.createFeatureBundle(actionContext, remoteBranch, dir, bundleFile, commits.get(project.@name))
+                        def bundleFile = new File(targetDir, project.@name)
+                        Git.createFeatureBundle(actionContext, branch, dir, bundleFile, commits.get(project.@name))
                     },
                     branch
             )
@@ -279,13 +277,11 @@ class GitFeature {
             }
             RepoManifest.forEach(context,
                     { ActionContext actionContext, Node project ->
-                        def remoteBranch = RepoManifest.getRemoteBranch(actionContext,
-                                RepoManifest.getBranch(actionContext, project.@path))
+                        def branch = RepoManifest.getBranch(actionContext, project.@path)
                         def dir = new File(actionContext.env.basedir, project.@path)
-                        def gitName = new File(project.@name).getName().split("\\.").first()
                         //println gitName
-                        def bundleFile = new File(targetDir, "${gitName}")
-                        Git.createFeatureBundle(actionContext, remoteBranch, dir, bundleFile, commits.get(project.@name))
+                        def bundleFile = new File(targetDir, project.@name)
+                        Git.createFeatureBundle(actionContext, branch, dir, bundleFile, commits.get(project.@name))
                     }
             )
         }
@@ -490,7 +486,6 @@ class GitFeature {
     static void cloneOrUpdateFromBundles(ActionContext parentContext, File sourceImportDir) {
         def context = parentContext.newChild(ACTION_CLONE_OR_UPDATE_FROM_BUNDLES)
         context.withCloseable {
-            //rewrite manifest remote base url if necessary
             context.env.openManifest()
 
             RepoManifest.forEach(context,
@@ -534,14 +529,14 @@ class GitFeature {
 
             if (Git.branchPresent(context, dir, branch)){
                 Git.checkout(context, dir, branch)
-                Git.fetch(context, 'origin', dir, "origin/$branch")
+                Git.fetch(context, 'origin', dir, "$branch")
                 Git.merge(context, 'FETCH_HEAD', dir)
 
             } else {
                 try {
-                    Git.fetch(context, 'origin', dir, "origin/$branch:$branch")
+                    Git.fetch(context, 'origin', dir, "$branch:$branch")
                 } catch (RepoBuildException e) {
-                    Git.fetch(context, 'origin', dir, "origin/$branch")
+                    Git.fetch(context, 'origin', dir, "$branch")
                     Git.merge(context, 'FETCH_HEAD', dir)
                 }
                 Git.checkout(context, dir, branch)
