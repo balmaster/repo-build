@@ -14,7 +14,13 @@ class ExportBundlesCommand extends AbstractCommand {
 
     void execute(RepoEnv env, CliOptions options) {
         def context = new ActionContext(env, ACTION_EXECUTE, options, new DefaultActionHandler())
-        def targetExportDir = options.getTargetExportDir()
+        def targetExportDir
+        if (options.getZipFlag()){
+            targetExportDir = Files.createTempDirectory('repo-build-tmp').toFile()
+        } else {
+            targetExportDir = options.getTargetExportDir().getAbsoluteFile()
+        }
+
         targetExportDir.mkdirs()
         Map<String, String> commits = null
         if (options.getCurCommitsFile()){
@@ -38,8 +44,10 @@ class ExportBundlesCommand extends AbstractCommand {
 
         //make zip archive of bundles
         if (options.getZipFlag()){
+            def targetDir = options.getTargetExportDir().getAbsoluteFile()
+            targetDir.mkdirs()
             def ant = new AntBuilder()
-            ant.zip( 'baseDir': targetExportDir, 'destFile': new File(targetExportDir, 'bundles.zip'))
+            ant.zip( 'baseDir': targetExportDir, 'destFile': new File(targetDir, 'bundles.zip'))
         }
     }
 }
